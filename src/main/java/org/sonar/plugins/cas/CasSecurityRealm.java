@@ -25,7 +25,7 @@ import org.sonar.api.security.SecurityRealm;
 
 public class CasSecurityRealm extends SecurityRealm {
 
-  public static final String KEY = "CAS";
+  public static final String KEY = "cas";
 
   @Override
   public Authenticator doGetAuthenticator() {

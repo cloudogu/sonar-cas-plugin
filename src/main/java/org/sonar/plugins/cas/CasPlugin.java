@@ -20,11 +20,19 @@
 
 package org.sonar.plugins.cas;
 
+import com.google.common.base.Preconditions;
+import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
-import org.sonar.api.*;
+import com.google.common.collect.Lists;
+import org.sonar.api.ExtensionProvider;
+import org.sonar.api.ServerExtension;
+import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.cas2.CasAuthenticationFilter;
+import org.sonar.plugins.cas.cas2.CasValidationFilter;
+import org.sonar.plugins.cas.saml11.Saml11AuthenticationFilter;
+import org.sonar.plugins.cas.saml11.Saml11ValidationFilter;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class CasPlugin extends SonarPlugin {
@@ -42,10 +50,30 @@ public final class CasPlugin extends SonarPlugin {
 
     @Override
     public Object provide() {
-      if (CasSecurityRealm.KEY.equalsIgnoreCase(settings.getString("sonar.security.realm"))) {
-        return ImmutableList.of(CasAuthenticationFilter.class, CasValidationFilter.class, CasSecurityRealm.class);
+      List<Class> extensions = Lists.newArrayList();
+      if (isRealmEnabled()) {
+        Preconditions.checkState(settings.getBoolean("sonar.authenticator.createUsers"), "Property sonar.authenticator.createUsers must be set to true.");
+        String protocol = settings.getString("sonar.cas.protocol");
+        Preconditions.checkState(!Strings.isNullOrEmpty(protocol), "Missing CAS protocol. Values are: cas2 or saml11.");
+
+        extensions.add(CasSecurityRealm.class);
+        if ("cas2".equals(protocol)) {
+          extensions.add(CasAuthenticationFilter.class);
+          extensions.add(CasValidationFilter.class);
+        } else if ("saml11".equals(protocol)) {
+          extensions.add(Saml11AuthenticationFilter.class);
+          extensions.add(Saml11ValidationFilter.class);
+        } else {
+          throw new IllegalStateException("Unknown CAS protocol: " + protocol + ". Valid values are: cas2 or saml11.");
+        }
+
+
       }
-      return Collections.emptyList();
+      return extensions;
+    }
+
+    private boolean isRealmEnabled() {
+      return CasSecurityRealm.KEY.equalsIgnoreCase(settings.getString("sonar.security.realm"));
     }
   }
 }

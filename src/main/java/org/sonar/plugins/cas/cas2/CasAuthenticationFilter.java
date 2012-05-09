@@ -17,23 +17,19 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas;
+package org.sonar.plugins.cas.cas2;
 
+import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AuthenticationFilter;
-import org.jasig.cas.client.validation.AbstractTicketValidationFilter;
-import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter;
 import org.sonar.api.config.Settings;
-import org.sonar.api.web.ServletFilter;
+import org.sonar.plugins.cas.util.AbstractCasFilter;
 
-import javax.servlet.*;
-import java.io.IOException;
+import java.util.Map;
 
-public class CasAuthenticationFilter extends ServletFilter {
-  private AuthenticationFilter authenticationFilter;
-  private Settings settings;
+public final class CasAuthenticationFilter extends AbstractCasFilter {
 
   public CasAuthenticationFilter(Settings settings) {
-    this.settings = settings;
+    super(settings, new AuthenticationFilter());
   }
 
   @Override
@@ -41,17 +37,10 @@ public class CasAuthenticationFilter extends ServletFilter {
     return UrlPattern.create("/sessions/new/*");
   }
 
-  public void init(FilterConfig filterConfig) throws ServletException {
-    SettingsFilterConfig config = new SettingsFilterConfig(filterConfig, settings, "sonar.cas.authentication");
-    authenticationFilter = new AuthenticationFilter();
-    authenticationFilter.init(config);
-}
-
-  public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain) throws IOException, ServletException {
-    authenticationFilter.doFilter(servletRequest, servletResponse, filterChain);
+  @Override
+  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
+    properties.put("casServerLoginUrl", settings.getString("sonar.cas.casServerLoginUrl"));
+    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
   }
 
-  public void destroy() {
-    authenticationFilter.destroy();
-  }
 }

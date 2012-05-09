@@ -19,47 +19,46 @@
  */
 package org.sonar.plugins.cas;
 
+import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.util.SettingsFilterConfig;
 
 import javax.servlet.FilterConfig;
 import java.util.Collections;
+import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class SettingsFilterConfigTest {
   @Test
   public void filterConfigIsProxyOfSettings() {
-    Settings settings = new Settings()
-        .setProperty("sonar.cas.foo", "one")
-        .setProperty("sonar.cas.bar", "two");
-    SettingsFilterConfig config = new SettingsFilterConfig(mock(FilterConfig.class), settings, "sonar.cas");
+    Map<String, String> settings = Maps.newHashMap();
+    settings.put("bar", "two");
+    settings.put("foo", "one");
+    SettingsFilterConfig config = new SettingsFilterConfig(mock(FilterConfig.class), settings);
 
     assertThat(config.getInitParameter("foo")).isEqualTo("one");
     assertThat(config.getInitParameter("bar")).isEqualTo("two");
-    assertThat(config.getInitParameter("sonar.cas.foo")).isNull();
     assertThat(config.getInitParameter("other")).isNull();
   }
 
   @Test
   public void getParameterNames() {
-    Settings settings = new Settings()
-        .setProperty("sonar.cas.foo", "one")
-        .setProperty("sonar.cas.bar", "two");
-    SettingsFilterConfig config = new SettingsFilterConfig(mock(FilterConfig.class), settings, "sonar.cas");
+    Map<String, String> settings = Maps.newHashMap();
+    settings.put("bar", "two");
+    settings.put("foo", "one");
+    SettingsFilterConfig config = new SettingsFilterConfig(mock(FilterConfig.class), settings);
 
     assertThat(Collections.list(config.getInitParameterNames())).containsExactly("foo", "bar");
   }
 
   @Test
   public void getFilterName() {
-    Settings settings = new Settings();
     FilterConfig initialConfig = mock(FilterConfig.class);
     when(initialConfig.getFilterName()).thenReturn("name");
-    SettingsFilterConfig config = new SettingsFilterConfig(initialConfig, settings, "sonar.cas");
+    SettingsFilterConfig config = new SettingsFilterConfig(initialConfig, Maps.<String, String>newHashMap());
 
     assertThat(config.getFilterName()).isEqualTo("name");
   }

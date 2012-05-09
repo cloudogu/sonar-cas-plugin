@@ -17,7 +17,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas;
+package org.sonar.plugins.cas.util;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
@@ -27,17 +27,17 @@ import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import java.util.Enumeration;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
-class SettingsFilterConfig implements FilterConfig {
+public final class SettingsFilterConfig implements FilterConfig {
 
   private FilterConfig initialConfig;
-  private Settings settings;
-  private String propertyPrefix;
+  private Map<String,String> properties;
 
-  SettingsFilterConfig(FilterConfig initialConfig, Settings settings, String propertyPrefix) {
+  public SettingsFilterConfig(FilterConfig initialConfig, Map<String,String> properties) {
     this.initialConfig = initialConfig;
-    this.settings = settings;
-    this.propertyPrefix = propertyPrefix;
+    this.properties = properties;
   }
 
   public String getFilterName() {
@@ -49,14 +49,10 @@ class SettingsFilterConfig implements FilterConfig {
   }
 
   public String getInitParameter(String s) {
-    return settings.getString(propertyPrefix + "." + s);
+    return properties.get(s);
   }
 
   public Enumeration getInitParameterNames() {
-    List<String> keys = Lists.newArrayList();
-    for (String completeKey : settings.getKeysStartingWith(propertyPrefix + ".")) {
-      keys.add(completeKey.substring(propertyPrefix.length() + 1));
-    }
-    return Iterators.asEnumeration(keys.listIterator());
+    return Iterators.asEnumeration(properties.keySet().iterator());
   }
 }

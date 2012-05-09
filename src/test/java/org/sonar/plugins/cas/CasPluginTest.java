@@ -19,22 +19,83 @@
  */
 package org.sonar.plugins.cas;
 
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.sonar.api.ServerExtension;
 import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.cas2.CasAuthenticationFilter;
+import org.sonar.plugins.cas.saml11.Saml11AuthenticationFilter;
 
 import java.util.List;
 
 import static org.fest.assertions.Assertions.assertThat;
 
 public class CasPluginTest {
+
+  @Rule
+  public ExpectedException thrown = ExpectedException.none();
+
   @Test
   public void enable_extensions_if_cas_realm_is_enabled() {
-    Settings settings = new Settings().setProperty("sonar.security.realm", "CAS");
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "true")
+        .setProperty("sonar.cas.protocol", "cas2");
     List<ServerExtension> extensions = (List<ServerExtension>) new CasPlugin.CasExtensions(settings).provide();
 
     assertThat(extensions).hasSize(3);
     assertThat(extensions).doesNotHaveDuplicates();
+    assertThat(extensions).contains(CasAuthenticationFilter.class);
+  }
+
+  @Test
+  public void enable_saml11_extensions() {
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "true")
+        .setProperty("sonar.cas.protocol", "saml11");
+    List<ServerExtension> extensions = (List<ServerExtension>) new CasPlugin.CasExtensions(settings).provide();
+
+    assertThat(extensions).hasSize(3);
+    assertThat(extensions).doesNotHaveDuplicates();
+    assertThat(extensions).contains(Saml11AuthenticationFilter.class);
+  }
+
+  @Test
+  public void fail_if_unknown_protocol() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Unknown CAS protocol");
+
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "true")
+        .setProperty("sonar.cas.protocol", "other");
+    new CasPlugin.CasExtensions(settings).provide();
+  }
+
+  @Test
+  public void property_createUsers_must_be_true() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Property sonar.authenticator.createUsers must be set to true");
+
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "false")
+        .setProperty("sonar.cas.protocol", "saml11");
+
+    new CasPlugin.CasExtensions(settings).provide();
+  }
+
+  @Test
+  public void fail_if_missing_protocol() {
+    thrown.expect(IllegalStateException.class);
+    thrown.expectMessage("Missing CAS protocol");
+
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "true");
+    new CasPlugin.CasExtensions(settings).provide();
   }
 
   @Test

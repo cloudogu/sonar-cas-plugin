@@ -17,19 +17,29 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas;
+package org.sonar.plugins.cas.saml11;
 
-import com.google.common.base.Strings;
-import org.jasig.cas.client.util.AbstractCasFilter;
-import org.jasig.cas.client.validation.Assertion;
-import org.sonar.api.security.Authenticator;
+import org.apache.commons.lang.StringUtils;
+import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.util.AbstractCasFilter;
 
-public class CasAuthenticator extends Authenticator {
+import java.util.Map;
+
+public final class Saml11AuthenticationFilter extends AbstractCasFilter {
+
+  public Saml11AuthenticationFilter(Settings settings) {
+    super(settings, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
+  }
 
   @Override
-  public boolean doAuthenticate(Context context) {
-    Assertion assertion = (Assertion) context.getRequest().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
-    return assertion != null && assertion.getPrincipal() != null && !Strings.isNullOrEmpty(assertion.getPrincipal().getName());
+  public UrlPattern doGetPattern() {
+    return UrlPattern.create("/sessions/new/*");
+  }
+
+  @Override
+  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
+    properties.put("casServerLoginUrl", settings.getString("sonar.cas.casServerLoginUrl"));
+    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
   }
 
 }
