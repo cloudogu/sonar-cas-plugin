@@ -11,7 +11,6 @@ class CasController < ApplicationController
       self.current_user = nil
       puts e
     end
-    session[:_const_cas_assertion_]=nil
     redirect_back_or_default(home_url)
   end
 
