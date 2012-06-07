@@ -38,18 +38,18 @@
     </developer>
   </developers>
   <scm>
-    <connection>scm:svn:http://svn.codehaus.org/sonar-plugins/trunk/cas</connection>
-    <developerConnection>scm:svn:https://svn.codehaus.org/sonar-plugins/trunk/cas</developerConnection>
-    <url>http://svn.sonar-plugins.codehaus.org</url>
+    <connection>scm:git:https://github.com/SonarCommunity/sonar-cas</connection>
+    <developerConnection>scm:git:https://github.com/SonarCommunity/sonar-cas</developerConnection>
+    <url>https://github.com/SonarCommunity/sonar-cas</url>
   </scm>
   <issueManagement>
     <system>JIRA</system>
     <url>http://jira.codehaus.org/browse/SONARPLUGINS/component/15492</url>
   </issueManagement>
-  <!--<ciManagement>
-    <system>Bamboo</system>
-    <url>http://ci.codehaus.org/browse/SONAR-LDAP</url>
-  </ciManagement>-->
+  <ciManagement>
+    <system>Cloudbees</system>
+    <url>https://sonarplugins.ci.cloudbees.com/job/cas/</url>
+  </ciManagement>
 
   <dependencies>
     <dependency>
