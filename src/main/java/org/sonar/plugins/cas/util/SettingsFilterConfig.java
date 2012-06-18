@@ -20,22 +20,18 @@
 package org.sonar.plugins.cas.util;
 
 import com.google.common.collect.Iterators;
-import com.google.common.collect.Lists;
-import org.sonar.api.config.Settings;
 
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletContext;
 import java.util.Enumeration;
-import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 public final class SettingsFilterConfig implements FilterConfig {
 
   private FilterConfig initialConfig;
-  private Map<String,String> properties;
+  private Map<String, String> properties;
 
-  public SettingsFilterConfig(FilterConfig initialConfig, Map<String,String> properties) {
+  public SettingsFilterConfig(FilterConfig initialConfig, Map<String, String> properties) {
     this.initialConfig = initialConfig;
     this.properties = properties;
   }
