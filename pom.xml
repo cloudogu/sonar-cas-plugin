@@ -14,7 +14,7 @@
   <name>Sonar CAS Plugin</name>
 
   <properties>
-    <sonar.version>3.1-RC2</sonar.version>
+    <sonar.version>3.1</sonar.version>
   </properties>
 
   <inceptionYear>2012</inceptionYear>
