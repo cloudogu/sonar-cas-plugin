@@ -2,21 +2,18 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <parent>
     <groupId>org.codehaus.sonar-plugins</groupId>
     <artifactId>parent</artifactId>
     <version>13</version>
-    <relativePath>../parent</relativePath>
   </parent>
+
   <artifactId>sonar-cas-plugin</artifactId>
   <version>0.1-SNAPSHOT</version>
   <packaging>sonar-plugin</packaging>
+
   <name>Sonar CAS Plugin</name>
-
-  <properties>
-    <sonar.version>3.1</sonar.version>
-  </properties>
-
   <inceptionYear>2012</inceptionYear>
   <organization>
     <name>SonarSource</name>
@@ -37,6 +34,7 @@
       <timezone>+1</timezone>
     </developer>
   </developers>
+
   <scm>
     <connection>scm:git:https://github.com/SonarCommunity/sonar-cas</connection>
     <developerConnection>scm:git:https://github.com/SonarCommunity/sonar-cas</developerConnection>
@@ -50,6 +48,10 @@
     <system>Cloudbees</system>
     <url>https://sonarplugins.ci.cloudbees.com/job/cas/</url>
   </ciManagement>
+
+  <properties>
+    <sonar.version>3.1</sonar.version>
+  </properties>
 
   <dependencies>
     <dependency>
@@ -109,4 +111,5 @@
       </plugin>
     </plugins>
   </build>
+
 </project>
