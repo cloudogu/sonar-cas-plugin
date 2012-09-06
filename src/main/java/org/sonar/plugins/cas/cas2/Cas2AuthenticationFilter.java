@@ -26,9 +26,9 @@ import org.sonar.plugins.cas.util.AbstractCasFilter;
 
 import java.util.Map;
 
-public final class CasAuthenticationFilter extends AbstractCasFilter {
+public final class Cas2AuthenticationFilter extends AbstractCasFilter {
 
-  public CasAuthenticationFilter(Settings settings) {
+  public Cas2AuthenticationFilter(Settings settings) {
     super(settings, new AuthenticationFilter());
   }
 

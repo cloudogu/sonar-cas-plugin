@@ -24,7 +24,8 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 import org.sonar.api.ServerExtension;
 import org.sonar.api.config.Settings;
-import org.sonar.plugins.cas.cas2.CasAuthenticationFilter;
+import org.sonar.plugins.cas.cas1.Cas1AuthenticationFilter;
+import org.sonar.plugins.cas.cas2.Cas2AuthenticationFilter;
 import org.sonar.plugins.cas.saml11.Saml11AuthenticationFilter;
 
 import java.util.List;
@@ -46,7 +47,20 @@ public class CasPluginTest {
 
     assertThat(extensions).hasSize(3);
     assertThat(extensions).doesNotHaveDuplicates();
-    assertThat(extensions).contains(CasAuthenticationFilter.class);
+    assertThat(extensions).contains(Cas2AuthenticationFilter.class);
+  }
+
+  @Test
+  public void enable_cas1_extensions() {
+    Settings settings = new Settings()
+        .setProperty("sonar.security.realm", "cas")
+        .setProperty("sonar.authenticator.createUsers", "true")
+        .setProperty("sonar.cas.protocol", "cas1");
+    List<ServerExtension> extensions = (List<ServerExtension>) new CasPlugin.CasExtensions(settings).provide();
+
+    assertThat(extensions).hasSize(3);
+    assertThat(extensions).doesNotHaveDuplicates();
+    assertThat(extensions).contains(Cas1AuthenticationFilter.class);
   }
 
   @Test

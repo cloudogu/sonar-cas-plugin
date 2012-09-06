@@ -28,10 +28,14 @@ import org.sonar.api.ExtensionProvider;
 import org.sonar.api.ServerExtension;
 import org.sonar.api.SonarPlugin;
 import org.sonar.api.config.Settings;
-import org.sonar.plugins.cas.cas2.CasAuthenticationFilter;
-import org.sonar.plugins.cas.cas2.CasValidationFilter;
+import org.sonar.plugins.cas.cas1.Cas1AuthenticationFilter;
+import org.sonar.plugins.cas.cas1.Cas1ValidationFilter;
+import org.sonar.plugins.cas.cas2.Cas2AuthenticationFilter;
+import org.sonar.plugins.cas.cas2.Cas2ValidationFilter;
 import org.sonar.plugins.cas.saml11.Saml11AuthenticationFilter;
 import org.sonar.plugins.cas.saml11.Saml11ValidationFilter;
+import org.sonar.plugins.cas.logout.CasLogoutRequestFilter;
+import org.sonar.plugins.cas.logout.SonarLogoutRequestFilter;
 
 import java.util.List;
 
@@ -55,18 +59,28 @@ public final class CasPlugin extends SonarPlugin {
         Preconditions.checkState(settings.getBoolean("sonar.authenticator.createUsers"), "Property sonar.authenticator.createUsers must be set to true.");
         String protocol = settings.getString("sonar.cas.protocol");
         Preconditions.checkState(!Strings.isNullOrEmpty(protocol), "Missing CAS protocol. Values are: cas2 or saml11.");
+        boolean handleLogout = settings.getBoolean("sonar.cas.handlogout");
 
         extensions.add(CasSecurityRealm.class);
-        if ("cas2".equals(protocol)) {
-          extensions.add(CasAuthenticationFilter.class);
-          extensions.add(CasValidationFilter.class);
+
+        // Adding logout filter
+        if (handleLogout == true) {
+          extensions.add(CasLogoutRequestFilter.class);
+          extensions.add(SonarLogoutRequestFilter.class);
+        }
+
+        if ("cas1".equals(protocol)) {
+          extensions.add(Cas1AuthenticationFilter.class);
+          extensions.add(Cas1ValidationFilter.class);
+        } else if ("cas2".equals(protocol)) {
+          extensions.add(Cas2AuthenticationFilter.class);
+          extensions.add(Cas2ValidationFilter.class);
         } else if ("saml11".equals(protocol)) {
           extensions.add(Saml11AuthenticationFilter.class);
           extensions.add(Saml11ValidationFilter.class);
         } else {
           throw new IllegalStateException("Unknown CAS protocol: " + protocol + ". Valid values are: cas2 or saml11.");
         }
-
 
       }
       return extensions;
@@ -76,4 +90,5 @@ public final class CasPlugin extends SonarPlugin {
       return CasSecurityRealm.KEY.equalsIgnoreCase(settings.getString("sonar.security.realm"));
     }
   }
+
 }

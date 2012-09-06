@@ -20,7 +20,7 @@ sonar.authenticator.createUsers=true
 # enable CAS plugin
 sonar.security.realm=cas
 
-# cas2 or saml11
+# cas1, cas2 or saml11
 sonar.cas.protocol=cas2
 
 # Location of the CAS server login form, i.e. https://localhost:8443/cas/login
@@ -31,6 +31,10 @@ sonar.cas.casServerUrlPrefix=http://localhost:8080/cas
 
 # Sonar server root URL, without ending slash
 sonar.cas.sonarServerUrl=http://localhost:9000
+
+# CAS handle logout, if true sonar session will be deleted on CAS logout request. Default is false.
+#sonar.cas.handlogout=true
+#sonar.cas.casServerLogoutUrl=http://localhost:8080/cas/logout
 
 # Specifies whether gateway=true should be sent to the CAS server. Default is false.
 #sonar.cas.sendGateway=false
