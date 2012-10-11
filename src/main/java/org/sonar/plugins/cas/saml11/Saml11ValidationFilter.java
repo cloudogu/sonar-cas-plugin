@@ -19,17 +19,25 @@
  */
 package org.sonar.plugins.cas.saml11;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.validation.Saml11TicketValidationFilter;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
+
+import javax.servlet.Filter;
 
 import java.util.Map;
 
 public final class Saml11ValidationFilter extends AbstractCasFilter {
 
   public Saml11ValidationFilter(Settings settings) {
-    super(settings, new Saml11TicketValidationFilter());
+    this(settings, new Saml11TicketValidationFilter());
+  }
+
+  @VisibleForTesting
+  Saml11ValidationFilter(Settings settings, Filter casFilter) {
+    super(settings, casFilter);
   }
 
   @Override

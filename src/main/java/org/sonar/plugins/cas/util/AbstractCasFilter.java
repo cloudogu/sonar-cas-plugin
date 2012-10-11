@@ -73,8 +73,4 @@ public abstract class AbstractCasFilter extends ServletFilter {
   }
 
   protected abstract void doCompleteProperties(Settings settings, Map<String, String> properties);
-
-  public final Filter getCasFilter() {
-    return casFilter;
-  }
 }

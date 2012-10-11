@@ -28,6 +28,9 @@ import java.util.Map;
 
 /**
  * This filter is used to manage CAS 1 protocol validation
+ * <p>
+ *   TODO: this class is almost a full duplication of Cas2ValidationFilter
+ * </p>
  *
  * @author Guillaume Lamirand
  */

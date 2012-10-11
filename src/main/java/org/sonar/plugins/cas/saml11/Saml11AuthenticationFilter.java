@@ -19,16 +19,24 @@
  */
 package org.sonar.plugins.cas.saml11;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
+
+import javax.servlet.Filter;
 
 import java.util.Map;
 
 public final class Saml11AuthenticationFilter extends AbstractCasFilter {
 
   public Saml11AuthenticationFilter(Settings settings) {
-    super(settings, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
+    this(settings, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
+  }
+
+  @VisibleForTesting
+  Saml11AuthenticationFilter(Settings settings, Filter casFilter) {
+    super(settings, casFilter);
   }
 
   @Override

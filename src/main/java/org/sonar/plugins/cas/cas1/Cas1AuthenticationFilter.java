@@ -27,7 +27,10 @@ import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 
 /**
- * This filter is used to manage CAS 1 protocol
+ * This filter is used to manage CAS 1 protocol.
+ * <p>
+ * TODO: this class duplicates Cas2AuthenticationFilter
+ * </p>
  *
  * @author Guillaume Lamirand
  */
