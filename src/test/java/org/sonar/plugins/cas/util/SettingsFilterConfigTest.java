@@ -17,13 +17,13 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas;
+package org.sonar.plugins.cas.util;
 
 import com.google.common.collect.Maps;
 import org.junit.Test;
-import org.sonar.plugins.cas.util.SettingsFilterConfig;
 
 import javax.servlet.FilterConfig;
+
 import java.util.Collections;
 import java.util.Map;
 
