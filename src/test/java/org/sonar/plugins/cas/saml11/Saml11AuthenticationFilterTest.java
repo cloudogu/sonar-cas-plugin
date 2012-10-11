@@ -23,6 +23,7 @@ import org.apache.commons.lang.StringUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sonar.api.config.Settings;
 
 import javax.servlet.Filter;
@@ -32,6 +33,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 public class Saml11AuthenticationFilterTest {
   @Test
@@ -39,6 +41,19 @@ public class Saml11AuthenticationFilterTest {
     Saml11AuthenticationFilter filter = new Saml11AuthenticationFilter(new Settings());
 
     assertThat(filter.doGetPattern().getUrl()).isEqualTo("/sessions/new/*");
+  }
+
+  @Test
+  public void should_create_cas_filter() throws Exception {
+    Settings settings = new Settings();
+    settings.setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000");
+    settings.setProperty("sonar.cas.casServerLoginUrl", "http://localhost:8080/cas/login");
+    settings.setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas");
+
+    Saml11AuthenticationFilter filter = new Saml11AuthenticationFilter(settings);
+    filter.init(mock(FilterConfig.class, withSettings().defaultAnswer(Mockito.RETURNS_DEEP_STUBS)));
+
+    assertThat(filter.getCasFilter()).isInstanceOf(org.jasig.cas.client.authentication.Saml11AuthenticationFilter.class);
   }
 
   @Test

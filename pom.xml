@@ -72,6 +72,11 @@
       </exclusions>
     </dependency>
     <dependency>
+      <groupId>org.opensaml</groupId>
+      <artifactId>opensaml1</artifactId>
+      <version>1.1</version>
+    </dependency>
+    <dependency>
       <groupId>javax.servlet</groupId>
       <artifactId>servlet-api</artifactId>
       <version>2.4</version>

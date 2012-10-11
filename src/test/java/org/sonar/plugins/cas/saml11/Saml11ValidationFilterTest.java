@@ -22,9 +22,10 @@ package org.sonar.plugins.cas.saml11;
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.jasig.cas.client.validation.Saml11TicketValidationFilter;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sonar.api.config.Settings;
-import org.sonar.plugins.cas.cas2.Cas2ValidationFilter;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterConfig;
@@ -33,6 +34,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 public class Saml11ValidationFilterTest {
   @Test
@@ -40,6 +42,19 @@ public class Saml11ValidationFilterTest {
     Saml11ValidationFilter filter = new Saml11ValidationFilter(new Settings());
 
     assertThat(filter.doGetPattern().getUrl()).isEqualTo("/cas/validate");
+  }
+
+  @Test
+  public void should_create_cas_filter() throws Exception {
+    Settings settings = new Settings();
+    settings.setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000");
+    settings.setProperty("sonar.cas.casServerLoginUrl", "http://localhost:8080/cas/login");
+    settings.setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas");
+
+    Saml11ValidationFilter filter = new Saml11ValidationFilter(settings);
+    filter.init(mock(FilterConfig.class, withSettings().defaultAnswer(Mockito.RETURNS_DEEP_STUBS)));
+
+    assertThat(filter.getCasFilter()).isInstanceOf(Saml11TicketValidationFilter.class);
   }
 
   @Test

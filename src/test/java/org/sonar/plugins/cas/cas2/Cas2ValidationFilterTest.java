@@ -22,7 +22,9 @@ package org.sonar.plugins.cas.cas2;
 import org.apache.commons.lang.StringUtils;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.sonar.api.config.Settings;
 
 import javax.servlet.Filter;
@@ -32,6 +34,7 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.withSettings;
 
 public class Cas2ValidationFilterTest {
   @Test
@@ -42,28 +45,16 @@ public class Cas2ValidationFilterTest {
   }
 
   @Test
-  public void should_init_cas_filter_with_default_values() throws Exception {
+  public void should_create_cas_filter() throws Exception {
     Settings settings = new Settings();
     settings.setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000");
+    settings.setProperty("sonar.cas.casServerLoginUrl", "http://localhost:8080/cas/login");
+    settings.setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas");
 
-    Filter casFilter = mock(Filter.class);
-    Cas2ValidationFilter filter = new Cas2ValidationFilter(settings, casFilter);
+    Cas2ValidationFilter filter = new Cas2ValidationFilter(settings);
+    filter.init(mock(FilterConfig.class, withSettings().defaultAnswer(Mockito.RETURNS_DEEP_STUBS)));
 
-    filter.init(mock(FilterConfig.class));
-
-    verify(casFilter).init(argThat(new BaseMatcher<FilterConfig>() {
-      public boolean matches(Object o) {
-        FilterConfig config = (FilterConfig) o;
-        return verifyParam(config, "gateway", "false") &&
-          verifyParam(config, "service", "http://localhost:9000/cas/validate") &&
-          verifyParam(config, "redirectAfterValidation", "false") &&
-          verifyParam(config, "useSession", "true") &&
-          verifyParam(config, "exceptionOnValidationFailure", "true");
-      }
-
-      public void describeTo(Description description) {
-      }
-    }));
+    assertThat(filter.getCasFilter()).isInstanceOf(Cas20ProxyReceivingTicketValidationFilter.class);
   }
 
   @Test
@@ -83,7 +74,10 @@ public class Cas2ValidationFilterTest {
         FilterConfig config = (FilterConfig) o;
         return verifyParam(config, "gateway", "true") &&
           verifyParam(config, "service", "http://localhost:9000/cas/validate") &&
-          verifyParam(config, "casServerUrlPrefix", "http://localhost:8080/cas");
+          verifyParam(config, "casServerUrlPrefix", "http://localhost:8080/cas") &&
+          verifyParam(config, "redirectAfterValidation", "false") &&
+          verifyParam(config, "useSession", "true") &&
+          verifyParam(config, "exceptionOnValidationFailure", "true");
       }
 
       public void describeTo(Description description) {
