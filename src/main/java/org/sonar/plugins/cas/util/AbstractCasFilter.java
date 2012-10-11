@@ -25,7 +25,13 @@ import com.google.common.collect.Maps;
 import org.sonar.api.config.Settings;
 import org.sonar.api.web.ServletFilter;
 
-import javax.servlet.*;
+import javax.servlet.Filter;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletException;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -67,4 +73,8 @@ public abstract class AbstractCasFilter extends ServletFilter {
   }
 
   protected abstract void doCompleteProperties(Settings settings, Map<String, String> properties);
+
+  public final Filter getCasFilter() {
+    return casFilter;
+  }
 }

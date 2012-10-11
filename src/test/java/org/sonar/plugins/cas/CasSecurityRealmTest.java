@@ -25,12 +25,11 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class CasSecurityRealmTest {
   @Test
-  public void hasAuthenticator() {
-    assertThat(new CasSecurityRealm().doGetAuthenticator()).isInstanceOf(CasAuthenticator.class);
+  public void should_declare_components() {
+    CasSecurityRealm realm = new CasSecurityRealm();
+    assertThat(realm.doGetAuthenticator()).isInstanceOf(CasAuthenticator.class);
+    assertThat(realm.getUsersProvider()).isInstanceOf(CasUserProvider.class);
+    assertThat(realm.getName()).isEqualTo("cas");
   }
 
-  @Test
-  public void hasUserProvider() {
-    assertThat(new CasSecurityRealm().getUsersProvider()).isInstanceOf(CasUserProvider.class);
-  }
 }

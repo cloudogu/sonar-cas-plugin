@@ -32,8 +32,7 @@ sonar.cas.casServerUrlPrefix=http://localhost:8080/cas
 # Sonar server root URL, without ending slash
 sonar.cas.sonarServerUrl=http://localhost:9000
 
-# CAS handle logout, if true sonar session will be deleted on CAS logout request. Default is false.
-#sonar.cas.handlogout=true
+# Optional CAS server logout URL. If set, sonar session will be deleted on CAS logout request.
 #sonar.cas.casServerLogoutUrl=http://localhost:8080/cas/logout
 
 # Specifies whether gateway=true should be sent to the CAS server. Default is false.

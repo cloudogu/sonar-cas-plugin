@@ -19,17 +19,25 @@
  */
 package org.sonar.plugins.cas.cas2;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
+
+import javax.servlet.Filter;
 
 import java.util.Map;
 
 public final class Cas2ValidationFilter extends AbstractCasFilter {
 
   public Cas2ValidationFilter(Settings settings) {
-    super(settings, new Cas20ProxyReceivingTicketValidationFilter());
+    this(settings, new Cas20ProxyReceivingTicketValidationFilter());
+  }
+
+  @VisibleForTesting
+  Cas2ValidationFilter(Settings settings, Filter casFilter) {
+    super(settings, casFilter);
   }
 
   @Override

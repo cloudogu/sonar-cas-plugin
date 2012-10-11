@@ -41,6 +41,7 @@ import com.google.common.base.Strings;
  */
 public class SonarLogoutRequestFilter extends ServletFilter {
 
+  public static final String PROPERTY_CAS_LOGOUT_URL = "sonar.cas.casServerLogoutUrl";
   private final Settings settings;
   private String logoutUrl;
 
@@ -54,8 +55,8 @@ public class SonarLogoutRequestFilter extends ServletFilter {
   }
 
   public final void init(final FilterConfig initialConfig) throws ServletException {
-    logoutUrl = settings.getString("sonar.cas.casServerLogoutUrl");
-    Preconditions.checkState(!Strings.isNullOrEmpty(logoutUrl), String.format("Missing property: %s", "sonar.cas.casServerLogoutUrl"));
+    logoutUrl = settings.getString(PROPERTY_CAS_LOGOUT_URL);
+    Preconditions.checkState(!Strings.isNullOrEmpty(logoutUrl), String.format("Missing property: %s", PROPERTY_CAS_LOGOUT_URL));
   }
 
   public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
