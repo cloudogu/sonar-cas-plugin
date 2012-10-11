@@ -19,10 +19,13 @@
  */
 package org.sonar.plugins.cas.cas1;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
+
+import javax.servlet.Filter;
 
 import java.util.Map;
 
@@ -37,7 +40,12 @@ import java.util.Map;
 public final class Cas1ValidationFilter extends AbstractCasFilter {
 
   public Cas1ValidationFilter(Settings settings) {
-    super(settings, new Cas10TicketValidationFilter());
+    this(settings, new Cas10TicketValidationFilter());
+  }
+
+  @VisibleForTesting
+  Cas1ValidationFilter(Settings settings, Filter casFilter) {
+    super(settings, casFilter);
   }
 
   @Override
