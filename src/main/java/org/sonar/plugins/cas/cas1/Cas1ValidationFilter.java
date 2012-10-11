@@ -17,19 +17,24 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas.cas2;
+package org.sonar.plugins.cas.cas1;
 
 import org.apache.commons.lang.StringUtils;
-import org.jasig.cas.client.validation.Cas20ProxyReceivingTicketValidationFilter;
+import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 
 import java.util.Map;
 
-public final class CasValidationFilter extends AbstractCasFilter {
+/**
+ * This filter is used to manage CAS 1 protocol validation
+ *
+ * @author Guillaume Lamirand
+ */
+public final class Cas1ValidationFilter extends AbstractCasFilter {
 
-  public CasValidationFilter(Settings settings) {
-    super(settings, new Cas20ProxyReceivingTicketValidationFilter());
+  public Cas1ValidationFilter(Settings settings) {
+    super(settings, new Cas10TicketValidationFilter());
   }
 
   @Override
@@ -45,4 +50,5 @@ public final class CasValidationFilter extends AbstractCasFilter {
     properties.put("useSession", "true");
     properties.put("exceptionOnValidationFailure", "true");
   }
+
 }
