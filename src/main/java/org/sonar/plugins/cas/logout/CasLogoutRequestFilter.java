@@ -33,7 +33,7 @@ import java.util.Map;
 public class CasLogoutRequestFilter extends AbstractCasFilter {
 
   public CasLogoutRequestFilter(final Settings pSettings) {
-    super(pSettings, new SingleSignOutFilter());
+    super(pSettings, new CasSonarSingleSignOutFilter());
   }
 
   @Override

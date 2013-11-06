@@ -51,6 +51,7 @@
 
   <properties>
     <sonar.version>3.1</sonar.version>
+    <cas.version>3.2.1</cas.version>
   </properties>
 
   <dependencies>
@@ -63,7 +64,7 @@
     <dependency>
       <groupId>org.jasig.cas.client</groupId>
       <artifactId>cas-client-core</artifactId>
-      <version>3.2.1</version>
+      <version>${cas.version}</version>
       <exclusions>
         <exclusion>
           <groupId>commons-logging</groupId>
