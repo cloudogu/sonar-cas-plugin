@@ -31,27 +31,29 @@ import java.util.Map;
 
 public final class Saml11ValidationFilter extends AbstractCasFilter {
 
-  public Saml11ValidationFilter(Settings settings) {
-    this(settings, new Saml11TicketValidationFilter());
-  }
+	public Saml11ValidationFilter(Settings settings) {
+		this(settings, new Saml11TicketValidationFilter());
+	}
 
-  @VisibleForTesting
-  Saml11ValidationFilter(Settings settings, Filter casFilter) {
-    super(settings, casFilter);
-  }
+	@VisibleForTesting
+	Saml11ValidationFilter(Settings settings, Filter casFilter) {
+		super(settings, casFilter);
+	}
 
-  @Override
-  public UrlPattern doGetPattern() {
-    return UrlPattern.create("/cas/validate");
-  }
+	@Override
+	public UrlPattern doGetPattern() {
+		return UrlPattern.create("/cas/validate");
+	}
 
-  @Override
-  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
-    properties.put("casServerUrlPrefix", settings.getString("sonar.cas.casServerUrlPrefix"));
-    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
-    properties.put("redirectAfterValidation", "false");
-    properties.put("useSession", "true");
-    properties.put("exceptionOnValidationFailure", "true");
-    properties.put("tolerance", StringUtils.defaultIfEmpty(settings.getString("sonar.cas.saml11.toleranceMilliseconds"), "1000"));
-  }
+	@Override
+	protected void doCompleteProperties(Settings settings,
+			Map<String, String> properties) {
+		properties.put("casServerUrlPrefix", settings.getString("sonar.cas.casServerUrlPrefix"));
+		properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
+		properties.put("redirectAfterValidation", "false");
+		// XXX: Use Session = false as in CAS 2.0
+		properties.put("useSession", "false");
+		properties.put("exceptionOnValidationFailure", "true");
+		properties.put("tolerance", StringUtils.defaultIfEmpty(settings.getString("sonar.cas.saml11.toleranceMilliseconds"), "1000"));
+	}
 }
