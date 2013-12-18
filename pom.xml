@@ -51,7 +51,7 @@
 	</ciManagement>
 
 	<properties>
-		<sonar.version>3.1</sonar.version>
+		<sonar.version>3.7</sonar.version>
 		<cas.version>3.2.1</cas.version>
 	</properties>
 
@@ -81,7 +81,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.opensaml</groupId>
-			<artifactId>opensaml1</artifactId>
+			<artifactId>opensaml</artifactId>
 			<version>1.1</version>
 		</dependency>
 		<dependency>
@@ -155,6 +155,25 @@
 											<goal>
 												check-dependencies
 											</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore></ignore>
+									</action>
+								</pluginExecution>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>
+											com.mycila.maven-license-plugin
+										</groupId>
+										<artifactId>
+											maven-license-plugin
+										</artifactId>
+										<versionRange>
+											[1.9.0,)
+										</versionRange>
+										<goals>
+											<goal>check</goal>
 										</goals>
 									</pluginExecutionFilter>
 									<action>

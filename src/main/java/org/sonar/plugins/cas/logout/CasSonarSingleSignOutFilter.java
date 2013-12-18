@@ -58,17 +58,15 @@ public final class CasSonarSingleSignOutFilter extends AbstractConfigurationFilt
         handler.setSessionMappingStorage(storage);
     }
 
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
+    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse,
+          final FilterChain filterChain) throws IOException, ServletException {
+        
         final HttpServletRequest request = (HttpServletRequest) servletRequest;
         boolean recordSession = false;
         if (handler.isTokenRequest(request)) {
             recordSession = true;
-        } else if (handler.isLogoutRequest(request)) {
-            handler.destroySession(request);
-            // Do not continue up filter chain
-            return;
         } else {
-            log.trace("Ignoring URI " + request.getRequestURI());
+        	request.getSession(false).invalidate();
         }
 
         filterChain.doFilter(servletRequest, servletResponse);
