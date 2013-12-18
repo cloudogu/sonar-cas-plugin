@@ -14,11 +14,14 @@ HOW TO INSTALL PLUGIN
 
 PLUGIN PROPERTIES
 
+# enable CAS plugin
+sonar.security.realm=cas
+
 # this property must be set to true
 sonar.authenticator.createUsers=true
 
-# enable CAS plugin
-sonar.security.realm=cas
+# force CAS authentication (no anonymous access allowed)
+sonar.cas.forceCasLogin=true
 
 # cas1, cas2 or saml11
 sonar.cas.protocol=cas2

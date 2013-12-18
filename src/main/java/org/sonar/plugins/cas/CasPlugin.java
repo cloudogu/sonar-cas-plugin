@@ -49,8 +49,7 @@ public final class CasPlugin extends SonarPlugin {
 		return ImmutableList.of(CasExtensions.class);
 	}
 
-	public static final class CasExtensions extends ExtensionProvider implements
-			ServerExtension {
+	public static final class CasExtensions extends ExtensionProvider implements ServerExtension {
 		private Settings settings;
 
 		public CasExtensions(Settings settings) {
@@ -63,22 +62,21 @@ public final class CasPlugin extends SonarPlugin {
 
 			List<Class> extensions = Lists.newArrayList();
 			if (isRealmEnabled()) {
-				Preconditions
-						.checkState(settings
-								.getBoolean("sonar.authenticator.createUsers"),
-								"Property sonar.authenticator.createUsers must be set to true.");
+				Preconditions.checkState(settings.getBoolean("sonar.authenticator.createUsers"),
+					"Property sonar.authenticator.createUsers must be set to true.");
 				String protocol = settings.getString("sonar.cas.protocol");
-				Preconditions
-						.checkState(!Strings.isNullOrEmpty(protocol),
-								"Missing CAS protocol. Values are: cas1, cas2 or saml11.");
+				Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
+					"Missing CAS protocol. Values are: cas1, cas2 or saml11.");
 
 				extensions.add(CasSecurityRealm.class);
 
-				if (StringUtils
-						.isNotBlank(settings
-								.getString(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL))) {
+				if (StringUtils.isNotBlank(settings.getString(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL))) {
 					extensions.add(CasLogoutRequestFilter.class);
 					extensions.add(SonarLogoutRequestFilter.class);
+				}
+				
+				if (settings.getBoolean("sonar.cas.forceCasLogin")) {
+				  extensions.add(ForceCasLoginFilter.class);
 				}
 
 				if ("cas1".equals(protocol)) {
@@ -91,9 +89,8 @@ public final class CasPlugin extends SonarPlugin {
 					extensions.add(Saml11AuthenticationFilter.class);
 					extensions.add(Saml11ValidationFilter.class);
 				} else {
-					throw new IllegalStateException("Unknown CAS protocol: "
-							+ protocol
-							+ ". Valid values are: cas1, cas2 or saml11.");
+					throw new IllegalStateException(
+					    String.format("Unknown CAS protocol: %s. Valid values are: cas1, cas2 or saml11.", protocol));
 				}
 
 			}
@@ -101,9 +98,7 @@ public final class CasPlugin extends SonarPlugin {
 		}
 
 		private boolean isRealmEnabled() {
-			return CasSecurityRealm.KEY.equalsIgnoreCase(settings
-					.getString("sonar.security.realm"));
+			return CasSecurityRealm.KEY.equalsIgnoreCase(settings.getString("sonar.security.realm"));
 		}
 	}
-
 }
