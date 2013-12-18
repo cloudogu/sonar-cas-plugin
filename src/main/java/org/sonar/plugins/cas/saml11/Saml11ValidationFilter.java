@@ -46,13 +46,11 @@ public final class Saml11ValidationFilter extends AbstractCasFilter {
 	}
 
 	@Override
-	protected void doCompleteProperties(Settings settings,
-			Map<String, String> properties) {
+	protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
 		properties.put("casServerUrlPrefix", settings.getString("sonar.cas.casServerUrlPrefix"));
 		properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
 		properties.put("redirectAfterValidation", "false");
-		// XXX: Use Session = false as in CAS 2.0
-		properties.put("useSession", "false");
+		properties.put("useSession", "true");
 		properties.put("exceptionOnValidationFailure", "true");
 		properties.put("tolerance", StringUtils.defaultIfEmpty(settings.getString("sonar.cas.saml11.toleranceMilliseconds"), "1000"));
 	}
