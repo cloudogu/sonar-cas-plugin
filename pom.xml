@@ -36,10 +36,10 @@
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/SonarCommunity/sonar-cas</connection>
-		<developerConnection>scm:git:https://github.com/SonarCommunity/sonar-cas</developerConnection>
-		<url>https://github.com/SonarCommunity/sonar-cas</url>
-		<tag>0.1</tag>
+		<connection>scm:git:https://github.com/DaSilva2010/sonar-cas.git</connection>
+		<developerConnection>scm:git:https://github.com/DaSilva2010/sonar-cas.git</developerConnection>
+		<url>https://github.com/DaSilva2010/sonar-cas</url>
+		<tag>0.1-TRIO</tag>
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
