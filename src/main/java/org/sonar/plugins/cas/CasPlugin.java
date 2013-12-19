@@ -58,8 +58,6 @@ public final class CasPlugin extends SonarPlugin {
 
 		@Override
 		public Object provide() {
-			IgnoreCert.disableSslVerification();
-
 			List<Class> extensions = Lists.newArrayList();
 			if (isRealmEnabled()) {
 				Preconditions.checkState(settings.getBoolean("sonar.authenticator.createUsers"),
@@ -69,6 +67,11 @@ public final class CasPlugin extends SonarPlugin {
 					"Missing CAS protocol. Values are: cas1, cas2 or saml11.");
 
 				extensions.add(CasSecurityRealm.class);
+				
+				// The ignore certification validation should only be used in development (security risk)!
+				if (settings.getBoolean("sonar.cas.disableCertValidation")) {
+				  IgnoreCert.disableSslVerification();
+				}
 
 				if (StringUtils.isNotBlank(settings.getString(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL))) {
 					extensions.add(CasLogoutRequestFilter.class);

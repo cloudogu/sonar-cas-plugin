@@ -45,3 +45,6 @@ sonar.cas.sonarServerUrl=http://localhost:9000
 # Note that 10 seconds should be more than enough for most environments that have NTP time synchronization.
 # Default is 1000 milliseconds.
 #sonar.cas.saml11.toleranceMilliseconds=1000
+
+# Ignore certification validation errors. CAUTION! NEVER USE IN PROD! SECURITY RISK!
+sonar.cas.disableCertValidation=false

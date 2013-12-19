@@ -34,13 +34,21 @@ import javax.servlet.http.HttpServlet;
 
 import org.apache.commons.logging.LogFactory;
 
+/**
+ * Disable certification validation check. This is useful in development environemnt
+ * with self signed certificates. This will prevent the SSLHandshakeExeption. Do not use
+ * this in production environment because it will be a security risk, e.g. man-in-the-middle
+ * attacks can not be identified.
+ * @author Philip Pohle, TRIOLOGY GmbH
+ *
+ */
 public class IgnoreCert extends HttpServlet {
 
 	private static final long serialVersionUID = -9002436159316961665L;
 
 	@Override
 	public void init() throws ServletException {
-		disableSslVerification();
+//		disableSslVerification();
 	}
 
 	public static void disableSslVerification() {
