@@ -53,7 +53,8 @@ public class ForceCasLoginFilter extends ServletFilter {
       Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
           : null;
       if (null == assertion || null == assertion.getPrincipal()) {
-        ((HttpServletResponse) response).sendRedirect(UrlPattern.create("/sessions/new").getUrl());
+        ((HttpServletResponse) response).sendRedirect(UrlPattern.create("sessions/new").getUrl());
+        return;
       }
     }
     chain.doFilter(httpRequest, response);
