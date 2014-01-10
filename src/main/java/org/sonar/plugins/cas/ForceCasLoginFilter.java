@@ -49,8 +49,8 @@ public class ForceCasLoginFilter extends ServletFilter {
       throws IOException, ServletException {
     HttpServletRequest httpRequest = (HttpServletRequest) request;
     if (!httpRequest.getServletPath().contains("/sessions/") && !httpRequest.getServletPath().contains("/cas/validate")) {
-      HttpSession session = httpRequest.getSession(false);
-      Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
+      final HttpSession session = httpRequest.getSession();
+      final Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
           : null;
       if (null == assertion || null == assertion.getPrincipal()) {
         ((HttpServletResponse) response).sendRedirect(UrlPattern.create("sessions/new").getUrl());
