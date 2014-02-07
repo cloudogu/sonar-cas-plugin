@@ -19,23 +19,25 @@
  */
 package org.sonar.plugins.cas.saml11;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.config.Settings;
-import org.sonar.plugins.cas.util.AbstractCasFilter;
+import java.util.Map;
 
 import javax.servlet.Filter;
 
-import java.util.Map;
+import org.apache.commons.lang.StringUtils;
+import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.util.AbstractCasFilter;
+import org.sonar.plugins.cas.util.SonarCasPropertyNames;
+
+import com.google.common.annotations.VisibleForTesting;
 
 public final class Saml11AuthenticationFilter extends AbstractCasFilter {
 
-  public Saml11AuthenticationFilter(Settings settings) {
+  public Saml11AuthenticationFilter(final Settings settings) {
     this(settings, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
   }
 
   @VisibleForTesting
-  Saml11AuthenticationFilter(Settings settings, Filter casFilter) {
+  Saml11AuthenticationFilter(final Settings settings, final Filter casFilter) {
     super(settings, casFilter);
   }
 
@@ -45,9 +47,10 @@ public final class Saml11AuthenticationFilter extends AbstractCasFilter {
   }
 
   @Override
-  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
-    properties.put("casServerLoginUrl", settings.getString("sonar.cas.casServerLoginUrl"));
-    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
+  protected void doCompleteProperties(final Settings settings, final Map<String, String> properties) {
+    properties.put("casServerLoginUrl", settings.getString(SonarCasPropertyNames.CAS_SERVER_LOGIN_URL.toString()));
+    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString(
+        SonarCasPropertyNames.SEND_GATEWAY.toString()), "false"));
   }
 
 }

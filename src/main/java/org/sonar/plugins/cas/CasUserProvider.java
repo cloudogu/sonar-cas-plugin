@@ -19,6 +19,8 @@
  */
 package org.sonar.plugins.cas;
 
+import java.util.Map;
+
 import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalUsersProvider;
@@ -27,12 +29,21 @@ import org.sonar.api.security.UserDetails;
 public class CasUserProvider extends ExternalUsersProvider {
 
   @Override
-  public UserDetails doGetUserDetails(Context context) {
+  public UserDetails doGetUserDetails(final Context context) {
     UserDetails user = null;
-    Assertion assertion = (Assertion) context.getRequest().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
-    if (assertion!=null && assertion.getPrincipal()!=null) {
+    final Assertion assertion = (Assertion) context.getRequest().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
+    if (assertion != null && assertion.getPrincipal() != null) {
       user = new UserDetails();
-      user.setName(assertion.getPrincipal().getName());
+      final Map<String,Object> attributes = assertion.getPrincipal().getAttributes();
+      final CasAttributeSettings settings = CasAttributeSettings.getInstance();
+      if (null != attributes && null != attributes.get(settings.getFullNameAttribute())) {
+        user.setName((String) attributes.get(settings.getFullNameAttribute()));
+      } else {
+        user.setName(assertion.getPrincipal().getName());
+      }
+      if (null != attributes && null != attributes.get(settings.geteMailAttribute())) {
+        user.setEmail((String) attributes.get(settings.geteMailAttribute()));
+      }
     }
     return user;
   }

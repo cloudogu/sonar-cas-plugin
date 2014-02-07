@@ -19,19 +19,20 @@
  */
 package org.sonar.plugins.cas.util;
 
-import com.google.common.collect.Iterators;
-
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletContext;
 import java.util.Enumeration;
 import java.util.Map;
 
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
+
+import com.google.common.collect.Iterators;
+
 public final class SettingsFilterConfig implements FilterConfig {
 
-  private FilterConfig initialConfig;
-  private Map<String, String> properties;
+  private final FilterConfig initialConfig;
+  private final Map<String, String> properties;
 
-  public SettingsFilterConfig(FilterConfig initialConfig, Map<String, String> properties) {
+  public SettingsFilterConfig(final FilterConfig initialConfig, final Map<String, String> properties) {
     this.initialConfig = initialConfig;
     this.properties = properties;
   }
@@ -44,11 +45,11 @@ public final class SettingsFilterConfig implements FilterConfig {
     return initialConfig.getServletContext();
   }
 
-  public String getInitParameter(String s) {
+  public String getInitParameter(final String s) {
     return properties.get(s);
   }
 
-  public Enumeration getInitParameterNames() {
+  public Enumeration<String> getInitParameterNames() {
     return Iterators.asEnumeration(properties.keySet().iterator());
   }
 }

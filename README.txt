@@ -41,6 +41,16 @@ sonar.cas.sonarServerUrl=http://localhost:9000
 # Specifies whether gateway=true should be sent to the CAS server. Default is false.
 #sonar.cas.sendGateway=false
 
+# Attribute(s) holding the authorities (groups, roles, etc.) the user belongs to. Multiple
+# values should be separated with commas (e.g. 'groups,roles').
+sonar.cas.rolesAttributes=groups,roles
+
+# Attribute holding the user's full name.
+sonar.cas.fullNameAttribute=cn
+
+# Attribute holding the user's email address.
+sonar.cas.eMailAttribute=mail
+
 # The tolerance in milliseconds for drifting clocks when validating SAML 1.1 tickets.
 # Note that 10 seconds should be more than enough for most environments that have NTP time synchronization.
 # Default is 1000 milliseconds.

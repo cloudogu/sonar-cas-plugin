@@ -32,8 +32,6 @@ import javax.net.ssl.X509TrustManager;
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.apache.commons.logging.LogFactory;
-
 /**
  * Disable certification validation check. This is useful in development environemnt
  * with self signed certificates. This will prevent the SSLHandshakeExeption. Do not use
@@ -44,49 +42,49 @@ import org.apache.commons.logging.LogFactory;
  */
 public class IgnoreCert extends HttpServlet {
 
-	private static final long serialVersionUID = -9002436159316961665L;
+  private static final long serialVersionUID = -9002436159316961665L;
 
-	@Override
-	public void init() throws ServletException {
-//		disableSslVerification();
-	}
+  @Override
+  public void init() throws ServletException {
+    //		disableSslVerification();
+  }
 
-	public static void disableSslVerification() {
-		try {
-			// Create a trust manager that does not validate certificate chains
-			TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-				public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-					return null;
-				}
+  public static void disableSslVerification() {
+    try {
+      // Create a trust manager that does not validate certificate chains
+      final TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+          return null;
+        }
 
-				public void checkClientTrusted(X509Certificate[] certs,
-						String authType) {
-				}
+        public void checkClientTrusted(final X509Certificate[] certs,
+            final String authType) {
+        }
 
-				public void checkServerTrusted(X509Certificate[] certs,
-						String authType) {
-				}
-			} };
+        public void checkServerTrusted(final X509Certificate[] certs,
+            final String authType) {
+        }
+      } };
 
-			// Install the all-trusting trust manager
-			SSLContext sc = SSLContext.getInstance("SSL");
-			sc.init(null, trustAllCerts, new java.security.SecureRandom());
-			HttpsURLConnection
-					.setDefaultSSLSocketFactory(sc.getSocketFactory());
+      // Install the all-trusting trust manager
+      final SSLContext sc = SSLContext.getInstance("SSL");
+      sc.init(null, trustAllCerts, new java.security.SecureRandom());
+      HttpsURLConnection
+      .setDefaultSSLSocketFactory(sc.getSocketFactory());
 
-			// Create all-trusting host name verifier
-			HostnameVerifier allHostsValid = new HostnameVerifier() {
-				public boolean verify(String arg0, SSLSession arg1) {
-					return true;
-				}
-			};
+      // Create all-trusting host name verifier
+      final HostnameVerifier allHostsValid = new HostnameVerifier() {
+        public boolean verify(final String arg0, final SSLSession arg1) {
+          return true;
+        }
+      };
 
-			// Install the all-trusting host verifier
-			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		}
-	}
+      // Install the all-trusting host verifier
+      HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+    } catch (final NoSuchAlgorithmException e) {
+      e.printStackTrace();
+    } catch (final KeyManagementException e) {
+      e.printStackTrace();
+    }
+  }
 }

@@ -9,7 +9,7 @@
 	</parent>
 
 	<artifactId>sonar-cas-plugin</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.2-TRIO</version>
 	<packaging>sonar-plugin</packaging>
 
 	<name>Sonar CAS Plugin</name>
