@@ -19,6 +19,8 @@
  */
 package org.sonar.plugins.cas;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.jasig.cas.client.util.AbstractCasFilter;
@@ -27,6 +29,13 @@ import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.UserDetails;
 
 public class CasUserProvider extends ExternalUsersProvider {
+  private final Map<String, List<String>> groupMappings;
+  private final CasAttributeSettings settings;
+
+  public CasUserProvider(final CasAttributeSettings settings, final Map<String, List<String>> userGroupMapping) {
+    groupMappings = userGroupMapping;
+    this.settings = settings;
+  }
 
   @Override
   public UserDetails doGetUserDetails(final Context context) {
@@ -35,14 +44,31 @@ public class CasUserProvider extends ExternalUsersProvider {
     if (assertion != null && assertion.getPrincipal() != null) {
       user = new UserDetails();
       final Map<String,Object> attributes = assertion.getPrincipal().getAttributes();
-      final CasAttributeSettings settings = CasAttributeSettings.getInstance();
       if (null != attributes && null != attributes.get(settings.getFullNameAttribute())) {
         user.setName((String) attributes.get(settings.getFullNameAttribute()));
       } else {
         user.setName(assertion.getPrincipal().getName());
       }
-      if (null != attributes && null != attributes.get(settings.geteMailAttribute())) {
-        user.setEmail((String) attributes.get(settings.geteMailAttribute()));
+      if (null != attributes) {
+        if (null != attributes.get(settings.geteMailAttribute())) {
+          user.setEmail((String) attributes.get(settings.geteMailAttribute()));
+        }
+        if (null != settings.getRoleAttributes()) {
+          final List<String> groups = new ArrayList<String>();
+          for (final String role : settings.getRoleAttributes()) {
+            final Object o = attributes.get(role);
+            if (o instanceof String) {
+              groups.add((String) o);
+            } else if (o instanceof List) {
+              for (final Object g : (List<?>) o) {
+                if (g instanceof String) {
+                  groups.add((String) g);
+                }
+              }
+            }
+          }
+          groupMappings.put(user.getName(), groups);
+        }
       }
     }
     return user;

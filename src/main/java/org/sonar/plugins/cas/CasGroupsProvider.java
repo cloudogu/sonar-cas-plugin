@@ -21,24 +21,42 @@ package org.sonar.plugins.cas;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 
 import org.sonar.api.security.ExternalGroupsProvider;
+import org.sonar.api.utils.SonarException;
 
 
 /**
- * @author jboerner
- *
+ * External group provider implementation for CAS group attributes.
+ * It provides groups that are delivered by the CAS server for the known users.
+ * @author Jan Boerner, TRIOLOGY GmbH
  */
 public class CasGroupsProvider extends ExternalGroupsProvider {
+
+  Map<String, List<String>> groupMappings;
+
+  /**
+   * Constructs the CasGroupsProvider
+   * @param userGroupMapping List of known user to group mappings.
+   */
+  public CasGroupsProvider(final Map<String, List<String>> userGroupMapping) {
+    groupMappings = userGroupMapping;
+  }
 
   /* (non-Javadoc)
    * @see org.sonar.api.security.ExternalGroupsProvider#doGetGroups(java.lang.String)
    */
   @Override
-  public Collection<String> doGetGroups(String username) {
-    // TODO Auto-generated method stub
-    Collection<String> result = new ArrayList<String>();
-    result.add("Paula");
+  public Collection<String> doGetGroups(final String username) {
+    final Collection<String> result = new ArrayList<String>();
+    try {
+      final List<String> groups = groupMappings.get(username);
+      result.addAll(groups);
+    } catch (final NullPointerException e) {
+      throw new SonarException("Unable to retrieve groups for user " + username, e);
+    }
     return result;
   }
 

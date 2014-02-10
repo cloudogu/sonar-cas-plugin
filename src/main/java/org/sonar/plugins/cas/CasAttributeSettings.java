@@ -19,50 +19,35 @@
  */
 package org.sonar.plugins.cas;
 
+import java.util.Arrays;
+import java.util.List;
 
+import org.apache.commons.lang.StringUtils;
+import org.sonar.api.ServerExtension;
+import org.sonar.api.config.Settings;
+import org.sonar.plugins.cas.util.SonarCasPropertyNames;
 
 /**
- * Singleton object holding the attribute mappings.
+ * Parse the settings and provide attribute configuration.
  * @author Jan Boerner, TRIOLOGY GmbH
  */
-public class CasAttributeSettings {
-  /**   The singleton instance. */
-  private static CasAttributeSettings INSTANCE;
-  private String roleAttributes = "groups,roles";
-  private String fullNameAttribute = "cn";
-  private String eMailAttribute = "mail";
-
-  /** Constructor. */
-  private CasAttributeSettings() {   }
-
-  static {
-    INSTANCE = new CasAttributeSettings();
-  }
+public class CasAttributeSettings implements ServerExtension {
+  private final Settings settings;
 
   /**
-   * @return Singleton-Instance-Getter.
+   * Constructor.
+   * @param pSettings The sonar settings object.
    */
-  public static CasAttributeSettings getInstance() {
-    if(INSTANCE == null) {
-      throw new AssertionError("INSTANCE == null");
-    }
-    return INSTANCE;
+  public CasAttributeSettings(final Settings pSettings) {
+    settings = pSettings;
   }
-
 
   /**
    * @return the roleAttributes
    */
-  public String getRoleAttributes() {
-    return roleAttributes;
-  }
-
-
-  /**
-   * @param roleAttributes the roleAttributes to set
-   */
-  public void setRoleAttributes(final String roleAttributes) {
-    this.roleAttributes = roleAttributes;
+  public List<String> getRoleAttributes() {
+    final String str = StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()), null);
+    return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
   }
 
 
@@ -70,31 +55,14 @@ public class CasAttributeSettings {
    * @return the fullNameAttribute
    */
   public String getFullNameAttribute() {
-    return fullNameAttribute;
+    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()), "cn");
   }
-
-  /**
-   * @param fullNameAttribute the fullNameAttribute to set
-   */
-  public void setFullNameAttribute(final String fullNameAttribute) {
-    this.fullNameAttribute = fullNameAttribute;
-  }
-
 
   /**
    * @return the eMailAttribute
    */
   public String geteMailAttribute() {
-    return eMailAttribute;
+    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()), "mail");
   }
-
-
-  /**
-   * @param eMailAttribute the eMailAttribute to set
-   */
-  public void seteMailAttribute(final String eMailAttribute) {
-    this.eMailAttribute = eMailAttribute;
-  }
-
 
 }

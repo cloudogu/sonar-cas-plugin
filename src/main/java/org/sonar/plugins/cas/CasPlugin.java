@@ -95,16 +95,7 @@ public final class CasPlugin extends SonarPlugin {
           throw new IllegalStateException(
               String.format("Unknown CAS protocol: %s. Valid values are: cas1, cas2 or saml11.", protocol));
         }
-
-        if ("cas2".equals(protocol) || "saml11".equals(protocol)) {
-          final CasAttributeSettings attrSettings = CasAttributeSettings.getInstance();
-          attrSettings.setFullNameAttribute(StringUtils.defaultIfBlank(
-              settings.getString(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()), "cn"));
-          attrSettings.setRoleAttributes(StringUtils.defaultIfBlank(
-              settings.getString(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()), "groups,roles"));
-          attrSettings.seteMailAttribute(StringUtils.defaultIfBlank(
-              settings.getString(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()), "mail"));
-        }
+        extensions.add(CasAttributeSettings.class);
       }
       return extensions;
     }

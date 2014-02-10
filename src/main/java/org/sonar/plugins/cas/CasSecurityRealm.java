@@ -19,13 +19,34 @@
  */
 package org.sonar.plugins.cas;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.sonar.api.security.Authenticator;
+import org.sonar.api.security.ExternalGroupsProvider;
 import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.SecurityRealm;
 
 public class CasSecurityRealm extends SecurityRealm {
 
   public static final String KEY = "cas";
+  /** Provider for user groups that are delivered by the CAS attributes. */
+  private ExternalGroupsProvider groupsProvider = null;
+  private Map<String, List<String>> userGroupMapping;
+  private final CasAttributeSettings settings;
+
+  public CasSecurityRealm(final CasAttributeSettings settings) {
+    this.settings = settings;
+  }
+
+  @Override
+  public void init() {
+    if (null != settings.getRoleAttributes()) {
+      userGroupMapping = new HashMap<String, List<String>>();
+      groupsProvider = new CasGroupsProvider(userGroupMapping);
+    }
+  }
 
   @Override
   public Authenticator doGetAuthenticator() {
@@ -34,7 +55,12 @@ public class CasSecurityRealm extends SecurityRealm {
 
   @Override
   public ExternalUsersProvider getUsersProvider() {
-    return new CasUserProvider();
+    return new CasUserProvider(settings, userGroupMapping);
+  }
+
+  @Override
+  public ExternalGroupsProvider getGroupsProvider() {
+    return groupsProvider;
   }
 
   @Override
