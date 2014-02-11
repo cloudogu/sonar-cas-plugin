@@ -20,6 +20,8 @@
 package org.sonar.plugins.cas;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
@@ -41,14 +43,18 @@ import org.sonar.api.web.ServletFilter;
  */
 public class ForceCasLoginFilter extends ServletFilter {
 
-  public void init(FilterConfig filterConfig) throws ServletException {
+  /** Array of request URLS that should not be redirected to the login page. */
+  private static final List<String> WHITE_LIST = Arrays.asList(
+      new String[] {"/sessions/", "/cas/validate", "/api/", "/batch_bootstrap/", "/deploy/", "/batch"});
+
+  public void init(final FilterConfig filterConfig) throws ServletException {
     // nothing to do
   }
 
-  public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+  public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException {
-    HttpServletRequest httpRequest = (HttpServletRequest) request;
-    if (!httpRequest.getServletPath().contains("/sessions/") && !httpRequest.getServletPath().contains("/cas/validate")) {
+    final HttpServletRequest httpRequest = (HttpServletRequest) request;
+    if (!isInWhiteList(httpRequest.getServletPath())) {
       final HttpSession session = httpRequest.getSession();
       final Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
           : null;
@@ -62,6 +68,22 @@ public class ForceCasLoginFilter extends ServletFilter {
 
   public void destroy() {
     // nothing to do
+  }
+
+  /**
+   * Looks for the given value if it or parts of it are containing in the white list.
+   * @param entry Entry to look for in white list.
+   * @return true if found, false otherwise.
+   */
+  private boolean isInWhiteList(final String entry) {
+    if (null != entry) {
+      for (final String item : WHITE_LIST) {
+        if (entry.contains(item)) {
+          return true;
+        }
+      }
+    }
+    return false;
   }
 
 }
