@@ -45,8 +45,8 @@ sonar.cas.sonarServerUrl=http://localhost:9000
 # values should be separated with commas (e.g. 'groups,roles').
 sonar.cas.rolesAttributes=groups,roles
 
-# Attribute holding the user's full name.
-sonar.cas.fullNameAttribute=cn
+# Attribute holding the user's full name. (Currently not supported related to Sonar limitations.)
+#sonar.cas.fullNameAttribute=cn
 
 # Attribute holding the user's email address.
 sonar.cas.eMailAttribute=mail

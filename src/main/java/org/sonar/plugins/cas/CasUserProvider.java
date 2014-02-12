@@ -43,12 +43,8 @@ public class CasUserProvider extends ExternalUsersProvider {
     final Assertion assertion = (Assertion) context.getRequest().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
     if (assertion != null && assertion.getPrincipal() != null) {
       user = new UserDetails();
+      user.setName(assertion.getPrincipal().getName());
       final Map<String,Object> attributes = assertion.getPrincipal().getAttributes();
-      if (null != attributes && null != attributes.get(settings.getFullNameAttribute())) {
-        user.setName((String) attributes.get(settings.getFullNameAttribute()));
-      } else {
-        user.setName(assertion.getPrincipal().getName());
-      }
       if (null != attributes) {
         if (null != attributes.get(settings.geteMailAttribute())) {
           user.setEmail((String) attributes.get(settings.geteMailAttribute()));
