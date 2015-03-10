@@ -20,6 +20,7 @@
 package org.sonar.plugins.cas;
 
 import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,26 +35,51 @@ import javax.servlet.http.HttpSession;
 
 import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
+
+import org.sonar.api.config.Settings;
 import org.sonar.api.web.ServletFilter;
+
+import org.sonar.plugins.cas.util.Credentials;
+import org.sonar.plugins.cas.util.RequestUtil;
+import org.sonar.plugins.cas.util.RestAuthenticator;
 
 /**
  * This filter checks for users authenticated against JASIG CAS. That means a CAS_ASSERTION is stored in the user
  * session. If not, the client is redirected to the /session/new address to create a new user session.
+ * 
  * @author Jan Boerner, TRIOLOGY GmbH
+ * @author Sebastian Sdorra, TRIOLOGY GmbH
  */
 public class ForceCasLoginFilter extends ServletFilter {
 
   /** Array of request URLS that should not be redirected to the login page. */
   private static final List<String> WHITE_LIST = Arrays.asList(
-      new String[] {"/sessions/", "/cas/validate", "/api/", "/batch_bootstrap/", "/deploy/", "/batch"});
+    new String[] {"/sessions/", "/cas/validate", "/api/", "/batch_bootstrap/", "/deploy/", "/batch"}
+  );
 
+  private final RestAuthenticator restAuthenticator;
+
+  public ForceCasLoginFilter(Settings settings) {
+    this.restAuthenticator = new RestAuthenticator(settings);
+  }
+  
   public void init(final FilterConfig filterConfig) throws ServletException {
     // nothing to do
   }
 
   public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
       throws IOException, ServletException {
-    final HttpServletRequest httpRequest = (HttpServletRequest) request;
+    
+    final HttpServletRequest httpRequest = RequestUtil.toHttp(request);
+    
+    // authenticate non browser clients
+    if (!RequestUtil.isBrowser(httpRequest)){
+      Credentials credentials = RequestUtil.getBasicAuthentication(httpRequest);
+      if (credentials != null) {
+        restAuthenticator.authenticate(credentials, httpRequest);
+      }
+    }
+    
     if (!isInWhiteList(httpRequest.getServletPath())) {
       final HttpSession session = httpRequest.getSession();
       final Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
@@ -65,7 +91,7 @@ public class ForceCasLoginFilter extends ServletFilter {
     }
     chain.doFilter(httpRequest, response);
   }
-
+  
   public void destroy() {
     // nothing to do
   }

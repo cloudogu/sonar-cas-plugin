@@ -51,7 +51,7 @@ public class SettingsFilterConfigTest {
     settings.put("foo", "one");
     SettingsFilterConfig config = new SettingsFilterConfig(mock(FilterConfig.class), settings);
 
-    assertThat(Collections.list(config.getInitParameterNames())).containsExactly("foo", "bar");
+    assertThat(Collections.list(config.getInitParameterNames())).contains("foo", "bar");
   }
 
   @Test

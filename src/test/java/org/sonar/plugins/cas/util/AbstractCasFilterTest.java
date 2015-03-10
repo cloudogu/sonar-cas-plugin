@@ -34,6 +34,7 @@ import java.util.Map;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
@@ -46,7 +47,9 @@ public class AbstractCasFilterTest {
   public void is_proxy() throws Exception {
     Filter target = mock(Filter.class);
     AbstractCasFilter filter = new FakeFilter(new Settings(), target);
-    filter.doFilter(mock(HttpServletRequest.class), mock(HttpServletResponse.class), mock(FilterChain.class));
+    HttpServletRequest request = mock(HttpServletRequest.class);
+    when(request.getHeader("User-Agent")).thenReturn("Mozilla fake");
+    filter.doFilter(request, mock(HttpServletResponse.class), mock(FilterChain.class));
     verify(target).doFilter(any(HttpServletRequest.class), any(HttpServletResponse.class), any(FilterChain.class));
 
     filter.destroy();
