@@ -30,13 +30,15 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
 import org.junit.Test;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.ConfigurationBridge;
+import org.sonar.api.config.internal.MapSettings;
 import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.UserDetails;
 
 public class CasUserProviderTest {
   @Test
   public void should_get_username_from_cas_attribute() {
-    final CasUserProvider provider = new CasUserProvider(new CasAttributeSettings(new Settings()), null);
+    final CasUserProvider provider = new CasUserProvider(new CasAttributeSettings(new ConfigurationBridge(new MapSettings())), null);
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final Assertion casAssertion = mock(Assertion.class);
     when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));

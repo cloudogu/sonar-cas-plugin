@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.cas.logout;
 
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 
@@ -31,8 +32,8 @@ import java.util.Map;
  */
 public class CasLogoutRequestFilter extends AbstractCasFilter {
 
-  public CasLogoutRequestFilter(final Settings pSettings) {
-    super(pSettings, new CasSonarSingleSignOutFilter());
+  public CasLogoutRequestFilter(final Configuration configuration) {
+    super(configuration, new CasSonarSingleSignOutFilter());
   }
 
   @Override
@@ -41,7 +42,7 @@ public class CasLogoutRequestFilter extends AbstractCasFilter {
   }
 
   @Override
-  protected void doCompleteProperties(final Settings settings, final Map<String, String> properties) {
+  protected void doCompleteProperties(final Configuration configuration, final Map<String, String> properties) {
     // Nothing to complete
   }
 

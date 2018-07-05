@@ -19,26 +19,23 @@
  */
 package org.sonar.plugins.cas.saml11;
 
-import java.util.Map;
-
-import javax.servlet.Filter;
-
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.config.Settings;
+import com.google.common.annotations.VisibleForTesting;
+import org.sonar.api.config.Configuration;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 import org.sonar.plugins.cas.util.SonarCasPropertyNames;
 
-import com.google.common.annotations.VisibleForTesting;
+import javax.servlet.Filter;
+import java.util.Map;
 
 public final class Saml11AuthenticationFilter extends AbstractCasFilter {
 
-  public Saml11AuthenticationFilter(final Settings settings) {
-    this(settings, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
+  public Saml11AuthenticationFilter(final Configuration configuration) {
+    this(configuration, new org.jasig.cas.client.authentication.Saml11AuthenticationFilter());
   }
 
   @VisibleForTesting
-  Saml11AuthenticationFilter(final Settings settings, final Filter casFilter) {
-    super(settings, casFilter);
+  Saml11AuthenticationFilter(final Configuration configuration, final Filter casFilter) {
+    super(configuration, casFilter);
   }
 
   @Override
@@ -47,10 +44,9 @@ public final class Saml11AuthenticationFilter extends AbstractCasFilter {
   }
 
   @Override
-  protected void doCompleteProperties(final Settings settings, final Map<String, String> properties) {
-    properties.put("casServerLoginUrl", settings.getString(SonarCasPropertyNames.CAS_SERVER_LOGIN_URL.toString()));
-    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString(
-        SonarCasPropertyNames.SEND_GATEWAY.toString()), "false"));
+  protected void doCompleteProperties(final Configuration configuration, final Map<String, String> properties) {
+      properties.put("casServerLoginUrl", configuration.get("sonar.cas.casServerLoginUrl").orElse(null));
+    properties.put("gateway", configuration.get(SonarCasPropertyNames.SEND_GATEWAY.toString()).orElse("false"));
   }
 
 }

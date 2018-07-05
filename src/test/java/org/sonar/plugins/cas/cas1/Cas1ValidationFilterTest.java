@@ -25,7 +25,10 @@ import org.hamcrest.Description;
 import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
 import org.junit.Test;
 import org.mockito.Mockito;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
+import org.sonar.api.config.internal.ConfigurationBridge;
+import org.sonar.api.config.internal.MapSettings;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterConfig;
@@ -39,19 +42,20 @@ import static org.mockito.Mockito.withSettings;
 public class Cas1ValidationFilterTest {
   @Test
   public void should_declare_pattern() {
-    Cas1ValidationFilter filter = new Cas1ValidationFilter(new Settings());
+    Cas1ValidationFilter filter = new Cas1ValidationFilter(new ConfigurationBridge(new MapSettings()));
 
     assertThat(filter.doGetPattern().getUrl()).isEqualTo("/cas/validate");
   }
 
   @Test
   public void should_create_cas_filter() throws Exception {
-    Settings settings = new Settings();
-    settings.setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000");
-    settings.setProperty("sonar.cas.casServerLoginUrl", "http://localhost:8080/cas/login");
-    settings.setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas");
+    final Configuration configuration = new ConfigurationBridge(new MapSettings()
+      .setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000")
+      .setProperty("sonar.cas.casServerLoginUrl", "http://localhost:8080/cas/login")
+      .setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas")
+    );
 
-    Cas1ValidationFilter filter = new Cas1ValidationFilter(settings);
+    Cas1ValidationFilter filter = new Cas1ValidationFilter(configuration);
     filter.init(mock(FilterConfig.class, withSettings().defaultAnswer(Mockito.RETURNS_DEEP_STUBS)));
 
     assertThat(filter.getCasFilter()).isInstanceOf(Cas10TicketValidationFilter.class);
@@ -59,13 +63,14 @@ public class Cas1ValidationFilterTest {
 
   @Test
   public void should_init_cas_filter_with_settings() throws Exception {
-    Settings settings = new Settings();
-    settings.setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000");
-    settings.setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas");
-    settings.setProperty("sonar.cas.sendGateway", "true");
+    final Configuration configuration = new ConfigurationBridge(new MapSettings()
+      .setProperty("sonar.cas.sonarServerUrl", "http://localhost:9000")
+      .setProperty("sonar.cas.casServerUrlPrefix", "http://localhost:8080/cas")
+      .setProperty("sonar.cas.sendGateway", "true")
+    );
 
     Filter casFilter = mock(Filter.class);
-    Cas1ValidationFilter filter = new Cas1ValidationFilter(settings, casFilter);
+    Cas1ValidationFilter filter = new Cas1ValidationFilter(configuration, casFilter);
 
     filter.init(mock(FilterConfig.class));
 

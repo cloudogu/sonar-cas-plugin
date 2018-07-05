@@ -24,6 +24,7 @@ import java.util.Map;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AuthenticationFilter;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 
@@ -39,13 +40,13 @@ import javax.servlet.Filter;
  */
 public final class Cas1AuthenticationFilter extends AbstractCasFilter {
 
-  public Cas1AuthenticationFilter(Settings settings) {
-    this(settings, new AuthenticationFilter());
+  public Cas1AuthenticationFilter(Configuration configuration) {
+    this(configuration, new AuthenticationFilter());
   }
 
   @VisibleForTesting
-  Cas1AuthenticationFilter(Settings settings, Filter casFilter) {
-    super(settings, casFilter);
+  Cas1AuthenticationFilter(Configuration configuration, Filter casFilter) {
+    super(configuration, casFilter);
   }
 
   @Override
@@ -54,9 +55,9 @@ public final class Cas1AuthenticationFilter extends AbstractCasFilter {
   }
 
   @Override
-  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
-    properties.put("casServerLoginUrl", settings.getString("sonar.cas.casServerLoginUrl"));
-    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
+  protected void doCompleteProperties(Configuration configuration, Map<String, String> properties) {
+    properties.put("casServerLoginUrl", configuration.get("sonar.cas.casServerLoginUrl").orElse(null));
+    properties.put("gateway", configuration.get("sonar.cas.sendGateway").orElse("false"));
   }
 
 }

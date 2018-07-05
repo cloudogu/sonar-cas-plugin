@@ -19,30 +19,23 @@
  */
 package org.sonar.plugins.cas.util;
 
-import java.io.IOException;
-import java.util.Map;
-
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-
-import org.sonar.api.config.Settings;
-import org.sonar.api.web.ServletFilter;
-
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
+import org.sonar.api.config.Configuration;
+import org.sonar.api.web.ServletFilter;
+
+import javax.servlet.*;
+import java.io.IOException;
+import java.util.Map;
 
 public abstract class AbstractCasFilter extends ServletFilter {
   private static final String PROPERTY_SONAR_SERVER_URL = SonarCasPropertyNames.SONAR_SERVER_URL.toString();
   private final Filter casFilter;
-  private final Settings settings;
+  private final Configuration configuration;
 
-  public AbstractCasFilter(final Settings settings, final Filter casFilter) {
-    this.settings = settings;
+  public AbstractCasFilter(final Configuration configuration, final Filter casFilter) {
+    this.configuration = configuration;
     this.casFilter = casFilter;
   }
 
@@ -69,16 +62,16 @@ public abstract class AbstractCasFilter extends ServletFilter {
   protected Map<String, String> loadProperties() {
     final Map<String, String> properties = Maps.newHashMap();
 
-    final String sonarUrl = settings.getString(PROPERTY_SONAR_SERVER_URL);
+    final String sonarUrl = configuration.get(PROPERTY_SONAR_SERVER_URL).orElse(null);
     Preconditions.checkState(!Strings.isNullOrEmpty(sonarUrl), "Missing property: " + PROPERTY_SONAR_SERVER_URL);
     Preconditions.checkState(!sonarUrl.endsWith("/"), "Property " + PROPERTY_SONAR_SERVER_URL + " must not end with slash: " + sonarUrl);
     properties.put("service", sonarUrl + "/cas/validate");
 
-    doCompleteProperties(settings, properties);
+    doCompleteProperties(configuration, properties);
     return properties;
   }
 
-  protected abstract void doCompleteProperties(Settings settings, Map<String, String> properties);
+  protected abstract void doCompleteProperties(Configuration configuration, Map<String, String> properties);
 
   public final Filter getCasFilter() {
     return casFilter;

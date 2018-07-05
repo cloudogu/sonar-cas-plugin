@@ -36,6 +36,7 @@ import javax.servlet.http.HttpSession;
 import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
 
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.api.web.ServletFilter;
 
@@ -59,11 +60,11 @@ public class ForceCasLoginFilter extends ServletFilter {
 
   private final RestAuthenticator restAuthenticator;
 
-  public ForceCasLoginFilter(Settings settings) {
-    this.restAuthenticator = new RestAuthenticator(settings);
+  public ForceCasLoginFilter(Configuration configuration) {
+    this.restAuthenticator = new RestAuthenticator(configuration);
   }
   
-  public void init(final FilterConfig filterConfig) throws ServletException {
+  public void init(final FilterConfig filterConfig) {
     // nothing to do
   }
 

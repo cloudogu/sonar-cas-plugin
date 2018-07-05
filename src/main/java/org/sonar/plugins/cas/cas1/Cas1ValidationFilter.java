@@ -22,6 +22,7 @@ package org.sonar.plugins.cas.cas1;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.AbstractCasFilter;
 
@@ -39,13 +40,13 @@ import java.util.Map;
  */
 public final class Cas1ValidationFilter extends AbstractCasFilter {
 
-  public Cas1ValidationFilter(Settings settings) {
-    this(settings, new Cas10TicketValidationFilter());
+  public Cas1ValidationFilter(Configuration configuration) {
+    this(configuration, new Cas10TicketValidationFilter());
   }
 
   @VisibleForTesting
-  Cas1ValidationFilter(Settings settings, Filter casFilter) {
-    super(settings, casFilter);
+  Cas1ValidationFilter(Configuration configuration, Filter casFilter) {
+    super(configuration, casFilter);
   }
 
   @Override
@@ -54,10 +55,11 @@ public final class Cas1ValidationFilter extends AbstractCasFilter {
   }
 
   @Override
-  protected void doCompleteProperties(Settings settings, Map<String, String> properties) {
-    properties.put("casServerUrlPrefix", settings.getString("sonar.cas.casServerUrlPrefix"));
-    properties.put("gateway", StringUtils.defaultIfBlank(settings.getString("sonar.cas.sendGateway"), "false"));
+  protected void doCompleteProperties(Configuration configuration, Map<String, String> properties) {
+    properties.put("casServerUrlPrefix", configuration.get("sonar.cas.casServerUrlPrefix").get());
+    properties.put("gateway", configuration.get("sonar.cas.sendGateway").orElse("false"));
     properties.put("redirectAfterValidation", "false");
+    // TODO check
     properties.put("useSession", "true");
     properties.put("exceptionOnValidationFailure", "true");
   }

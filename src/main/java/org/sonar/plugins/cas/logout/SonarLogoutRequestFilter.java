@@ -28,6 +28,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletResponse;
 
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.api.web.ServletFilter;
 
@@ -42,11 +43,11 @@ import com.google.common.base.Strings;
 public class SonarLogoutRequestFilter extends ServletFilter {
 
   public static final String PROPERTY_CAS_LOGOUT_URL = "sonar.cas.casServerLogoutUrl";
-  private final Settings settings;
+  private final Configuration configuration;
   private String logoutUrl;
 
-  public SonarLogoutRequestFilter(final Settings settings) {
-    this.settings = settings;
+  public SonarLogoutRequestFilter(final Configuration configuration) {
+    this.configuration = configuration;
   }
 
   @Override
@@ -54,12 +55,12 @@ public class SonarLogoutRequestFilter extends ServletFilter {
     return UrlPattern.create("/sessions/logout");
   }
 
-  public final void init(final FilterConfig initialConfig) throws ServletException {
-    logoutUrl = settings.getString(PROPERTY_CAS_LOGOUT_URL);
+  public final void init(final FilterConfig initialConfig) {
+    logoutUrl = configuration.get(PROPERTY_CAS_LOGOUT_URL).get();
     Preconditions.checkState(!Strings.isNullOrEmpty(logoutUrl), String.format("Missing property: %s", PROPERTY_CAS_LOGOUT_URL));
   }
 
-  public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
+  public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException {
     HttpServletResponse httpResponse = (HttpServletResponse) servletResponse;
     httpResponse.sendRedirect(logoutUrl);
   }

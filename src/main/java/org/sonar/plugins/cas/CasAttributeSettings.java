@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.apache.commons.lang.StringUtils;
 import org.sonar.api.ServerExtension;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.plugins.cas.util.SonarCasPropertyNames;
 
@@ -32,21 +33,21 @@ import org.sonar.plugins.cas.util.SonarCasPropertyNames;
  * @author Jan Boerner, TRIOLOGY GmbH
  */
 public class CasAttributeSettings implements ServerExtension {
-  private final Settings settings;
+  private final Configuration settings;
 
   /**
    * Constructor.
-   * @param pSettings The sonar settings object.
+   * @param configuration The sonar settings object.
    */
-  public CasAttributeSettings(final Settings pSettings) {
-    settings = pSettings;
+  public CasAttributeSettings(final Configuration configuration) {
+    settings = configuration;
   }
 
   /**
    * @return the roleAttributes
    */
   public List<String> getRoleAttributes() {
-    final String str = StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()), null);
+    final String str = settings.get(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()).orElse(null);
     return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
   }
 
@@ -55,14 +56,14 @@ public class CasAttributeSettings implements ServerExtension {
    * @return the fullNameAttribute
    */
   public String getFullNameAttribute() {
-    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()), "cn");
+    return settings.get(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()).orElse("cn");
   }
 
   /**
    * @return the eMailAttribute
    */
   public String geteMailAttribute() {
-    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()), "mail");
+    return settings.get(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()).orElse("mail");
   }
 
 }

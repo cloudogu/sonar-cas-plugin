@@ -30,6 +30,7 @@ import org.jasig.cas.client.validation.TicketValidationException;
 import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 
 /**
@@ -42,28 +43,28 @@ public class RestAuthenticator {
   
   private static final Logger LOG = LoggerFactory.getLogger(RestAuthenticator.class);
   
-  private final Settings settings;
+  private final Configuration configuration;
   private final String casServerUrlPrefix;
   private final String serviceUrl;
   private final String casProtocol;
 
-  public RestAuthenticator(Settings settings) {
-    this.settings = settings;
+  public RestAuthenticator(Configuration configuration) {
+    this.configuration = configuration;
     casServerUrlPrefix = getCasServerUrlPrefix();
     serviceUrl = getServiceUrl();
     casProtocol = Strings.nullToEmpty(getCasProtocol()).toLowerCase(Locale.ENGLISH);
   }
   
   private String getCasServerUrlPrefix() {
-    return settings.getString(SonarCasPropertyNames.CAS_SERVER_URL_PREFIX.toString());
+    return configuration.get(SonarCasPropertyNames.CAS_SERVER_URL_PREFIX.toString()).get();
   }
   
   private String getServiceUrl() {
-    return settings.getString(SonarCasPropertyNames.SONAR_SERVER_URL.toString());
+    return configuration.get(SonarCasPropertyNames.SONAR_SERVER_URL.toString()).get();
   }
   
   private String getCasProtocol() {
-    return settings.getString(SonarCasPropertyNames.CAS_PROTOCOL.toString());
+    return configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).get();
   }
   
   public void authenticate(Credentials credentials, HttpServletRequest request) {
