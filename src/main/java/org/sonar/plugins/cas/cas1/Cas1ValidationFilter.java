@@ -59,8 +59,7 @@ public final class Cas1ValidationFilter extends AbstractCasFilter {
     properties.put("casServerUrlPrefix", configuration.get("sonar.cas.casServerUrlPrefix").get());
     properties.put("gateway", configuration.get("sonar.cas.sendGateway").orElse("false"));
     properties.put("redirectAfterValidation", "false");
-    // TODO check
-    properties.put("useSession", "true");
+    properties.put("useSession", "false");
     properties.put("exceptionOnValidationFailure", "true");
   }
 

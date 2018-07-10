@@ -19,20 +19,21 @@
  */
 package org.sonar.plugins.cas;
 
-import java.util.Arrays;
-import java.util.List;
-
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.ServerExtension;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.Settings;
+import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasPropertyNames;
 
+import java.util.*;
+
 /**
- * Parse the settings and provide attribute configuration.
+ * Parse the settings, provide attribute configuration and util methods for extracting the attribute values.
+ *
  * @author Jan Boerner, TRIOLOGY GmbH
+ * @author Sebastian Sdorra, Cloudogu GmbH
  */
-public class CasAttributeSettings implements ServerExtension {
+@ServerSide
+public class CasAttributeSettings {
+
   private final Configuration settings;
 
   /**
@@ -46,7 +47,7 @@ public class CasAttributeSettings implements ServerExtension {
   /**
    * @return the roleAttributes
    */
-  public List<String> getRoleAttributes() {
+  private List<String> getRoleAttributes() {
     final String str = settings.get(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()).orElse(null);
     return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
   }
@@ -55,15 +56,51 @@ public class CasAttributeSettings implements ServerExtension {
   /**
    * @return the fullNameAttribute
    */
-  public String getFullNameAttribute() {
+  private String getFullNameAttribute() {
     return settings.get(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()).orElse("cn");
   }
 
   /**
    * @return the eMailAttribute
    */
-  public String geteMailAttribute() {
+  private String getMailAttribute() {
     return settings.get(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()).orElse("mail");
+  }
+
+  Set<String> getGroups(Map<String,Object> attributes) {
+    Set<String> groups = null;
+    for ( String key : getRoleAttributes() ) {
+      Collection<String> roles = getCollectionAttribute(attributes, key);
+      if (roles != null) {
+        if (groups == null) {
+          groups = new HashSet<>();
+        }
+        groups.addAll(roles);
+      }
+    }
+    return groups;
+  }
+
+  String getEmail(Map<String,Object> attributes) {
+    return getStringAttribute(attributes, getMailAttribute());
+  }
+
+  String getDisplayName(Map<String,Object> attributes) {
+    return getStringAttribute(attributes, getFullNameAttribute());
+  }
+
+  private Collection<String> getCollectionAttribute(Map<String,Object> attributes, String key) {
+    if (attributes.containsKey(key)) {
+      return (Collection<String>) attributes.get(key);
+    }
+    return null;
+  }
+
+  private String getStringAttribute(Map<String,Object> attributes, String key) {
+    if (attributes.containsKey(key)) {
+      return (String) attributes.get(key);
+    }
+    return null;
   }
 
 }

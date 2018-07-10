@@ -1,0 +1,15 @@
+version: '3'
+services:
+
+  sonar:
+    image: sonarqube:6.7.4
+    ports:
+     - "9000:9000"
+     - "9092:9092"
+     - "5000:5000"
+    environment:
+     - SONARQUBE_WEB_JVM_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5000
+    volumes:
+     - ./sonar-home/data:/opt/sonarqube/data
+     - ./sonar-home/plugins:/opt/sonarqube/extensions/plugins
+     - ./sonar-home/conf:/opt/sonarqube/conf

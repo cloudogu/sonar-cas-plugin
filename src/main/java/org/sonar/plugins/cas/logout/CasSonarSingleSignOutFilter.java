@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.cas.logout;
 
+import org.jasig.cas.client.configuration.ConfigurationKeys;
 import org.jasig.cas.client.session.SessionMappingStorage;
 import org.jasig.cas.client.session.SingleSignOutHandler;
 import org.jasig.cas.client.util.AbstractConfigurationFilter;
@@ -38,10 +39,11 @@ public final class CasSonarSingleSignOutFilter extends AbstractConfigurationFilt
 
     private static final SingleSignOutHandler handler = new SingleSignOutHandler();
 
-    public void init(final FilterConfig filterConfig) throws ServletException {
+    public void init(final FilterConfig filterConfig) {
         if (!isIgnoreInitConfiguration()) {
-            handler.setArtifactParameterName(getPropertyFromInitParams(filterConfig, "artifactParameterName", "ticket"));
-            handler.setLogoutParameterName(getPropertyFromInitParams(filterConfig, "logoutParameterName", "logoutRequest"));
+
+            handler.setArtifactParameterName(getString(ConfigurationKeys.ARTIFACT_PARAMETER_NAME));
+            handler.setLogoutParameterName(getString(ConfigurationKeys.LOGOUT_PARAMETER_NAME));
         }
         handler.init();
     }
@@ -60,20 +62,24 @@ public final class CasSonarSingleSignOutFilter extends AbstractConfigurationFilt
 
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse,
           final FilterChain filterChain) throws IOException, ServletException {
+
+        // TODO we are not able to record the session for logout, because sonarqube 6 does not use a HttpSession
+        // perhaps we could store the connection between the cas id and jwt token id and if we receive a logout for a
+        // token we could block request for that token and remove the cookie.
         
         final HttpServletRequest request = (HttpServletRequest) servletRequest;
-        boolean recordSession = false;
+        /*boolean recordSession = false;
         if (handler.isTokenRequest(request)) {
             recordSession = true;
         } else {
         	request.getSession(false).invalidate();
-        }
+        }*/
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        if (recordSession) {
+        /*if (recordSession) {
             handler.recordSession(request);
-        }
+        }*/
     }
 
     public void destroy() {

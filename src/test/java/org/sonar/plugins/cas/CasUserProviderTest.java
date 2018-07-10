@@ -38,7 +38,7 @@ import org.sonar.api.security.UserDetails;
 public class CasUserProviderTest {
   @Test
   public void should_get_username_from_cas_attribute() {
-    final CasUserProvider provider = new CasUserProvider(new CasAttributeSettings(new ConfigurationBridge(new MapSettings())), null);
+    final CasUserProvider provider = new CasUserProvider();
     final HttpServletRequest request = mock(HttpServletRequest.class);
     final Assertion casAssertion = mock(Assertion.class);
     when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));
@@ -52,7 +52,7 @@ public class CasUserProviderTest {
 
   @Test
   public void should_not_return_user_id_missing_cas_attribute() {
-    final CasUserProvider provider = new CasUserProvider(null, null);
+    final CasUserProvider provider = new CasUserProvider();
     final HttpServletRequest request = mock(HttpServletRequest.class);
     when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
 

@@ -19,43 +19,54 @@
  */
 package org.sonar.plugins.cas;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
+import org.sonar.api.config.Configuration;
 import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.ExternalGroupsProvider;
 import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.SecurityRealm;
 
+/**
+ * The {@link CasSecurityRealm} is only used for the authentication with username and password. The authentication
+ * workflow consists of the following parts and is processed in the following order by the sonarqube realm
+ * authenticator:
+ *
+ * - {@link CasUserProvider}
+ * - {@link CasAuthenticator}
+ * - {@link CasGroupsProvider}
+ *
+ * For the browser based single sing on workflow have a look at {@link CasIdentifyProvider}.
+ *
+ * @author Sebastian Sdorra, Cloudogu GmbH
+ */
 public class CasSecurityRealm extends SecurityRealm {
 
-  public static final String KEY = "cas";
-  /** Provider for user groups that are delivered by the CAS attributes. */
-  private ExternalGroupsProvider groupsProvider = null;
-  private Map<String, List<String>> userGroupMapping;
-  private final CasAttributeSettings settings;
+  private static final String KEY = "cas";
 
-  public CasSecurityRealm(final CasAttributeSettings settings) {
-    this.settings = settings;
-  }
+  private final CasUserProvider userProvider;
+  private final CasAuthenticator authenticator;
+  private final CasGroupsProvider groupsProvider;
 
-  @Override
-  public void init() {
-    if (null != settings.getRoleAttributes()) {
-      userGroupMapping = new HashMap<String, List<String>>();
-      groupsProvider = new CasGroupsProvider(userGroupMapping);
-    }
+  /**
+   * Constructs a new {@link CasSecurityRealm}.
+   * This constructor is called by dependency injection framework of sonarqube,
+   *
+   * @param configuration sonarqube configuration
+   * @param settings cas attribute settings
+   */
+  public CasSecurityRealm(Configuration configuration, CasAttributeSettings settings) {
+    this.userProvider = new CasUserProvider();
+    this.authenticator = new CasAuthenticator(configuration, settings);
+    this.groupsProvider = new CasGroupsProvider(settings);
   }
 
   @Override
   public Authenticator doGetAuthenticator() {
-    return new CasAuthenticator();
+    return authenticator;
   }
 
   @Override
   public ExternalUsersProvider getUsersProvider() {
-    return new CasUserProvider(settings, userGroupMapping);
+    return userProvider;
   }
 
   @Override

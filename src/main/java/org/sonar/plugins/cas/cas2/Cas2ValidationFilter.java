@@ -45,6 +45,7 @@ public final class Cas2ValidationFilter extends AbstractCasFilter {
 
   @Override
   protected void doCompleteProperties(Configuration configuration, Map<String, String> properties) {
+    properties.put("ticketValidatorClass", P3Cas20ServiceTicketValidator.class.getName());
     properties.put("casServerUrlPrefix", configuration.get("sonar.cas.casServerUrlPrefix").get());
     properties.put("gateway", configuration.get("sonar.cas.sendGateway").orElse("false"));
     properties.put("redirectAfterValidation", "false");

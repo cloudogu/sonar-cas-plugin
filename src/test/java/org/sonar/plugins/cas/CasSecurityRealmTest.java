@@ -22,11 +22,15 @@ package org.sonar.plugins.cas;
 import static org.fest.assertions.Assertions.assertThat;
 
 import org.junit.Test;
+import org.sonar.api.config.Configuration;
+import org.sonar.api.config.internal.ConfigurationBridge;
+import org.sonar.api.config.internal.MapSettings;
 
 public class CasSecurityRealmTest {
   @Test
   public void should_declare_components() {
-    final CasSecurityRealm realm = new CasSecurityRealm(null);
+    final Configuration configuration = new ConfigurationBridge(new MapSettings());
+    final CasSecurityRealm realm = new CasSecurityRealm(configuration, null);
     assertThat(realm.doGetAuthenticator()).isInstanceOf(CasAuthenticator.class);
     assertThat(realm.getUsersProvider()).isInstanceOf(CasUserProvider.class);
     assertThat(realm.getName()).isEqualTo("cas");

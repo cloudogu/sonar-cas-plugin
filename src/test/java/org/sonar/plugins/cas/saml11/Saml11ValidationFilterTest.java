@@ -29,6 +29,7 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.config.Settings;
 import org.sonar.api.config.internal.ConfigurationBridge;
 import org.sonar.api.config.internal.MapSettings;
+import org.sonar.plugins.cas.util.SettingsFilterConfig;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterConfig;
@@ -78,7 +79,7 @@ public class Saml11ValidationFilterTest {
         return verifyParam(config, "gateway", "false") &&
           verifyParam(config, "service", "http://localhost:9000/cas/validate") &&
           verifyParam(config, "redirectAfterValidation", "false") &&
-          verifyParam(config, "useSession", "true") &&
+          verifyParam(config, "useSession", "false") &&
           verifyParam(config, "tolerance", "1000") &&
           verifyParam(config, "exceptionOnValidationFailure", "true");
       }

@@ -19,37 +19,29 @@
  */
 package org.sonar.plugins.cas;
 
-import java.io.IOException;
-
-import java.util.Arrays;
-import java.util.List;
-
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
-
-import org.jasig.cas.client.util.AbstractCasFilter;
-import org.jasig.cas.client.validation.Assertion;
-
+import org.apache.commons.lang.StringUtils;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.Settings;
 import org.sonar.api.web.ServletFilter;
-
 import org.sonar.plugins.cas.util.Credentials;
 import org.sonar.plugins.cas.util.RequestUtil;
 import org.sonar.plugins.cas.util.RestAuthenticator;
 
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+
 /**
- * This filter checks for users authenticated against JASIG CAS. That means a CAS_ASSERTION is stored in the user
- * session. If not, the client is redirected to the /session/new address to create a new user session.
+ * This filter checks if the current user is authenticated. If not, the client is redirected to the /session/new
+ * address to create a new user session.
+ *
+ * We could not use the {@code sonar.forceAuthentication} feature of sonar, because it uses a client side
+ * {@code history.rewrite} to change the url and this does not trigger the {@link AuthenticationFilter}.
  * 
  * @author Jan Boerner, TRIOLOGY GmbH
- * @author Sebastian Sdorra, TRIOLOGY GmbH
+ * @author Sebastian Sdorra, Cloudogu GmbH
  */
 public class ForceCasLoginFilter extends ServletFilter {
 
@@ -68,31 +60,37 @@ public class ForceCasLoginFilter extends ServletFilter {
     // nothing to do
   }
 
-  public void doFilter(final ServletRequest request, final ServletResponse response, final FilterChain chain)
+  public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain chain)
       throws IOException, ServletException {
     
-    final HttpServletRequest httpRequest = RequestUtil.toHttp(request);
-    
+    final HttpServletRequest request = RequestUtil.toHttp(servletRequest);
+    final HttpServletResponse response = (HttpServletResponse) servletResponse;
+
     // authenticate non browser clients
-    if (!RequestUtil.isBrowser(httpRequest)){
-      Credentials credentials = RequestUtil.getBasicAuthentication(httpRequest);
+    if (!RequestUtil.isBrowser(request)){
+      Credentials credentials = RequestUtil.getBasicAuthentication(request);
       if (credentials != null) {
-        restAuthenticator.authenticate(credentials, httpRequest);
+        restAuthenticator.authenticate(credentials, request);
       }
     }
     
-    if (!isInWhiteList(httpRequest.getServletPath())) {
-      final HttpSession session = httpRequest.getSession();
-      final Assertion assertion = (null != session) ? (Assertion) session.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)
-          : null;
-      if (null == assertion || null == assertion.getPrincipal()) {
-        ((HttpServletResponse) response).sendRedirect(UrlPattern.create("sessions/new").getUrl());
-        return;
-      }
+    if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
+      chain.doFilter(request, servletResponse);
+    } else {
+      redirect(request, response, "/sessions/new");
     }
-    chain.doFilter(httpRequest, response);
   }
-  
+
+  private void redirect( HttpServletRequest request, HttpServletResponse response, String uri ) throws IOException {
+    response.sendRedirect(request.getContextPath() + uri);
+  }
+
+  private boolean isAuthenticated(HttpServletRequest request) {
+    // https://github.com/SonarSource/sonarqube/blob/9973bacbfa4a945e509bf1b574d7e5aae4ba155a/server/sonar-server/src/main/java/org/sonar/server/authentication/UserSessionInitializer.java#L138
+    String login = StringUtils.defaultString((String) request.getAttribute("LOGIN"));
+    return ! "-".equals(login);
+  }
+
   public void destroy() {
     // nothing to do
   }
