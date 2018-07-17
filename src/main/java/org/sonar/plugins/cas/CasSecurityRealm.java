@@ -30,11 +30,13 @@ import org.sonar.api.security.SecurityRealm;
  * workflow consists of the following parts and is processed in the following order by the sonarqube realm
  * authenticator:
  *
- * - {@link CasUserProvider}
- * - {@link CasAuthenticator}
- * - {@link CasGroupsProvider}
+ * <ol>
+ * <li>{@link CasUserProvider}</li>
+ * <li>{@link CasAuthenticator}</li>
+ * <li>{@link CasGroupsProvider}</li>
+ * </ol>
  *
- * For the browser based single sing on workflow have a look at {@link CasIdentifyProvider}.
+ * This is needed for the non-browser clients (i. e. other plugins or CLI tools). For the browser based single sing on workflow have a look at {@link CasIdentifyProvider}.
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

@@ -4,12 +4,15 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
+import org.jasig.cas.client.validation.Cas10TicketValidationFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
+import org.sonar.plugins.cas.cas2.Cas2ValidationFilter;
+import org.sonar.plugins.cas.saml11.Saml11ValidationFilter;
 import org.sonar.plugins.cas.util.Serializer;
 
 import java.io.IOException;
@@ -18,19 +21,26 @@ import java.util.Set;
 
 /**
  * The {@link CasIdentifyProvider} is responsible for the browser based cas sso authentication. The authentication
- * workflow for an unauthenticated user works as follows:
+ * workflow for an unauthenticated user is as follows:
  *
- * - the {@link ForceCasLoginFilter} redirects the user to /sessions/new
- * - the {@link AuthenticationFilter} redirects the user to the cas server
- * - the user authenticates him self
- * - cas redirects bach to /cas/validate
- * - the configured cas validation filter ({@link org.sonar.plugins.cas.cas2.Cas2ValidationFilter},
- *   {@link org.sonar.plugins.cas.saml11.Saml11ValidationFilter} or
- *   {@link org.jasig.cas.client.validation.Cas10TicketValidationFilter}) fetches the assertions from the cas server
- * - the {@link AssertionFilter} gets the assertions from the request and redirects to /sessions/init/cas with the
- *   serialized assertions as query parameter
- * - The {@link CasIdentifyProvider} is called by sonarqube (InitFilter) and creates the user from the assertions and
- *   redirects the user to the root of sonarqube
+ * <ol>
+ * <li>the {@link ForceCasLoginFilter} redirects the user to /sessions/new</li>
+ * <li>the {@link AuthenticationFilter} redirects the user to the CAS Server</li>
+ * <li>the user authenticates to the CAS Server</li>
+ * <li>the CAS Server redirects back to /cas/validate</li>
+ * <li>the configured CAS validation filter fetches the assertions from the CAS Server. Depends of the actual CAS Server and can be one of
+ *  <ul>
+ *      <li>{@link Cas2ValidationFilter}</li>
+ *      <li>{@link Saml11ValidationFilter} </li>
+ *      <li>{@link Cas10TicketValidationFilter}</li>
+ *  </ul>
+ * </li>
+ * <li>the {@link AssertionFilter} gets the assertion from the request and redirects to /sessions/init/cas with the serialized assertion as query parameter
+ * <li>the {@link CasIdentifyProvider} is called by sonarqube (InitFilter) and creates the user from the assertions and
+ * redirects the user to the root of sonarqube</li>
+ *</ol>
+ *
+ * Note: While most steps are tied to the general CAS workflow, passing the assertions from the {@link AssertionFilter} back to the {@link CasIdentifyProvider} is needed in order to  circumvent the restrictions imposed by the plugin architecture of SonarQube, which would otherwise inhibit authentication via CAS.
  */
 @ServerSide
 public class CasIdentifyProvider implements BaseIdentityProvider {

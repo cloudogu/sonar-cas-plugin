@@ -39,9 +39,11 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The {@link CasAuthenticator} authenticates the user against the cas rest api with the given username and password
- * from the context. After a successful authentication the cas assertions are stored in the request and the
- * {@link UserDetails}, which are set to the request by the {@link CasUserProvider}, are filled from the assertions.
+ * The {@link CasAuthenticator} authenticates the user against the CAS Rest API with the provided username and password
+ * from the context.
+ * <p />
+ * After a successful authentication the CAS assertion is stored in the {@link HttpServletRequest} (to process the groups in the next step with {@link CasGroupsProvider}) and additionally the
+ * {@link UserDetails}, which have been stored in the request by the {@link CasUserProvider}, are populated with the now available information from the assertion.
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

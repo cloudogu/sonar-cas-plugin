@@ -27,14 +27,18 @@ import org.sonar.api.security.UserDetails;
 /**
  * This provider returns only an empty user object, because of the realm authentication order of sonar:
  *
- * - {@link ExternalUsersProvider#doGetUserDetails}
- * - {@link org.sonar.api.security.Authenticator#doAuthenticate(Authenticator.Context)}}
- * - {@link org.sonar.api.security.ExternalGroupsProvider#doGetGroups(ExternalGroupsProvider.Context)}
+ * <ol>
+ *  <li>{@link ExternalUsersProvider#doGetUserDetails}</li>
+ *  <li>{@link org.sonar.api.security.Authenticator#doAuthenticate(Authenticator.Context)}}</li>
+ *  <li>{@link org.sonar.api.security.ExternalGroupsProvider#doGetGroups(ExternalGroupsProvider.Context)}</li>
+ * </ol>
  *
- * We are not able to authenticate the user in the {@link ExternalUsersProvider}, because of the missing password for
- * the user. Without the authentication we are not able to fetch the assertions of the user, so we return an empty
- * {@link UserDetails} object and we also store it in the request. The {@link UserDetails} object will be later filled
- * by the {@link CasAuthenticator}.
+ * <p>We are not able to authenticate the user in the {@link ExternalUsersProvider}, because of the missing password for
+ * the user. Without the authentication we are not able to fetch the assertion (CAS' way to provide user details) of the user. Hence we return an empty
+ * {@link UserDetails} object and, at the same time, store it in the {@link javax.servlet.http.HttpServletRequest}. The {@link UserDetails} object will be populated
+ * by the {@link CasAuthenticator} in the next step.</p>
+ *
+ * <p>Note: This is needed in order to circumvent the restrictions imposed by the authentication API of SonarQube.</p>
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

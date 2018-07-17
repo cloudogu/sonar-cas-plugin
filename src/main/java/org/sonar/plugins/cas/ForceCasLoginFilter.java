@@ -37,7 +37,7 @@ import java.util.List;
  * This filter checks if the current user is authenticated. If not, the client is redirected to the /session/new
  * address to create a new user session.
  *
- * We could not use the {@code sonar.forceAuthentication} feature of sonar, because it uses a client side
+ * We cannot use the {@code sonar.forceAuthentication} feature of sonar, because it uses a client side
  * {@code history.rewrite} to change the url and this does not trigger the {@link AuthenticationFilter}.
  * 
  * @author Jan Boerner, TRIOLOGY GmbH

@@ -10,8 +10,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * The {@link AssertionFilter} read the cas assertions from the request serializes them and redirects to the
- * {@link CasIdentifyProvider} with the serialized assertions as query parameter.
+ * The {@link AssertionFilter} reads the CAS assertion from the request, serializes it and then redirects back to the
+ * {@link CasIdentifyProvider} with the serialized assertion as query parameter.
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

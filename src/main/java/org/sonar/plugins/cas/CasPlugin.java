@@ -31,9 +31,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The {@link CasPlugin} registers the extensions which are required for the cas plugin. The main entry points for
- * developers are the {@link CasIdentifyProvider} for the browser based sso authentication and the
- * {@link CasSecurityRealm} for the username and password authentication.
+ * As bootstrapping element, {@link CasPlugin} registers all the extensions that actually make up the "cas plugin". The main entry points to look into as a
+ * developer are
+ * <ul>
+ *     <li>{@link CasIdentifyProvider} for the browser based sso authentication</li>
+ *     <li>{@link CasSecurityRealm} for the username and password authentication</li>
+ * </ul>
  *
  * TODO apply values from the configuration, but sonarqube does not allow injection on plugin entrypoints
  *

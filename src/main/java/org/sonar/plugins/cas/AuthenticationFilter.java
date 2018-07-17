@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * The {@link AuthenticationFilter} redirects always to the cas authentication server.
+ * The {@link AuthenticationFilter} always redirects to the CAS Server.
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

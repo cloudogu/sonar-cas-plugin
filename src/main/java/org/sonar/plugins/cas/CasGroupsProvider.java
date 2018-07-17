@@ -23,13 +23,15 @@ import com.google.common.base.Preconditions;
 import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalGroupsProvider;
 
+import javax.servlet.http.HttpServletRequest;
 import java.util.*;
 
 
 /**
- * The groups provider is the last part in the authentication chain for username and password based cas authentications.
- * The provider will take the cas assertion from the request and extract all role and group attribute values. The
- * assertions are added to the request by the {@link CasAuthenticator}, which is called before the groups provider.
+ * The groups provider is the last step in the authentication chain for username and password based CAS authentication.
+ * The provider will consume the CAS assertion from the {@link HttpServletRequest} and extract all role and group attribute values.
+ * <p/>
+ * The assertion has been added to the request by the {@link CasAuthenticator}, which is called before the groups provider.
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
