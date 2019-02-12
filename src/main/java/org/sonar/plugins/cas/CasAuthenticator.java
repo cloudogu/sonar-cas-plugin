@@ -28,7 +28,6 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
-import org.sonar.plugins.cas.cas2.P3Cas20ServiceTicketValidator;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
 import org.sonar.plugins.cas.util.CasRestClient;
 import org.sonar.plugins.cas.util.RestAuthenticator;
@@ -41,7 +40,7 @@ import java.util.Map;
 /**
  * The {@link CasAuthenticator} authenticates the user against the CAS Rest API with the provided username and password
  * from the context.
- * <p />
+ * <p/>
  * After a successful authentication the CAS assertion is stored in the {@link HttpServletRequest} (to process the groups in the next step with {@link CasGroupsProvider}) and additionally the
  * {@link UserDetails}, which have been stored in the request by the {@link CasUserProvider}, are populated with the now available information from the assertion.
  *
@@ -106,7 +105,7 @@ public final class CasAuthenticator extends Authenticator {
 
     private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
         /** TODO pass parameters **/
-        return new P3Cas20ServiceTicketValidator(getCasServerUrlPrefix());
+        return new Cas30ServiceTicketValidator(getCasServerUrlPrefix());
     }
 
     @Override
@@ -140,7 +139,7 @@ public final class CasAuthenticator extends Authenticator {
 
 
         // populate user details from assertion
-        Map<String,Object> attributes = assertion.getAttributes();
+        Map<String, Object> attributes = assertion.getAttributes();
 
         user.setUserId(assertion.getPrincipal().getName());
 

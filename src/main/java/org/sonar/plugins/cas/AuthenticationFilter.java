@@ -25,7 +25,7 @@ public class AuthenticationFilter extends ServletFilter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
-        ((HttpServletResponse)response).sendRedirect("https://192.168.56.2/cas/login?service=http://192.168.56.1:9000/cas/validate");
+        ((HttpServletResponse)response).sendRedirect("https://cas.hitchhiker.com:8443/cas/login?service=http://sonar.hitchhiker.com:9000/sessions/init/cas");
     }
 
     @Override

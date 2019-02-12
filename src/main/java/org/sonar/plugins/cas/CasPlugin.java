@@ -24,7 +24,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.sonar.api.Plugin;
 import org.sonar.api.config.Configuration;
-import org.sonar.plugins.cas.cas2.Cas2ValidationFilter;
 import org.sonar.plugins.cas.util.IgnoreCert;
 
 import java.util.ArrayList;
@@ -34,10 +33,10 @@ import java.util.List;
  * As bootstrapping element, {@link CasPlugin} registers all the extensions that actually make up the "cas plugin". The main entry points to look into as a
  * developer are
  * <ul>
- *     <li>{@link CasIdentifyProvider} for the browser based sso authentication</li>
- *     <li>{@link CasSecurityRealm} for the username and password authentication</li>
+ * <li>{@link CasIdentifyProvider} for the browser based sso authentication</li>
+ * <li>{@link CasSecurityRealm} for the username and password authentication</li>
  * </ul>
- *
+ * <p>
  * TODO apply values from the configuration, but sonarqube does not allow injection on plugin entrypoints
  *
  * @author Jan Boerner, TRIOLOGY GmbH
@@ -46,45 +45,45 @@ import java.util.List;
 public final class CasPlugin implements Plugin {
 
 
-  public CasPlugin() {
-  }
+    public CasPlugin() {
+    }
 
-  public CasPlugin(Configuration configuration) {
-  }
+    public CasPlugin(Configuration configuration) {
+    }
 
-  public void define(Context context) {
-    context.addExtensions(collectExtensions());
-  }
+    public void define(Context context) {
+        context.addExtensions(collectExtensions());
+    }
 
-  List<Object> collectExtensions() {
-    List<Object> extensions = new ArrayList<>();
-    if (isRealmEnabled()) {
+    List<Object> collectExtensions() {
+        List<Object> extensions = new ArrayList<>();
+        if (isRealmEnabled()) {
 
-      // Preconditions.checkState(configuration.getBoolean(SonarCasPropertyNames.SONAR_CREATE_USERS.toString()).orElse(Boolean.FALSE),
-      //              "Property " + SonarCasPropertyNames.SONAR_CREATE_USERS + " must be set to true.");
-      // final String protocol = configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).orElse(null);
+            // Preconditions.checkState(configuration.getBoolean(SonarCasPropertyNames.SONAR_CREATE_USERS.toString()).orElse(Boolean.FALSE),
+            //              "Property " + SonarCasPropertyNames.SONAR_CREATE_USERS + " must be set to true.");
+            // final String protocol = configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).orElse(null);
 
-      String protocol = "cas2";
+            String protocol = "cas2";
 
-      Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
-              "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
+            Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
+                    "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
 
-      // extensions.add(CasSecurityRealm.class);
+            // extensions.add(CasSecurityRealm.class);
 
 
-      // The ignore certification validation should only be used in development (security risk)!
-      // if (configuration.getBoolean(SonarCasPropertyNames.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
-        IgnoreCert.disableSslVerification();
-      // }
+            // The ignore certification validation should only be used in development (security risk)!
+            // if (configuration.getBoolean(SonarCasPropertyNames.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
+            IgnoreCert.disableSslVerification();
+            // }
 
       /*if (StringUtils.isNotBlank(configuration.get(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL).orElse(null))) {
         extensions.add(CasLogoutRequestFilter.class);
         extensions.add(SonarLogoutRequestFilter.class);
       }*/
 
-      //if (configuration.getBoolean(SonarCasPropertyNames.FORCE_CAS_LOGIN.toString()).orElse(Boolean.FALSE)) {
-        // extensions.add(ForceCasLoginFilter.class);
-      // }
+            //if (configuration.getBoolean(SonarCasPropertyNames.FORCE_CAS_LOGIN.toString()).orElse(Boolean.FALSE)) {
+            // extensions.add(ForceCasLoginFilter.class);
+            // }
 
       /*if ("cas1".equals(protocol)) {
         extensions.add(Cas1ValidationFilter.class);
@@ -100,25 +99,21 @@ public final class CasPlugin implements Plugin {
                 String.format("Unknown CAS protocol: %s. Valid values are: cas1, cas2 or saml11.", protocol));
       }*/
 
-      extensions.add(CasIdentifyProvider.class);
-      extensions.add(CasSecurityRealm.class);
+            extensions.add(CasIdentifyProvider.class);
+            extensions.add(CasSecurityRealm.class);
 
-      extensions.add(ForceCasLoginFilter.class);
+            extensions.add(ForceCasLoginFilter.class);
+            extensions.add(AuthenticationFilter.class);
+            extensions.add(CasAttributeSettings.class);
+        }
 
-      extensions.add(AuthenticationFilter.class);
-      extensions.add(Cas2ValidationFilter.class);
-      extensions.add(AssertionFilter.class);
-
-      extensions.add(CasAttributeSettings.class);
+        return extensions;
     }
 
-    return extensions;
-  }
-
-  private boolean isRealmEnabled() {
-    //Optional<String> realmConf = configuration.get("sonar.security.realm");
-    //return (realmConf.isPresent() && CasSecurityRealm.KEY.equalsIgnoreCase(realmConf.get()));
-    return true;
-  }
+    private boolean isRealmEnabled() {
+        //Optional<String> realmConf = configuration.get("sonar.security.realm");
+        //return (realmConf.isPresent() && CasSecurityRealm.KEY.equalsIgnoreCase(realmConf.get()));
+        return true;
+    }
 
 }

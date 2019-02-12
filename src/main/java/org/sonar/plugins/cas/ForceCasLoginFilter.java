@@ -47,8 +47,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
   /** Array of request URLS that should not be redirected to the login page. */
   private static final List<String> WHITE_LIST = Arrays.asList(
-    new String[] {"/sessions/", "/cas/validate", "/api/", "/batch_bootstrap/", "/deploy/", "/batch"}
-  );
+          "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
 
   private final RestAuthenticator restAuthenticator;
 
