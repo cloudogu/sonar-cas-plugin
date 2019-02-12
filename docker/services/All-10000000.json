@@ -1,0 +1,18 @@
+{
+  "@class" : "org.apereo.cas.services.RegexRegisteredService",
+  "serviceId" : "^(https?|imaps?)://.*",
+  "name" : "All",
+  "id" : 10000000,
+  "description" : "This service definition authorizes all application urls that support HTTPS and IMAPS protocols.",
+  "evaluationOrder" : 10000,
+  "proxyPolicy" : {
+    "@class" : "org.apereo.cas.services.RegexMatchingRegisteredServiceProxyPolicy",
+    "pattern" : "^(https?|imaps?)://.*"
+  },
+  "usernameAttributeProvider" : {
+    "@class" : "org.apereo.cas.services.DefaultRegisteredServiceUsernameProvider"
+  },
+  "attributeReleasePolicy" : {
+    "@class" : "org.apereo.cas.services.ReturnAllAttributeReleasePolicy"
+  }
+}

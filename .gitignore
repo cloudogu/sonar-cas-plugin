@@ -1,6 +1,7 @@
 # ---- Maven
 target/
 bin/
+tmp/
 
 # ---- IntelliJ IDEA
 *.iws
@@ -32,3 +33,4 @@ Desktop.ini
 
 sonar-home/data
 sonar-home/plugins
+.env
