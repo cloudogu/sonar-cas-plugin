@@ -56,6 +56,7 @@
 	<properties>
 		<sonar.version>6.7</sonar.version>
 		<cas.version>3.5.0</cas.version>
+		<jjwt.version>0.9.0</jjwt.version>
 
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
@@ -73,6 +74,13 @@
 			<groupId>org.sonarsource.sonarqube</groupId>
 			<artifactId>sonar-plugin-api</artifactId>
 			<version>${sonar.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>${jjwt.version}</version>
 			<scope>provided</scope>
 		</dependency>
 

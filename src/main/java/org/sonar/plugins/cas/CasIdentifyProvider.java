@@ -12,8 +12,13 @@ import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
+import org.sonar.plugins.cas.logout.LogoutHandler;
+import org.sonar.plugins.cas.util.JwtProcessor;
+import org.sonar.plugins.cas.util.SimpleJwt;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,6 +43,7 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentifyProvider.class);
 
+
     private final CasAttributeSettings attributeSettings;
 
     public CasIdentifyProvider(CasAttributeSettings attributeSettings) {
@@ -47,18 +53,34 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
     @Override
     public void init(Context context) {
         try {
-            handleAuthentication(context);
+            // case login
+            if (isLogin(context.getRequest())) {
+                handleAuthentication(context);
+            } else if (isLogout(context.getRequest())) {
+                handleLogout(context);
+            } else {
+                LOG.debug("Found a different case than expected");
+            }
+            // CASE logout
+            // post mit application/x-www-form-urlencoded und BODY param "logoutRequest" XML
         } catch (Exception e) {
             LOG.error("authentication failed", e);
         }
     }
 
     private void handleAuthentication(Context context) throws IOException, TicketValidationException {
+        LOG.debug("Found internal login case");
+
         String grantingTicket = context.getRequest().getParameter("ticket");
         Cas30ProxyTicketValidator validator = new Cas30ProxyTicketValidator("https://cas.hitchhiker.com:8443/cas");
         Assertion assertion = validator.validate(grantingTicket, "http://sonar.hitchhiker.com:9000/sessions/init/cas");
 
         context.authenticate(createUserIdentity(assertion));
+
+        Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
+        SimpleJwt jwt = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+        CasSessionStore.store(grantingTicket, jwt);
+
         // redirect back to start page
         // TODO what about opened page? lost?
         context.getResponse().sendRedirect(StringUtils.defaultIfEmpty(context.getRequest().getContextPath(), "/"));
@@ -90,6 +112,24 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
         return builder.build();
     }
 
+    private void handleLogout(Context context) {
+        LOG.debug("Found external logout case");
+        String logoutAttributes = context.getRequest().getParameter("logoutRequest");
+        new LogoutHandler().logout(logoutAttributes);
+    }
+
+    private boolean isLogout(HttpServletRequest request) {
+        String requestMethod = request.getMethod();
+        String logoutAttributes = request.getParameter("logoutRequest");
+        return "POST".equals(requestMethod) && logoutAttributes != null && !logoutAttributes.isEmpty();
+    }
+
+    private boolean isLogin(HttpServletRequest request) {
+        String requestMethod = request.getMethod();
+        String ticket = request.getParameter("ticket");
+
+        return "GET".equals(requestMethod) && ticket != null && !ticket.isEmpty();
+    }
 
     @Override
     public String getKey() {
