@@ -24,6 +24,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.sonar.api.Plugin;
 import org.sonar.api.config.Configuration;
+import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.util.IgnoreCert;
 
 import java.util.ArrayList;
@@ -105,6 +106,8 @@ public final class CasPlugin implements Plugin {
             extensions.add(ForceCasLoginFilter.class);
             extensions.add(AuthenticationFilter.class);
             extensions.add(CasAttributeSettings.class);
+
+            extensions.add(CasSonarSignOutInjectorFilter.class);
         }
 
         return extensions;

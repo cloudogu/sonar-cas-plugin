@@ -141,30 +141,30 @@ public class CasPluginTest {
   }
 
 
-  @Test
-  public void should_disable_logout_by_default() {
-    final Configuration configuration = new ConfigurationBridge(new MapSettings()
-      .setProperty("sonar.security.realm", "cas")
-      .setProperty("sonar.authenticator.createUsers", "true")
-      .setProperty("sonar.cas.protocol", "saml11")
-    );
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
-
-    assertThat(extensions).excludes(CasLogoutRequestFilter.class);
-    assertThat(extensions).excludes(SonarLogoutRequestFilter.class);
-  }
-
-  @Test
-  public void should_enable_logout_by_default() {
-    final Configuration configuration = new ConfigurationBridge(new MapSettings()
-      .setProperty("sonar.security.realm", "cas")
-      .setProperty("sonar.authenticator.createUsers", "true")
-      .setProperty(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL, "http://localhost:8080/cas/logout")
-      .setProperty("sonar.cas.protocol", "saml11")
-    );
-
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
-
-    assertThat(extensions).contains(CasLogoutRequestFilter.class, SonarLogoutRequestFilter.class);
-  }
+//  @Test
+//  public void should_disable_logout_by_default() {
+//    final Configuration configuration = new ConfigurationBridge(new MapSettings()
+//      .setProperty("sonar.security.realm", "cas")
+//      .setProperty("sonar.authenticator.createUsers", "true")
+//      .setProperty("sonar.cas.protocol", "saml11")
+//    );
+//    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+//
+//    assertThat(extensions).excludes(CasLogoutRequestFilter.class);
+//    assertThat(extensions).excludes(SonarLogoutRequestFilter.class);
+//  }
+//
+//  @Test
+//  public void should_enable_logout_by_default() {
+//    final Configuration configuration = new ConfigurationBridge(new MapSettings()
+//      .setProperty("sonar.security.realm", "cas")
+//      .setProperty("sonar.authenticator.createUsers", "true")
+//      .setProperty(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL, "http://localhost:8080/cas/logout")
+//      .setProperty("sonar.cas.protocol", "saml11")
+//    );
+//
+//    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+//
+//    assertThat(extensions).contains(CasLogoutRequestFilter.class, SonarLogoutRequestFilter.class);
+//  }
 }
