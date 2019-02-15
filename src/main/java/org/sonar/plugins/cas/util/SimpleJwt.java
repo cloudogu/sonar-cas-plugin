@@ -8,6 +8,8 @@ import java.time.Instant;
  * Instances are immutable and thread-safe.
  */
 public class SimpleJwt {
+    public static final SimpleJwt nullObject = new SimpleJwt("null JWT", Instant.ofEpochSecond(1L), true);
+
     private final String jwtId;
     /**
      * the expiration date is given as epoch seconds in UTC
@@ -17,6 +19,11 @@ public class SimpleJwt {
      * A invalid JWT is considered as invalid, that is the user has to re-login in order to get a new JWT.
      */
     private final boolean invalid;
+
+
+    public static SimpleJwt getNullObject() {
+        return nullObject;
+    }
 
     public String getJwtId() {
         return jwtId;
@@ -49,8 +56,8 @@ public class SimpleJwt {
     }
 
     /**
-     * Creates a valid JWT from a given ID and epoch second timesatmps
-     * @param jwtId the JWT identifies uniqiely
+     * Creates a valid JWT from a given ID and epoch second timestamps
+     * @param jwtId the JWT identifies uniquely
      * @param expirationAsEpochSeconds
      * @return
      */

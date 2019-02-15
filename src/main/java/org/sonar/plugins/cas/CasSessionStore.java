@@ -2,10 +2,12 @@ package org.sonar.plugins.cas;
 
 import org.sonar.plugins.cas.util.SimpleJwt;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CasSessionStore {
+public final class CasSessionStore {
     /**
      * This map contains the CAS granting ticket and the issued JWT. This map is only hit during back-channel logout.
      */
@@ -26,14 +28,29 @@ public class CasSessionStore {
     }
 
     public static SimpleJwt getJwtById(SimpleJwt jwt) {
-        return jwtIdToJwt.get(jwt.getJwtId());
+        SimpleJwt result = jwtIdToJwt.get(jwt.getJwtId());
+        if (result == null) {
+            result = SimpleJwt.getNullObject();
+        }
+        return result;
     }
 
-    public static void invalidateJwt(String grantingTicketId) {
+    /**
+     * Render existing JWT invalid.
+     * @param grantingTicketId the CAS granting ticket ID
+     * @return the JWT id which is now invalid.
+     */
+    public static String invalidateJwt(String grantingTicketId) {
         SimpleJwt jwt = ticketToJwt.get(grantingTicketId);
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
         jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
         ticketToJwt.replace(grantingTicketId, invalidated);
+
+        return invalidated.getJwtId();
+    }
+
+    public static Collection<String> pruneExpiredEntries() {
+        return Collections.emptyList();
     }
 }
