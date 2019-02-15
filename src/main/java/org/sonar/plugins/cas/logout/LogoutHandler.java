@@ -21,14 +21,16 @@ public class LogoutHandler {
 
     public void logout(String logoutRequestRaw) {
         LogoutRequest logoutRequest = JAXB.unmarshal(new StringReader(logoutRequestRaw), LogoutRequest.class);
-        CasSessionStore.invalidateJwt(logoutRequest.sessionId);
+        String jwtId = CasSessionStore.invalidateJwt(logoutRequest.sessionId);
+
+        LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, logoutRequest.sessionId);
     }
 
     public void invalidateLoginCookiesIfNecessary(HttpServletRequest request, HttpServletResponse response) {
         boolean removeJwtCookie = shouldLogoutUser(request.getCookies());
 
         if (removeJwtCookie) {
-            LOG.debug("User authentication cookies will be removed because an invalid JWT token was found.");
+            LOG.debug("User authentication cookies will be removed because an invalid JWT token was found");
             removeAuthCookies(response);
         }
     }
@@ -45,6 +47,8 @@ public class LogoutHandler {
         }
 
         SimpleJwt storedJwt = CasSessionStore.getJwtById(jwt);
+        LOG.debug("Is the found JWT token {} invalid? {}", jwt.getJwtId(), storedJwt.isInvalid());
+
         return storedJwt.isInvalid();
     }
 
@@ -64,6 +68,5 @@ public class LogoutHandler {
 
         @XmlElement(name = "SessionIndex", namespace = "urn:oasis:names:tc:SAML:2.0:protocol")
         private String sessionId;
-
     }
 }

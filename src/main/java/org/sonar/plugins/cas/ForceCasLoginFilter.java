@@ -78,13 +78,12 @@ public class ForceCasLoginFilter extends ServletFilter {
         }
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
-            LOG.debug("Found permitted request.");
+            LOG.debug("Found permitted request to {}", request.getRequestURL());
             new LogoutHandler().invalidateLoginCookiesIfNecessary(request, response);
-
 
             chain.doFilter(request, servletResponse);
         } else {
-            LOG.debug("Found unauthenticated request or request not in whitelist. Redirecting to /sessions/new");
+            LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to /sessions/new", request.getRequestURL());
             redirect(request, response, "/sessions/new");
         }
     }
