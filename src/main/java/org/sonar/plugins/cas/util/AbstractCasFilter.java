@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.Map;
 
 public abstract class AbstractCasFilter extends ServletFilter {
-  private static final String PROPERTY_SONAR_SERVER_URL = SonarCasPropertyNames.SONAR_SERVER_URL.toString();
+  private static final String PROPERTY_SONAR_SERVER_URL = SonarCasProperties.SONAR_SERVER_URL.toString();
   private final Filter casFilter;
   private final Configuration configuration;
 
@@ -72,8 +72,4 @@ public abstract class AbstractCasFilter extends ServletFilter {
   }
 
   protected abstract void doCompleteProperties(Configuration configuration, Map<String, String> properties);
-
-  public final Filter getCasFilter() {
-    return casFilter;
-  }
 }

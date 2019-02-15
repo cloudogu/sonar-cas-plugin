@@ -22,6 +22,7 @@ package org.sonar.plugins.cas.logout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.web.ServletFilter;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
 import java.io.BufferedReader;
@@ -41,7 +42,7 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
     @Override
     public void init(FilterConfig filterConfig) {
-
+        // nothing to init
     }
 
     @Override
@@ -53,11 +54,11 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
                          final FilterChain filterChain) throws IOException, ServletException {
         filterChain.doFilter(request, response);
 
-        String javascriptToInject = "casLogoutUrl.js";
-        InputStream stream = CasSonarSignOutInjectorFilter.class.getClassLoader().getResourceAsStream(javascriptToInject);
+        String javascriptFile = "casLogoutUrl.js";
+        InputStream stream = CasSonarSignOutInjectorFilter.class.getClassLoader().getResourceAsStream(javascriptFile);
 
         if(stream == null) {
-            LOG.error("Could not find file {} in classpath. Exiting filtering", javascriptToInject);
+            LOG.error("Could not find file {} in classpath. Exiting filtering", javascriptFile);
             filterChain.doFilter(request, response);
             return;
         }
@@ -75,15 +76,14 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
         response.getOutputStream().println("<script type='text/javascript'>");
         String casLogoutUrl = getCasLogoutUrl();
-        String s = builder.toString().replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
-        response.getOutputStream().println(s);
+        String javaScriptToInject = builder.toString().replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
+        response.getOutputStream().println(javaScriptToInject);
         response.getOutputStream().println("window.onload = logoutHandler;");
         response.getOutputStream().println("</script>");
     }
 
     private String getCasLogoutUrl() {
-        // TODO replace from properties
-        return "https://cas.hitchhiker.com:8443/cas/logout";
+        return SonarCasProperties.CAS_SERVER_LOGOUT_URL.getStringProperty();
     }
 
     public void destroy() {

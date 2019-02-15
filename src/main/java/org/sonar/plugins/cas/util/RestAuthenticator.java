@@ -31,7 +31,6 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.Settings;
 
 /**
  * Cas rest authentication.
@@ -56,15 +55,15 @@ public class RestAuthenticator {
   }
   
   private String getCasServerUrlPrefix() {
-    return configuration.get(SonarCasPropertyNames.CAS_SERVER_URL_PREFIX.toString()).get();
+    return configuration.get(SonarCasProperties.CAS_SERVER_URL_PREFIX.toString()).get();
   }
   
   private String getServiceUrl() {
-    return configuration.get(SonarCasPropertyNames.SONAR_SERVER_URL.toString()).get();
+    return configuration.get(SonarCasProperties.SONAR_SERVER_URL.toString()).get();
   }
   
   private String getCasProtocol() {
-    return configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).get();
+    return configuration.get(SonarCasProperties.CAS_PROTOCOL.toString()).get();
   }
   
   public void authenticate(Credentials credentials, HttpServletRequest request) {

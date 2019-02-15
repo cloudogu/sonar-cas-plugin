@@ -59,46 +59,14 @@ public final class CasPlugin implements Plugin {
     List<Object> collectExtensions() {
         List<Object> extensions = new ArrayList<>();
         if (isRealmEnabled()) {
-
-            // Preconditions.checkState(configuration.getBoolean(SonarCasPropertyNames.SONAR_CREATE_USERS.toString()).orElse(Boolean.FALSE),
-            //              "Property " + SonarCasPropertyNames.SONAR_CREATE_USERS + " must be set to true.");
-            // final String protocol = configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).orElse(null);
-
             String protocol = "cas2";
 
             Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
                     "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
 
-            // extensions.add(CasSecurityRealm.class);
-
-
             // The ignore certification validation should only be used in development (security risk)!
-            // if (configuration.getBoolean(SonarCasPropertyNames.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
+            // if (configuration.getBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
             IgnoreCert.disableSslVerification();
-            // }
-
-      /*if (StringUtils.isNotBlank(configuration.get(SonarLogoutRequestFilter.PROPERTY_CAS_LOGOUT_URL).orElse(null))) {
-        extensions.add(CasLogoutRequestFilter.class);
-        extensions.add(SonarLogoutRequestFilter.class);
-      }*/
-
-            //if (configuration.getBoolean(SonarCasPropertyNames.FORCE_CAS_LOGIN.toString()).orElse(Boolean.FALSE)) {
-            // extensions.add(ForceCasLoginFilter.class);
-            // }
-
-      /*if ("cas1".equals(protocol)) {
-        extensions.add(Cas1ValidationFilter.class);
-        extensions.add(Cas1AuthenticationFilter.class);
-      } else if ("cas2".equals(protocol)) {
-        extensions.add(Cas2ValidationFilter.class);
-        extensions.add(Cas2AuthenticationFilter.class);
-      } else if ("saml11".equals(protocol)) {
-        extensions.add(Saml11ValidationFilter.class);
-        extensions.add(Saml11AuthenticationFilter.class);
-      } else {
-        throw new IllegalStateException(
-                String.format("Unknown CAS protocol: %s. Valid values are: cas1, cas2 or saml11.", protocol));
-      }*/
 
             extensions.add(CasIdentifyProvider.class);
             extensions.add(CasSecurityRealm.class);

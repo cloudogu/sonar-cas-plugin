@@ -31,7 +31,7 @@ import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
 import org.sonar.plugins.cas.util.CasRestClient;
 import org.sonar.plugins.cas.util.RestAuthenticator;
-import org.sonar.plugins.cas.util.SonarCasPropertyNames;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Locale;
@@ -68,15 +68,15 @@ public final class CasAuthenticator extends Authenticator {
     }
 
     private String getCasServerUrlPrefix() {
-        return configuration.get(SonarCasPropertyNames.CAS_SERVER_URL_PREFIX.toString()).get();
+        return configuration.get(SonarCasProperties.CAS_SERVER_URL_PREFIX.toString()).get();
     }
 
     private String getServiceUrl() {
-        return configuration.get(SonarCasPropertyNames.SONAR_SERVER_URL.toString()).get();
+        return configuration.get(SonarCasProperties.SONAR_SERVER_URL.toString()).get();
     }
 
     private String getCasProtocol() {
-        return configuration.get(SonarCasPropertyNames.CAS_PROTOCOL.toString()).get();
+        return configuration.get(SonarCasProperties.CAS_PROTOCOL.toString()).get();
     }
 
     private TicketValidator createTicketValidator() {
@@ -153,5 +153,4 @@ public final class CasAuthenticator extends Authenticator {
             user.setEmail(email);
         }
     }
-
 }

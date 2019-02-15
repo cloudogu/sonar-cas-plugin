@@ -21,7 +21,7 @@ package org.sonar.plugins.cas;
 
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
-import org.sonar.plugins.cas.util.SonarCasPropertyNames;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import java.util.*;
 
@@ -48,7 +48,7 @@ public class CasAttributeSettings {
    * @return the roleAttributes
    */
   private List<String> getRoleAttributes() {
-    final String str = settings.get(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()).orElse(null);
+    final String str = settings.get(SonarCasProperties.ROLES_ATTRIBUTE.toString()).orElse(null);
     return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
   }
 
@@ -57,14 +57,14 @@ public class CasAttributeSettings {
    * @return the fullNameAttribute
    */
   private String getFullNameAttribute() {
-    return settings.get(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()).orElse("cn");
+    return settings.get(SonarCasProperties.FULL_NAME_ATTRIBUTE.toString()).orElse("cn");
   }
 
   /**
    * @return the eMailAttribute
    */
   private String getMailAttribute() {
-    return settings.get(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()).orElse("mail");
+    return settings.get(SonarCasProperties.EMAIL_ATTRIBUTE.toString()).orElse("mail");
   }
 
   Set<String> getGroups(Map<String,Object> attributes) {

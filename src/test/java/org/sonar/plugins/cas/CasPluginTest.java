@@ -26,8 +26,6 @@ import org.junit.rules.ExpectedException;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.config.internal.ConfigurationBridge;
 import org.sonar.api.config.internal.MapSettings;
-import org.sonar.plugins.cas.logout.CasLogoutRequestFilter;
-import org.sonar.plugins.cas.logout.SonarLogoutRequestFilter;
 
 import java.util.List;
 
