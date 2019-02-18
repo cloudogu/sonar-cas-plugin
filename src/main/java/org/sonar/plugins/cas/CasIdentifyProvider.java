@@ -58,7 +58,6 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentifyProvider.class);
 
     private final CasAttributeSettings attributeSettings;
-    private static final boolean ALLOW_USER_SIGNUP_DEFAULT = false;
 
     public CasIdentifyProvider(CasAttributeSettings attributeSettings) {
         this.attributeSettings = attributeSettings;
@@ -67,7 +66,6 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
     @Override
     public void init(Context context) {
         try {
-            // case login
             if (isLogin(context.getRequest())) {
                 handleAuthentication(context);
             } else if (isLogout(context.getRequest())) {
