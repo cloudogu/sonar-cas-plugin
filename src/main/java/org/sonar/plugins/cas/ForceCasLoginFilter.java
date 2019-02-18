@@ -98,10 +98,6 @@ public class ForceCasLoginFilter extends ServletFilter {
         return !"-".equals(login);
     }
 
-    public void destroy() {
-        // nothing to do
-    }
-
     /**
      * Looks for the given value if it or parts of it are containing in the white list.
      *
@@ -109,13 +105,19 @@ public class ForceCasLoginFilter extends ServletFilter {
      * @return true if found, false otherwise.
      */
     private boolean isInWhiteList(final String entry) {
-        if (null != entry) {
-            for (final String item : WHITE_LIST) {
-                if (entry.contains(item)) {
-                    return true;
-                }
+        if (null == entry) {
+            return false;
+        }
+
+        for (final String item : WHITE_LIST) {
+            if (entry.contains(item)) {
+                return true;
             }
         }
         return false;
+    }
+
+    public void destroy() {
+        // nothing to do
     }
 }
