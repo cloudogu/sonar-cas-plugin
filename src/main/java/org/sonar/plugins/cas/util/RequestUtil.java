@@ -20,10 +20,13 @@
 package org.sonar.plugins.cas.util;
 
 import com.google.common.base.Strings;
-import java.io.UnsupportedEncodingException;
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.codec.binary.Base64;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Util class for request methods.
@@ -32,38 +35,34 @@ import org.apache.commons.codec.binary.Base64;
  */
 public final class RequestUtil {
 
-  private RequestUtil() {
-  }
-  
-  public static boolean isBrowser(HttpServletRequest request) {
-    String ua = request.getHeader("User-Agent");
-    return Strings.nullToEmpty(ua).startsWith("Mozilla");
-  }
-  
-  public static HttpServletRequest toHttp( ServletRequest request ) {
-    if (!(request instanceof HttpServletRequest)){
-      throw new IllegalArgumentException("request is not a http servlet request");
+    private RequestUtil() {
     }
-    return (HttpServletRequest) request;
-  }
-  
-  public static Credentials getBasicAuthentication(HttpServletRequest request) throws UnsupportedEncodingException {
-    Credentials credentials = null;
-    String header = request.getHeader("Authorization");
-    if (Strings.nullToEmpty(header).startsWith("Basic "))
-    {
-      String auth = header.substring("Basic ".length());
-      String decodedAuth = new String(Base64.decodeBase64(auth), "ISO-8859-1");
-      if (!Strings.isNullOrEmpty(decodedAuth))
-      {
-        String[] parts = decodedAuth.split(":");
-        if ( parts.length == 2 )
-        {
-          credentials = new Credentials(parts[0], parts[1]);
+
+    public static boolean isBrowser(HttpServletRequest request) {
+        String ua = request.getHeader("User-Agent");
+        return Strings.nullToEmpty(ua).startsWith("Mozilla");
+    }
+
+    public static HttpServletRequest toHttp(ServletRequest request) {
+        if (!(request instanceof HttpServletRequest)) {
+            throw new IllegalArgumentException("request is not a http servlet request");
         }
-      }
+        return (HttpServletRequest) request;
     }
-    return credentials;
-  }
-  
+
+    public static Credentials getBasicAuthentication(HttpServletRequest request) throws UnsupportedEncodingException {
+        Credentials credentials = null;
+        String header = request.getHeader("Authorization");
+        if (Strings.nullToEmpty(header).startsWith("Basic ")) {
+            String auth = header.substring("Basic ".length());
+            String decodedAuth = new String(Base64.decodeBase64(auth), StandardCharsets.ISO_8859_1);
+            if (!Strings.isNullOrEmpty(decodedAuth)) {
+                String[] parts = decodedAuth.split(":");
+                if (parts.length == 2) {
+                    credentials = new Credentials(parts[0], parts[1]);
+                }
+            }
+        }
+        return credentials;
+    }
 }
