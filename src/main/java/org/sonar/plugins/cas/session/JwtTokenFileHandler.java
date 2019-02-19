@@ -4,6 +4,7 @@ import org.apache.commons.lang.StringUtils;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.xml.bind.JAXB;
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
@@ -24,10 +25,13 @@ class JwtTokenFileHandler {
         return Files.exists(Paths.get(jwtFile));
     }
 
-    public SimpleJwt get(String jwtId) {
-        return null;
+    public SimpleJwt get(String jwtId) throws IOException {
+        Charset charset = Charset.forName("US-ASCII");
+        Path filePath = Paths.get(sessionStorePath + File.separator + jwtId);
+        try (BufferedReader reader = Files.newBufferedReader(filePath, charset)) {
+            return JAXB.unmarshal(reader, SimpleJwt.class);
+        }
     }
-
 
     public void store(String jwtId, SimpleJwt jwt) throws IOException {
         if (StringUtils.isEmpty(jwtId)) {

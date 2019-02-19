@@ -32,6 +32,12 @@ public class SimpleJwt {
     SimpleJwt() {
     }
 
+    SimpleJwt(String jwtId, long expiration, boolean invalid) {
+        this.jwtId = jwtId;
+        this.expiration = expiration;
+        this.invalid = invalid;
+    }
+
     public static SimpleJwt getNullObject() {
         return nullObject;
     }
@@ -50,16 +56,6 @@ public class SimpleJwt {
 
     public boolean isInvalid() {
         return invalid;
-    }
-
-    private SimpleJwt(String jwtId, Instant expiration, boolean invalid) {
-        this(jwtId, expiration.getEpochSecond(), invalid);
-    }
-
-    private SimpleJwt(String jwtId, long expiration, boolean invalid) {
-        this.jwtId = jwtId;
-        this.expiration = expiration;
-        this.invalid = invalid;
     }
 
     /**
@@ -85,8 +81,7 @@ public class SimpleJwt {
             throw new IllegalArgumentException("expirationAsEpochSeconds must not be zero or negative.");
         }
 
-        Instant exp = Instant.ofEpochSecond(expirationAsEpochSeconds);
-        return new SimpleJwt(jwtId, exp, false);
+        return new SimpleJwt(jwtId, expirationAsEpochSeconds, false);
     }
 
     @Override

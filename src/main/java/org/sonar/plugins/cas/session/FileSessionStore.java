@@ -53,7 +53,12 @@ public final class FileSessionStore implements CasSessionStore {
     }
 
     public SimpleJwt getJwtById(SimpleJwt jwt) {
-        SimpleJwt result = jwtIdToJwt.get(jwt.getJwtId());
+        SimpleJwt result = null;
+        try {
+            result = jwtIdToJwt.get(jwt.getJwtId());
+        } catch (IOException e) {
+            LOG.error("Could not find JWT file {}", jwt.getJwtId());
+        }
         if (result == null) {
             result = SimpleJwt.getNullObject();
         }

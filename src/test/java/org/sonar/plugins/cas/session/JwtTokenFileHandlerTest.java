@@ -18,6 +18,7 @@ import java.nio.file.attribute.FileAttribute;
 import java.time.Instant;
 import java.util.Comparator;
 
+import static org.fest.assertions.Assertions.*;
 import static org.junit.Assert.*;
 
 public class JwtTokenFileHandlerTest {
@@ -43,14 +44,14 @@ public class JwtTokenFileHandlerTest {
 
         boolean actual = sut.isJwtStored("1234");
 
-        Assertions.assertThat(actual).isTrue();
+        assertThat(actual).isTrue();
     }
 
     @Test
     public void isJwtStoredReturnsFalseForMissingFile() {
         boolean actual = sut.isJwtStored("1234");
 
-        Assertions.assertThat(actual).isFalse();
+        assertThat(actual).isFalse();
     }
 
     @Test
@@ -62,7 +63,22 @@ public class JwtTokenFileHandlerTest {
         sut.store(jwtId, jwt);
         boolean actuallyStored = Files.exists(Paths.get(sessionStore + File.separator + jwtId));
 
+        assertThat(actuallyStored).isTrue();
+    }
 
-        Assertions.assertThat(actuallyStored).isTrue();
+    @Test
+    public void getShouldReturnJwt() throws IOException {
+        // given
+        long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
+        String jwtId = "AWjne4xYY4T-z3CxdIRY";
+        SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
+        // store a originalJwt file
+        sut.store(jwtId, originalJwt);
+
+        // when
+        SimpleJwt restoredJwt = sut.get(jwtId);
+
+        // then
+        assertThat(restoredJwt).isEqualTo(originalJwt);
     }
 }
