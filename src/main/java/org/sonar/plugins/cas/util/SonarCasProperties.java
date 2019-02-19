@@ -109,11 +109,16 @@ public enum SonarCasProperties {
     private static final Properties LOADED_PROPERTIES;
 
     static {
-        String pathToPropertyFile = System.getProperty("SONAR_CAS_PLUGIN_PROPERTY_FILE");
+        String sonar_cas_plugin_property_file = "SONAR_CAS_PLUGIN_PROPERTY_FILE";
+
+        String pathToPropertyFile = System.getProperty(sonar_cas_plugin_property_file);
         if (pathToPropertyFile == null) {
-            throw new IllegalStateException("Could not load CAS plugin property file. This file is vital for the CAS" +
-                    "plugin. Please provide a system property SONAR_CAS_PLUGIN_PROPERTY_FILE which points to a " +
-                    "property file just like this: '/opt/sonarqube/conf/sonar.properties'");
+            pathToPropertyFile = System.getenv(sonar_cas_plugin_property_file);
+            if (pathToPropertyFile == null) {
+                throw new IllegalStateException("Could not load CAS plugin property file. This file is vital for the CAS" +
+                        "plugin. Please provide a system property SONAR_CAS_PLUGIN_PROPERTY_FILE which points to a " +
+                        "property file just like this: '/opt/sonarqube/conf/sonar.properties'");
+            }
         }
         LOADED_PROPERTIES = new Properties();
         try {
