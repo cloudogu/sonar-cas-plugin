@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
+import java.io.IOException;
+
 public final class FileSessionStore implements CasSessionStore {
     private static final Logger LOG = LoggerFactory.getLogger(FileSessionStore.class);
 
@@ -39,7 +41,11 @@ public final class FileSessionStore implements CasSessionStore {
 
     public void store(String ticket, SimpleJwt jwt) {
         ticketToJwt.store(ticket, jwt);
-        jwtIdToJwt.store(jwt.getJwtId(), jwt);
+        try {
+            jwtIdToJwt.store(jwt.getJwtId(), jwt);
+        } catch (IOException e) {
+            LOG.error("Could not store JWT {} to storage path {}", jwt.getJwtId());
+        }
     }
 
     public boolean isJwtStored(SimpleJwt jwt) {

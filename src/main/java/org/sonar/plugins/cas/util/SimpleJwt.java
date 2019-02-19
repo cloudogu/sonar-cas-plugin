@@ -1,5 +1,9 @@
 package org.sonar.plugins.cas.util;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Instant;
 
 /**
@@ -7,19 +11,26 @@ import java.time.Instant;
  *
  * Instances are immutable and thread-safe.
  */
+@XmlAccessorType(XmlAccessType.FIELD)
+@XmlRootElement(name = "SimpleJwt")
 public class SimpleJwt {
-    public static final SimpleJwt nullObject = new SimpleJwt("null JWT", Instant.ofEpochSecond(1L), true);
+    private static final SimpleJwt nullObject = new SimpleJwt("null JWT", 1L, true);
 
-    private final String jwtId;
+    @XmlElement
+    private String jwtId;
     /**
      * the expiration date is given as epoch seconds in UTC
      */
-    private final Instant expiration;
+    @XmlElement
+    private long expiration;
     /**
      * A invalid JWT is considered as invalid, that is the user has to re-login in order to get a new JWT.
      */
-    private final boolean invalid;
+    @XmlElement
+    private boolean invalid;
 
+    SimpleJwt() {
+    }
 
     public static SimpleJwt getNullObject() {
         return nullObject;
@@ -30,11 +41,11 @@ public class SimpleJwt {
     }
 
     public Instant getExpiration() {
-        return expiration;
+        return Instant.ofEpochSecond(expiration);
     }
 
     public boolean isExpired() {
-        return expiration.isBefore(Instant.now());
+        return getExpiration().isBefore(Instant.now());
     }
 
     public boolean isInvalid() {
@@ -42,6 +53,10 @@ public class SimpleJwt {
     }
 
     private SimpleJwt(String jwtId, Instant expiration, boolean invalid) {
+        this(jwtId, expiration.getEpochSecond(), invalid);
+    }
+
+    private SimpleJwt(String jwtId, long expiration, boolean invalid) {
         this.jwtId = jwtId;
         this.expiration = expiration;
         this.invalid = invalid;
@@ -61,7 +76,7 @@ public class SimpleJwt {
      * @param expirationAsEpochSeconds the instant when the JWT expires. Must not be negative
      * @return a JWT
      */
-    static SimpleJwt fromIdAndExpiration(String jwtId, long expirationAsEpochSeconds) {
+    public static SimpleJwt fromIdAndExpiration(String jwtId, long expirationAsEpochSeconds) {
         if (jwtId == null || jwtId.trim().isEmpty()) {
             throw new IllegalArgumentException("jwtId must not be empty");
         }
@@ -80,7 +95,7 @@ public class SimpleJwt {
         if (o == null || getClass() != o.getClass()) return false;
         SimpleJwt other = (SimpleJwt) o;
         return jwtId.equals(other.jwtId) &&
-                expiration.equals(other.expiration) &&
+                expiration == other.expiration &&
                 invalid == other.invalid;
     }
 
