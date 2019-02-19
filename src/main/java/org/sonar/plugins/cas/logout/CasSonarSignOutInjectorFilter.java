@@ -25,11 +25,14 @@ import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+
+import static org.sonar.plugins.cas.util.RequestUtil.toHttp;
 
 /**
  * This class injects the CAS logout URL into SonarQube's original logout button in order to call CAS backchannel
@@ -47,17 +50,23 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
     @Override
     public UrlPattern doGetPattern() {
-        return UrlPattern.create("/");
+        return UrlPattern.create("/*");
     }
 
     public void doFilter(final ServletRequest request, final ServletResponse response,
                          final FilterChain filterChain) throws IOException, ServletException {
         filterChain.doFilter(request, response);
 
+        if (! acceptsHtml(request)) {
+            LOG.error("Requested resource does not accept HTML-ish content. Javascript will not be injected");
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         String javascriptFile = "casLogoutUrl.js";
         InputStream stream = CasSonarSignOutInjectorFilter.class.getClassLoader().getResourceAsStream(javascriptFile);
 
-        if(stream == null) {
+        if (stream == null) {
             LOG.error("Could not find file {} in classpath. Exiting filtering", javascriptFile);
             filterChain.doFilter(request, response);
             return;
@@ -80,6 +89,14 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         response.getOutputStream().println(javaScriptToInject);
         response.getOutputStream().println("window.onload = logoutHandler;");
         response.getOutputStream().println("</script>");
+    }
+
+    private boolean acceptsHtml(ServletRequest request) {
+        HttpServletRequest httpServletRequest = toHttp(request);
+
+        String acceptable = httpServletRequest.getHeader("accept");
+        LOG.debug("Resource {} accepts {}", httpServletRequest.getRequestURL(), acceptable);
+        return acceptable != null && acceptable.contains("html");
     }
 
     private String getCasLogoutUrl() {

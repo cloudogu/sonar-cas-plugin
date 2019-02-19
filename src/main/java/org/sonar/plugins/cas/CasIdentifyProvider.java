@@ -14,15 +14,17 @@ import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.util.JwtProcessor;
-import org.sonar.plugins.cas.util.SimpleJwt;
-import org.sonar.plugins.cas.util.SonarCasProperties;
+import org.sonar.plugins.cas.util.*;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
+
+import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
  * The {@link CasIdentifyProvider} is responsible for the browser based cas sso authentication. The authentication
@@ -66,12 +68,13 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
     @Override
     public void init(Context context) {
         try {
-            if (isLogin(context.getRequest())) {
+            HttpServletRequest request = context.getRequest();
+            if (isLogin(request)) {
                 handleAuthentication(context);
-            } else if (isLogout(context.getRequest())) {
+            } else if (isLogout(request)) {
                 handleLogout(context);
             } else {
-                LOG.debug("CasIdentifyProvider found an expected case. Ignoring this request to {}", context.getRequest().getRequestURL());
+                LOG.debug("CasIdentifyProvider found an expected case. Ignoring this request to {}", request.getRequestURL());
             }
         } catch (Exception e) {
             LOG.error("authentication failed", e);
@@ -89,12 +92,38 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
 
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+
         LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
         CasSessionStore.store(grantingTicket, jwt);
 
-        // redirect back to start page
-        // TODO what about opened page? lost?
-        context.getResponse().sendRedirect(StringUtils.defaultIfEmpty(context.getRequest().getContextPath(), "/"));
+        String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
+        removeRedirectCookie(context.getResponse());
+
+        LOG.debug("redirecting to {}", redirectTo);
+        context.getResponse().sendRedirect(redirectTo);
+    }
+
+    private String getOriginalUrlFromCookieOrDefault(HttpServletRequest request) {
+        Cookie cookie = CookieUtil.findCookieByName(request.getCookies(), COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
+
+        if (cookie != null) {
+            String urlFromCookie = cookie.getValue();
+            LOG.debug("found redirect cookie {}", urlFromCookie);
+
+            return urlFromCookie;
+        }
+
+        String fallbackToRoot = "/";
+        String fallback = StringUtils.defaultIfEmpty(request.getContextPath(), fallbackToRoot);
+        LOG.debug("No redirect URL in cookie found. Falling back to {}", fallback);
+
+        return fallback;
+    }
+
+    private void removeRedirectCookie(HttpServletResponse response) {
+        Cookie cookie = CookieUtil.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
+
+        response.addCookie(cookie);
     }
 
     private UserIdentity createUserIdentity(Assertion assertion) {
@@ -123,10 +152,12 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
         return builder.build();
     }
 
-    private void handleLogout(Context context) {
+    private void handleLogout(Context context) throws IOException {
         LOG.debug("Found external logout case");
         String logoutAttributes = getLogoutRequestParameter(context.getRequest());
         new LogoutHandler().logout(logoutAttributes);
+
+        context.getResponse().sendRedirect(getSonarServiceUrl());
     }
 
     private boolean isLogout(HttpServletRequest request) {

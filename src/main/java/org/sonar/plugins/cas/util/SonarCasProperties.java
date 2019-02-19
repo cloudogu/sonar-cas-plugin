@@ -22,11 +22,9 @@ package org.sonar.plugins.cas.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Properties;
 
 /**
@@ -66,7 +64,9 @@ public enum SonarCasProperties {
    */
   SAML11_TIME_TOLERANCE("sonar.cas.saml11.toleranceMilliseconds", SonarPropertyType.INTEGER),
   /** Ignore certification validation errors. CAUTION! NEVER USE IN PROD! SECURITY RISK! */
-  DISABLE_CERT_VALIDATION("sonar.cas.disableCertValidation", SonarPropertyType.BOOLEAN);
+  DISABLE_CERT_VALIDATION("sonar.cas.disableCertValidation", SonarPropertyType.BOOLEAN),
+  /** The expiration time of the cookie which helps to restore the originally requested SonarQube URL over the CAS authentication */
+  URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", SonarPropertyType.INTEGER);
 
   private static final Logger LOG = LoggerFactory.getLogger(SonarCasProperties.class);
 

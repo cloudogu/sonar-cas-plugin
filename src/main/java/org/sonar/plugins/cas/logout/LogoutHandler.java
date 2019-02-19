@@ -3,11 +3,11 @@ package org.sonar.plugins.cas.logout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.CasSessionStore;
+import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
@@ -26,8 +26,14 @@ public class LogoutHandler {
         LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, logoutRequest.sessionId);
     }
 
-    public void invalidateLoginCookiesIfNecessary(HttpServletRequest request, HttpServletResponse response) {
-        boolean removeJwtCookie = shouldLogoutUser(request.getCookies());
+    /**
+     * A user's cookies must be reset if and only if an invalid JWT token was found in the cookies.
+     *
+     * @param cookies  all sent cookies that are supposed to be inspected
+     * @param response the HTTP response that is going to be modified with delete-cookies if an invalid JWT cookie was
+     */
+    public void invalidateLoginCookiesIfNecessary(Cookie[] cookies, HttpServletResponse response) {
+        boolean removeJwtCookie = shouldLogoutUser(cookies);
 
         if (removeJwtCookie) {
             LOG.debug("User authentication cookies will be removed because an invalid JWT token was found");
@@ -53,13 +59,11 @@ public class LogoutHandler {
     }
 
     private void removeAuthCookies(HttpServletResponse response) {
-        Cookie cookie = new Cookie("JWT-SESSION", "");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        Cookie jwtCookie = CookieUtil.createDeletionCookie("JWT-SESSION");
+        response.addCookie(jwtCookie);
 
-        cookie = new Cookie("XSRF-TOKEN", "");
-        cookie.setMaxAge(0);
-        response.addCookie(cookie);
+        Cookie xsrfCookie = CookieUtil.createDeletionCookie("XSRF-TOKEN");
+        response.addCookie(xsrfCookie);
     }
 
     @XmlAccessorType(XmlAccessType.FIELD)

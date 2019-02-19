@@ -28,6 +28,7 @@ import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.util.*;
 
 import javax.servlet.*;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -51,6 +52,7 @@ public class ForceCasLoginFilter extends ServletFilter {
      */
     private static final List<String> WHITE_LIST = Arrays.asList(
             "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
+    static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
 
     private final RestAuthenticator restAuthenticator;
 
@@ -77,15 +79,31 @@ public class ForceCasLoginFilter extends ServletFilter {
             }
         }
 
+        String requestedURL = request.getRequestURL().toString();
+
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
-            LOG.debug("Found permitted request to {}", request.getRequestURL());
-            new LogoutHandler().invalidateLoginCookiesIfNecessary(request, response);
+            LOG.debug("Found permitted request to {}", requestedURL);
+            new LogoutHandler().invalidateLoginCookiesIfNecessary(request.getCookies(), response);
 
             chain.doFilter(request, servletResponse);
         } else {
-            LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to /sessions/new", request.getRequestURL());
-            redirect(request, response, "/sessions/new");
+            // keep the original URL during redirect to the CAS server in order to have the URL opened as intended by the user
+            saveRequestedURLInCookie(request, response);
+            String redirectToLoginUrl = "/sessions/new";
+
+            LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to {}",
+                    requestedURL, redirectToLoginUrl);
+            redirect(request, response, redirectToLoginUrl);
         }
+    }
+
+    private void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String originalURL = request.getRequestURL().toString();
+
+        int maxCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.getIntegerProperty();
+        Cookie cookie = CookieUtil.createHttpOnlyCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, originalURL, maxCookieAge);
+
+        response.addCookie(cookie);
     }
 
     private void redirect(HttpServletRequest request, HttpServletResponse response, String uri) throws IOException {

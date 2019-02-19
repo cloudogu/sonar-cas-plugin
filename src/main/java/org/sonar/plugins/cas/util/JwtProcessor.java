@@ -26,7 +26,7 @@ public class JwtProcessor {
     static String filterJwtCookie(Collection<String> headers) {
         String jwtCookie = headers.stream().filter(header -> header.startsWith("JWT-SESSION=")).collect(Collectors.joining());
 
-        if(jwtCookie.isEmpty()) {
+        if (jwtCookie.isEmpty()) {
             throw new IllegalStateException("Could not find JWT cookie in current request");
         }
 
@@ -39,6 +39,7 @@ public class JwtProcessor {
 
     /**
      * Convert the JWT and return its payload as JSON string.
+     *
      * @param jwt the full base64 encoded JWT
      * @return the JWT's payload as JSON string.
      */
@@ -67,18 +68,13 @@ public class JwtProcessor {
     }
 
     public static SimpleJwt getJwtTokenFromCookies(Cookie[] cookies) {
-        String token = filterJwtFromCookies(cookies);
-        token = decodeJwtPayload(token);
+        Cookie cookie = CookieUtil.findCookieByName(cookies, "JWT-TOKEN");
+        if (cookie == null) {
+            return SimpleJwt.getNullObject();
+        }
+
+        String token = decodeJwtPayload(cookie.getValue());
 
         return createJwt(token);
-    }
-
-    static String filterJwtFromCookies(Cookie[] cookies) {
-        for (Cookie cookie : cookies) {
-            if ("JWT-SESSION".equals(cookie.getName())) {
-                return cookie.getValue();
-            }
-        }
-        throw new IllegalStateException("Could not find JWT cookie in request");
     }
 }

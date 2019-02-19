@@ -42,6 +42,10 @@ public final class CasSessionStore {
      */
     public static String invalidateJwt(String grantingTicketId) {
         SimpleJwt jwt = ticketToJwt.get(grantingTicketId);
+        if (jwt == null) {
+            return "no ticket found";
+        }
+
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
         jwtIdToJwt.replace(jwt.getJwtId(), invalidated);

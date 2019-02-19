@@ -23,7 +23,6 @@ import com.google.common.base.Strings;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.ServletRequest;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
