@@ -1,5 +1,7 @@
 package org.sonar.plugins.cas;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
@@ -16,6 +18,7 @@ import java.io.IOException;
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
 public class AuthenticationFilter extends ServletFilter {
+    private static final Logger LOG = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Override
     public UrlPattern doGetPattern() {
@@ -30,6 +33,7 @@ public class AuthenticationFilter extends ServletFilter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
         String loginRedirectUrl = getCasLoginUrl() + "?service=" + getSonarServiceUrl();
+        LOG.debug("redirecting for CAS authentication to {}", loginRedirectUrl);
         ((HttpServletResponse) response).sendRedirect(loginRedirectUrl);
     }
 
