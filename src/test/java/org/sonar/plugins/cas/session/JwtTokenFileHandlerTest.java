@@ -41,4 +41,13 @@ public class JwtTokenFileHandlerTest {
 
         Assertions.assertThat(actual).isTrue();
     }
+
+    @Test
+    public void isJwtStoredReturnsFalseForMissingFile() throws IOException {
+        JwtTokenFileHandler sut = new JwtTokenFileHandler(sessionStore.toString());
+
+        boolean actual = sut.isJwtStored("1234");
+
+        Assertions.assertThat(actual).isFalse();
+    }
 }
