@@ -74,7 +74,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
             } else if (isLogout(request)) {
                 handleLogout(context);
             } else {
-                LOG.debug("CasIdentityProvider found an expected case. Ignoring this request to {}", request.getRequestURL());
+                LOG.debug("CasIdentityProvider found an unexpected case. Ignoring this request to {}", request.getRequestURL());
             }
         } catch (Exception e) {
             LOG.error("authentication failed", e);
