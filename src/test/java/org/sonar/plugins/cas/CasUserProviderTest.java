@@ -36,29 +36,29 @@ import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.UserDetails;
 
 public class CasUserProviderTest {
-  @Test
-  public void should_get_username_from_cas_attribute() {
-    final CasUserProvider provider = new CasUserProvider();
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-    final Assertion casAssertion = mock(Assertion.class);
-    when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));
-    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(casAssertion);
-
-    final ExternalUsersProvider.Context context = new ExternalUsersProvider.Context(null, request);
-    final UserDetails user = provider.doGetUserDetails(context);
-
-    assertThat(user.getName()).isEqualTo("goldorak");
-  }
-
-  @Test
-  public void should_not_return_user_id_missing_cas_attribute() {
-    final CasUserProvider provider = new CasUserProvider();
-    final HttpServletRequest request = mock(HttpServletRequest.class);
-    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
-
-    final ExternalUsersProvider.Context context = new ExternalUsersProvider.Context(null, request);
-    final UserDetails user = provider.doGetUserDetails(context);
-
-    assertThat(user).isNull();
-  }
+//  @Test
+//  public void should_get_username_from_cas_attribute() {
+//    final CasUserProvider provider = new CasUserProvider();
+//    final HttpServletRequest request = mock(HttpServletRequest.class);
+//    final Assertion casAssertion = mock(Assertion.class);
+//    when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));
+//    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(casAssertion);
+//
+//    final ExternalUsersProvider.Context context = new ExternalUsersProvider.Context(null, request);
+//    final UserDetails user = provider.doGetUserDetails(context);
+//
+//    assertThat(user.getName()).isEqualTo("goldorak");
+//  }
+//
+//  @Test
+//  public void should_not_return_user_id_missing_cas_attribute() {
+//    final CasUserProvider provider = new CasUserProvider();
+//    final HttpServletRequest request = mock(HttpServletRequest.class);
+//    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
+//
+//    final ExternalUsersProvider.Context context = new ExternalUsersProvider.Context(null, request);
+//    final UserDetails user = provider.doGetUserDetails(context);
+//
+//    assertThat(user).isNull();
+//  }
 }
