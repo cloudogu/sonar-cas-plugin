@@ -9,15 +9,15 @@ class GrantingTicketFileHandler {
         this.sessionStorePath = sessionStorePath;
     }
 
-    public SimpleJwt put(String key, SimpleJwt value) {
+    public SimpleJwt store(String key, SimpleJwt value) {
+        return null;
+    }
+
+    public SimpleJwt get(String grantingTicketId) {
         return null;
     }
 
     public void replace(String grantingTicketId, SimpleJwt invalidated) {
 
-    }
-
-    public SimpleJwt get(String grantingTicketId) {
-        return null;
     }
 }

@@ -57,9 +57,9 @@ public class SimpleJwt {
 
     /**
      * Creates a valid JWT from a given ID and epoch second timestamps
-     * @param jwtId the JWT identifies uniquely
-     * @param expirationAsEpochSeconds
-     * @return
+     * @param jwtId the JWT identifies uniquely. Must not be null or the empty string.
+     * @param expirationAsEpochSeconds the instant when the JWT expires. Must not be negative
+     * @return a JWT
      */
     static SimpleJwt fromIdAndExpiration(String jwtId, long expirationAsEpochSeconds) {
         if (jwtId == null || jwtId.trim().isEmpty()) {

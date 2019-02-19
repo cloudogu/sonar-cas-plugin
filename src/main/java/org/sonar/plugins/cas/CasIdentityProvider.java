@@ -14,7 +14,7 @@ import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.FileSessionStore;
 import org.sonar.plugins.cas.util.*;
 
 import javax.servlet.http.Cookie;
@@ -95,7 +95,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         SimpleJwt jwt = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
 
         LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
-        CasSessionStore.store(grantingTicket, jwt);
+        FileSessionStore.getInstance().store(grantingTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
         removeRedirectCookie(context.getResponse());

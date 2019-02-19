@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 /**
- * Collection of all known Sonar CAS Plugin property names.
+ * This class provides Sonar CAS Plugin properties in a typed way..
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  */
@@ -106,12 +106,18 @@ public enum SonarCasProperties {
 
     SonarPropertyType type;
 
-    private static final Properties THEREALPROPERTIES;
+    private static final Properties LOADED_PROPERTIES;
 
     static {
-        THEREALPROPERTIES = new Properties();
+        String pathToPropertyFile = System.getProperty("SONAR_CAS_PLUGIN_PROPERTY_FILE");
+        if (pathToPropertyFile == null) {
+            throw new IllegalStateException("Could not load CAS plugin property file. This file is vital for the CAS" +
+                    "plugin. Please provide a system property SONAR_CAS_PLUGIN_PROPERTY_FILE which points to a " +
+                    "property file just like this: '/opt/sonarqube/conf/sonar.properties'");
+        }
+        LOADED_PROPERTIES = new Properties();
         try {
-            THEREALPROPERTIES.load(new FileReader("/opt/sonarqube/conf/sonar.properties"));
+            LOADED_PROPERTIES.load(new FileReader(pathToPropertyFile));
         } catch (IOException e) {
             LOG.error("Could not initialize CAS properties because an error occurred.", e);
         }
@@ -125,7 +131,7 @@ public enum SonarCasProperties {
     public String getStringProperty() {
         assertPropertyType(SonarPropertyType.STRING);
 
-        String property = THEREALPROPERTIES.getProperty(propertyKey);
+        String property = LOADED_PROPERTIES.getProperty(propertyKey);
         logPropertyNotFound(property);
         return property;
     }
@@ -133,7 +139,7 @@ public enum SonarCasProperties {
     public boolean getBooleanProperty() {
         assertPropertyType(SonarPropertyType.BOOLEAN);
 
-        String property = THEREALPROPERTIES.getProperty(propertyKey);
+        String property = LOADED_PROPERTIES.getProperty(propertyKey);
         logPropertyNotFound(property);
 
         return Boolean.valueOf(property);
@@ -141,7 +147,7 @@ public enum SonarCasProperties {
 
     public int getIntegerProperty() {
         assertPropertyType(SonarPropertyType.INTEGER);
-        String property = THEREALPROPERTIES.getProperty(propertyKey);
+        String property = LOADED_PROPERTIES.getProperty(propertyKey);
         logPropertyNotFound(property);
 
         return Integer.valueOf(property);

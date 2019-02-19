@@ -3,6 +3,7 @@ package org.sonar.plugins.cas.logout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.FileSessionStore;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
@@ -21,7 +22,7 @@ public class LogoutHandler {
 
     public void logout(String logoutRequestRaw) {
         LogoutRequest logoutRequest = JAXB.unmarshal(new StringReader(logoutRequestRaw), LogoutRequest.class);
-        String jwtId = CasSessionStore.invalidateJwt(logoutRequest.sessionId);
+        String jwtId = FileSessionStore.getInstance().invalidateJwt(logoutRequest.sessionId);
 
         LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, logoutRequest.sessionId);
     }
@@ -47,12 +48,14 @@ public class LogoutHandler {
         }
 
         SimpleJwt jwt = JwtProcessor.getJwtTokenFromCookies(cookies);
-        boolean isStored = CasSessionStore.isJwtStored(jwt);
+        CasSessionStore sessionStore = FileSessionStore.getInstance();
+
+        boolean isStored = sessionStore.isJwtStored(jwt);
         if (!isStored) {
             return false;
         }
 
-        SimpleJwt storedJwt = CasSessionStore.getJwtById(jwt);
+        SimpleJwt storedJwt = sessionStore.getJwtById(jwt);
         LOG.debug("Is the found JWT token {} invalid? {}", jwt.getJwtId(), storedJwt.isInvalid());
 
         return storedJwt.isInvalid();
