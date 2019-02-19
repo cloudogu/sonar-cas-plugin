@@ -32,5 +32,6 @@ Desktop.ini
 /release.properties
 
 sonar-home/data
+sonar-home/sessionstore
 sonar-home/plugins
 .env

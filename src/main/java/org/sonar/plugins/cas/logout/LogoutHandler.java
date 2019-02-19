@@ -2,7 +2,7 @@ package org.sonar.plugins.cas.logout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.plugins.cas.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;

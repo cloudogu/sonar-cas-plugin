@@ -1,24 +1,30 @@
-package org.sonar.plugins.cas;
+package org.sonar.plugins.cas.session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.util.SimpleJwt;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 public final class CasSessionStore {
+    private static final Logger LOG = LoggerFactory.getLogger(CasSessionStore.class);
     /**
      * This map contains the CAS granting ticket and the issued JWT. This map is only hit during back-channel logout.
      */
-    private static Map<String, SimpleJwt> ticketToJwt = new HashMap<>();
+    private static GrantingTicketFileHandler ticketToJwt;
     /**
      * This map provides the CAS plugin with information about a JWT's validity. This collection is hit on every Sonar
      * request and must be super-fast.
      */
-    private static Map<String, SimpleJwt> jwtIdToJwt = new HashMap<>();
+    private static JwtTokenFileHandler jwtIdToJwt;
 
-    static void store(String ticket, SimpleJwt jwt) {
+    static {
+        String sessionStorePath = SonarCasProperties.SESSION_STORE_PATH.getStringProperty();
+        LOG.info("Creating CAS session store with path {}", sessionStorePath);
+        ticketToJwt = new GrantingTicketFileHandler(sessionStorePath);
+        jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
+    }
+
+    public static void store(String ticket, SimpleJwt jwt) {
         ticketToJwt.put(ticket, jwt);
         jwtIdToJwt.put(jwt.getJwtId(), jwt);
     }
@@ -32,11 +38,13 @@ public final class CasSessionStore {
         if (result == null) {
             result = SimpleJwt.getNullObject();
         }
+
         return result;
     }
 
     /**
      * Render existing JWT invalid.
+     *
      * @param grantingTicketId the CAS granting ticket ID
      * @return the JWT id which is now invalid.
      */
@@ -54,7 +62,7 @@ public final class CasSessionStore {
         return invalidated.getJwtId();
     }
 
-    public static Collection<String> pruneExpiredEntries() {
-        return Collections.emptyList();
+    public static void pruneExpiredEntries() {
+
     }
 }

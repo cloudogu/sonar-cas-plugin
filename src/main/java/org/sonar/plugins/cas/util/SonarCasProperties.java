@@ -66,7 +66,12 @@ public enum SonarCasProperties {
   /** Ignore certification validation errors. CAUTION! NEVER USE IN PROD! SECURITY RISK! */
   DISABLE_CERT_VALIDATION("sonar.cas.disableCertValidation", SonarPropertyType.BOOLEAN),
   /** The expiration time of the cookie which helps to restore the originally requested SonarQube URL over the CAS authentication */
-  URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", SonarPropertyType.INTEGER);
+  URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", SonarPropertyType.INTEGER),
+  /** Stores the path to the volume where session blacklists/whitelists are persistently stored. This store must be
+   * persistent across server or container restarts or even container recreations in order to properly handle issued
+   * authentications. Administrators may want to mount this as its own volume in order to scale with number of unexpired
+   * sessions */
+  SESSION_STORE_PATH("sonar.cas.sessionStorePath", SonarPropertyType.STRING);
 
   private static final Logger LOG = LoggerFactory.getLogger(SonarCasProperties.class);
 
@@ -107,7 +112,7 @@ public enum SonarCasProperties {
     return Boolean.valueOf(property);
   }
 
-  public int getIntegerProperty() throws IOException {
+  public int getIntegerProperty() {
     assertPropertyType(SonarPropertyType.INTEGER);
     String property = THEREALPROPERTIES.getProperty(propertyKey);
     logPropertyNotFound(property);

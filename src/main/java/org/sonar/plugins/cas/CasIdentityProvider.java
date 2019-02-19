@@ -14,6 +14,7 @@ import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
+import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.util.*;
 
 import javax.servlet.http.Cookie;
