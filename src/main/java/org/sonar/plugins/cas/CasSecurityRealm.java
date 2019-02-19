@@ -37,7 +37,7 @@ import org.sonar.api.security.SecurityRealm;
  * </ol>
  *
  * This is needed for the non-browser clients (i. e. other plugins or CLI tools). For the browser based single sign-on
- * workflow have a look at {@link CasIdentifyProvider}.
+ * workflow have a look at {@link CasIdentityProvider}.
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */

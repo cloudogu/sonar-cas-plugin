@@ -27,7 +27,7 @@ import java.util.Set;
 import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
- * The {@link CasIdentifyProvider} is responsible for the browser based cas sso authentication. The authentication
+ * The {@link CasIdentityProvider} is responsible for the browser based cas sso authentication. The authentication
  * workflow for an unauthenticated user is as follows:
  *
  * <ol>
@@ -36,7 +36,7 @@ import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CA
  * <li>the user authenticates to the CAS Server</li>
  * <li>the CAS Server redirects back to /sessions/init/cas</li>
  *
- * <li>the {@link CasIdentifyProvider} is called by sonarqube (InitFilter) and creates the user from the assertions and
+ * <li>the {@link CasIdentityProvider} is called by sonarqube (InitFilter) and creates the user from the assertions and
  * redirects the user to the root of sonarqube.
  * During this phase:
  * <ol>
@@ -55,13 +55,13 @@ import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CA
  * </ol>
  */
 @ServerSide
-public class CasIdentifyProvider implements BaseIdentityProvider {
+public class CasIdentityProvider implements BaseIdentityProvider {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CasIdentifyProvider.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
 
     private final CasAttributeSettings attributeSettings;
 
-    public CasIdentifyProvider(CasAttributeSettings attributeSettings) {
+    public CasIdentityProvider(CasAttributeSettings attributeSettings) {
         this.attributeSettings = attributeSettings;
     }
 
@@ -74,7 +74,7 @@ public class CasIdentifyProvider implements BaseIdentityProvider {
             } else if (isLogout(request)) {
                 handleLogout(context);
             } else {
-                LOG.debug("CasIdentifyProvider found an expected case. Ignoring this request to {}", request.getRequestURL());
+                LOG.debug("CasIdentityProvider found an expected case. Ignoring this request to {}", request.getRequestURL());
             }
         } catch (Exception e) {
             LOG.error("authentication failed", e);

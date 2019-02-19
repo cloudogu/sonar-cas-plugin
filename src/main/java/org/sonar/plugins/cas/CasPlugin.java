@@ -34,7 +34,7 @@ import java.util.List;
  * As bootstrapping element, {@link CasPlugin} registers all the extensions that actually make up the "cas plugin". The main entry points to look into as a
  * developer are
  * <ul>
- * <li>{@link CasIdentifyProvider} for the browser based sso authentication</li>
+ * <li>{@link CasIdentityProvider} for the browser based sso authentication</li>
  * <li>{@link CasSecurityRealm} for the username and password authentication</li>
  * </ul>
  * <p>
@@ -68,7 +68,7 @@ public final class CasPlugin implements Plugin {
             // if (configuration.getBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
             IgnoreCert.disableSslVerification();
 
-            extensions.add(CasIdentifyProvider.class);
+            extensions.add(CasIdentityProvider.class);
             extensions.add(CasSecurityRealm.class);
 
             extensions.add(ForceCasLoginFilter.class);
