@@ -16,11 +16,11 @@ import java.nio.file.Paths;
 class JwtTokenFileHandler {
     private String sessionStorePath;
 
-    public JwtTokenFileHandler(String sessionStorePath) {
+    JwtTokenFileHandler(String sessionStorePath) {
         this.sessionStorePath = sessionStorePath;
     }
 
-    public boolean isJwtStored(String jwtId) {
+    boolean isJwtStored(String jwtId) {
         String jwtFile = sessionStorePath + File.separator + jwtId;
         return Files.exists(Paths.get(jwtFile));
     }
@@ -33,7 +33,7 @@ class JwtTokenFileHandler {
         }
     }
 
-    public void store(String jwtId, SimpleJwt jwt) throws IOException {
+    void store(String jwtId, SimpleJwt jwt) throws IOException {
         if (StringUtils.isEmpty(jwtId)) {
             throw new IllegalArgumentException("Could not store JWT: jwtId must not be null");
         }
@@ -51,7 +51,18 @@ class JwtTokenFileHandler {
         }
     }
 
-    public void replace(String jwtId, SimpleJwt invalidated) {
+    void replace(String jwtId, SimpleJwt invalidated) throws IOException {
+        if (StringUtils.isEmpty(jwtId)) {
+            throw new IllegalArgumentException("Could not store JWT: jwtId must not be null");
+        }
+        if (invalidated == null) {
+            throw new IllegalArgumentException("Could not store JWT: jwt must not be null");
+        }
 
+        String jwtFile = sessionStorePath + File.separator + jwtId;
+
+        Files.delete(Paths.get(jwtFile));
+
+        store(jwtId, invalidated);
     }
 }

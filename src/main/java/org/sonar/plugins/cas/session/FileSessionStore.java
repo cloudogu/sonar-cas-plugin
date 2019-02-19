@@ -74,7 +74,11 @@ public final class FileSessionStore implements CasSessionStore {
 
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
-        jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
+        try {
+            jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
+        } catch (IOException e) {
+            LOG.error("Could not invalidate JWT file {}", jwt.getJwtId());
+        }
         ticketToJwt.replace(grantingTicketId, invalidated);
 
         return invalidated.getJwtId();

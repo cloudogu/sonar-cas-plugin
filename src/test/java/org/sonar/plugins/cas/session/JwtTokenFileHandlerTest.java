@@ -80,5 +80,23 @@ public class JwtTokenFileHandlerTest {
 
         // then
         assertThat(restoredJwt).isEqualTo(originalJwt);
+        // for further tests see equals tests in SimpleJwtTest
+    }
+
+    @Test
+    public void replaceShouldUpdateTheFilesContent() throws IOException {
+        // given
+        long expiryDateIn60SecondsTime = Instant.now().getEpochSecond();
+        String jwtId = "AWjne4xYY4T-z3CxdIRY";
+        SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
+        sut.store(jwtId, originalJwt);
+        SimpleJwt updatedJwt = originalJwt.cloneAsInvalidated();
+        assertThat(updatedJwt).isNotEqualTo(originalJwt);
+
+        sut.replace(jwtId, updatedJwt);
+        SimpleJwt restoredUpdatedJwt = sut.get(jwtId);
+
+        assertThat(restoredUpdatedJwt).isEqualTo(updatedJwt);
+        assertThat(restoredUpdatedJwt).isNotEqualTo(originalJwt);
     }
 }
