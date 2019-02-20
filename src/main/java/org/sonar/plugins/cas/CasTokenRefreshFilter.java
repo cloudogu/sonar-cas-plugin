@@ -30,7 +30,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
     }
 
     public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain chain)
-            throws IOException {
+            throws IOException, ServletException {
 
         final HttpServletRequest request = RequestUtil.toHttp(servletRequest);
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
@@ -43,6 +43,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
             LOG.debug("Refresh JWT {} with updated expiration date", requestJwt.getJwtId());
             sessionStoreFactory.getInstance().refreshJwt(responseJwt);
         }
+        chain.doFilter(request, response);
     }
 
     private SimpleJwt getJwtFromResponse(HttpServletResponse response) {
@@ -66,9 +67,16 @@ public class CasTokenRefreshFilter extends ServletFilter {
     }
 
     boolean isTokenRefreshed(SimpleJwt responseJwt, SimpleJwt requestJwt) {
+        if(responseJwt.isNullObject() || requestJwt.isNullObject()) {
+            return false;
+        }
+
         LOG.debug("Found JWT refresh candidates: {} vs {}", responseJwt.toString(), requestJwt.toString());
 
-        return responseJwt.getJwtId().equals(requestJwt.getJwtId());
+        boolean equalIds = responseJwt.getJwtId().equals(requestJwt.getJwtId());
+        boolean equalJwts = responseJwt.equals(requestJwt);
+        // during the issuing of JWTs thi
+        return equalIds && !equalJwts;
     }
 
     @Override
