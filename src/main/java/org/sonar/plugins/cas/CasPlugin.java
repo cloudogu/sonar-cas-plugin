@@ -62,7 +62,7 @@ public final class CasPlugin implements Plugin {
                     "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
 
             // The ignore certification validation should only be used in development (security risk)!
-            // if (configuration.getBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
+            // if (configuration.mustGetBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
             IgnoreCert.disableSslVerification();
 
             extensions.add(CasAttributeSettings.class);

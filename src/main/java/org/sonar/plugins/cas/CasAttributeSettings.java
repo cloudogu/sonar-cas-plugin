@@ -26,7 +26,7 @@ import org.sonar.plugins.cas.util.SonarCasProperties;
 import java.util.*;
 
 /**
- * Parse the settings, provide attribute configuration and util methods for extracting the attribute values.
+ * Parse the config, provide attribute configuration and util methods for extracting the attribute values.
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
@@ -34,73 +34,69 @@ import java.util.*;
 @ServerSide
 public class CasAttributeSettings {
 
-  private final Configuration settings;
+    private final Configuration config;
 
-  /**
-   * Constructor.
-   * @param configuration The sonar settings object.
-   */
-  public CasAttributeSettings(Configuration configuration) {
-    settings = configuration;
-  }
+    /** called with injection by SonarQube during server initialization */
+    public CasAttributeSettings(Configuration configuration) {
+        config = configuration;
+    }
 
-  /**
-   * @return the roleAttributes
-   */
-  private List<String> getRoleAttributes() {
-    final String str = settings.get(SonarCasProperties.ROLES_ATTRIBUTE.toString()).orElse(null);
-    return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
-  }
+    /**
+     * @return the roleAttributes
+     */
+    private List<String> getRoleAttributes() {
+        final String str = SonarCasProperties.ROLES_ATTRIBUTE.getString(config, null);
+        return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
+    }
 
 
-  /**
-   * @return the fullNameAttribute
-   */
-  private String getFullNameAttribute() {
-    return settings.get(SonarCasProperties.FULL_NAME_ATTRIBUTE.toString()).orElse("cn");
-  }
+    /**
+     * @return the fullNameAttribute
+     */
+    private String getFullNameAttribute() {
+        return SonarCasProperties.FULL_NAME_ATTRIBUTE.getString(config, "cn");
+    }
 
-  /**
-   * @return the eMailAttribute
-   */
-  private String getMailAttribute() {
-    return settings.get(SonarCasProperties.EMAIL_ATTRIBUTE.toString()).orElse("mail");
-  }
+    /**
+     * @return the eMailAttribute
+     */
+    private String getMailAttribute() {
+        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
+    }
 
-  Set<String> getGroups(Map<String,Object> attributes) {
-    Set<String> groups = null;
-    for ( String key : getRoleAttributes() ) {
-      Collection<String> roles = getCollectionAttribute(attributes, key);
-      if (roles != null) {
-        if (groups == null) {
-          groups = new HashSet<>();
+    Set<String> getGroups(Map<String, Object> attributes) {
+        Set<String> groups = null;
+        for (String key : getRoleAttributes()) {
+            Collection<String> roles = getCollectionAttribute(attributes, key);
+            if (roles != null) {
+                if (groups == null) {
+                    groups = new HashSet<>();
+                }
+                groups.addAll(roles);
+            }
         }
-        groups.addAll(roles);
-      }
+        return groups;
     }
-    return groups;
-  }
 
-  String getEmail(Map<String,Object> attributes) {
-    return getStringAttribute(attributes, getMailAttribute());
-  }
-
-  String getDisplayName(Map<String,Object> attributes) {
-    return getStringAttribute(attributes, getFullNameAttribute());
-  }
-
-  private Collection<String> getCollectionAttribute(Map<String,Object> attributes, String key) {
-    if (attributes.containsKey(key)) {
-      return (Collection<String>) attributes.get(key);
+    String getEmail(Map<String, Object> attributes) {
+        return getStringAttribute(attributes, getMailAttribute());
     }
-    return null;
-  }
 
-  private String getStringAttribute(Map<String,Object> attributes, String key) {
-    if (attributes.containsKey(key)) {
-      return (String) attributes.get(key);
+    String getDisplayName(Map<String, Object> attributes) {
+        return getStringAttribute(attributes, getFullNameAttribute());
     }
-    return null;
-  }
 
+    private Collection<String> getCollectionAttribute(Map<String, Object> attributes, String key) {
+        if (attributes.containsKey(key)) {
+            return (Collection<String>) attributes.get(key);
+        }
+        return null;
+    }
+
+    private String getStringAttribute(Map<String, Object> attributes, String key) {
+        if (attributes.containsKey(key)) {
+            return (String) attributes.get(key);
+        }
+        return null;
+    }
 }

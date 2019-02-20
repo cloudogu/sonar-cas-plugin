@@ -13,8 +13,9 @@ public class CasSessionStoreFactory {
     private static final Logger LOG = LoggerFactory.getLogger(CasSessionStoreFactory.class);
     private final CasSessionStore impl;
 
+    /** called with injection by SonarQube during server initialization */
     public CasSessionStoreFactory(Configuration configuration) throws IOException {
-        String sessionStorePath = SonarCasProperties.SESSION_STORE_PATH.getStringProperty();
+        String sessionStorePath = SonarCasProperties.SESSION_STORE_PATH.mustGetString(configuration);
 
         LOG.debug("creating instance of CAS file session store implementation");
         impl = new FileSessionStore(sessionStorePath);

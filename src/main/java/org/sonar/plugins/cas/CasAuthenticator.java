@@ -58,6 +58,7 @@ public final class CasAuthenticator extends Authenticator {
     private final String serviceUrl;
     private final String casProtocol;
 
+    /** called with injection by SonarQube during server initialization */
     CasAuthenticator(Configuration configuration, CasAttributeSettings attributeSettings) {
         this.configuration = configuration;
         this.attributeSettings = attributeSettings;
@@ -68,15 +69,15 @@ public final class CasAuthenticator extends Authenticator {
     }
 
     private String getCasServerUrlPrefix() {
-        return configuration.get(SonarCasProperties.CAS_SERVER_URL_PREFIX.toString()).get();
+        return SonarCasProperties.CAS_SERVER_URL_PREFIX.mustGetString(configuration);
     }
 
     private String getServiceUrl() {
-        return configuration.get(SonarCasProperties.SONAR_SERVER_URL.toString()).get();
+        return SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
     }
 
     private String getCasProtocol() {
-        return configuration.get(SonarCasProperties.CAS_PROTOCOL.toString()).get();
+        return SonarCasProperties.CAS_PROTOCOL.mustGetString(configuration);
     }
 
     private TicketValidator createTicketValidator() {

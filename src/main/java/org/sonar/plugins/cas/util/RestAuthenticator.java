@@ -20,17 +20,13 @@
 package org.sonar.plugins.cas.util;
 
 import com.google.common.base.Strings;
-import java.util.Locale;
-import javax.servlet.http.HttpServletRequest;
-import org.jasig.cas.client.validation.Assertion;
-import org.jasig.cas.client.validation.Cas10TicketValidator;
-import org.jasig.cas.client.validation.Cas20ServiceTicketValidator;
-import org.jasig.cas.client.validation.Saml11TicketValidator;
-import org.jasig.cas.client.validation.TicketValidationException;
-import org.jasig.cas.client.validation.TicketValidator;
+import org.jasig.cas.client.validation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Locale;
 
 /**
  * Cas rest authentication.
@@ -38,80 +34,82 @@ import org.sonar.api.config.Configuration;
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  */
 public class RestAuthenticator {
-  
-  
-  private static final Logger LOG = LoggerFactory.getLogger(RestAuthenticator.class);
-  
-  private final Configuration configuration;
-  private final String casServerUrlPrefix;
-  private final String serviceUrl;
-  private final String casProtocol;
 
-  public RestAuthenticator(Configuration configuration) {
-    this.configuration = configuration;
-    casServerUrlPrefix = getCasServerUrlPrefix();
-    serviceUrl = getServiceUrl();
-    casProtocol = Strings.nullToEmpty(getCasProtocol()).toLowerCase(Locale.ENGLISH);
-  }
-  
-  private String getCasServerUrlPrefix() {
-    return configuration.get(SonarCasProperties.CAS_SERVER_URL_PREFIX.toString()).get();
-  }
-  
-  private String getServiceUrl() {
-    return configuration.get(SonarCasProperties.SONAR_SERVER_URL.toString()).get();
-  }
-  
-  private String getCasProtocol() {
-    return configuration.get(SonarCasProperties.CAS_PROTOCOL.toString()).get();
-  }
-  
-  public void authenticate(Credentials credentials, HttpServletRequest request) {
-    try {
-      CasRestClient crc = new CasRestClient(casServerUrlPrefix, serviceUrl);
-      String ticket = crc.createServiceTicket(credentials.getUsername(), credentials.getPassword());
-      Assertion assertion = createTicketValidator().validate(ticket, serviceUrl);
-      if (assertion != null) {
-        LOG.info("successful authentication via cas rest api");
-        request.setAttribute(org.jasig.cas.client.util.AbstractCasFilter.CONST_CAS_ASSERTION, assertion);
-      } else {
-        LOG.warn("ticket validator returned no assertion");
-      }
-    } catch (CasAuthenticationException ex) {
-      LOG.warn("authentication failed", ex);
+
+    private static final Logger LOG = LoggerFactory.getLogger(RestAuthenticator.class);
+
+    private final Configuration configuration;
+    private final String casServerUrlPrefix;
+    private final String serviceUrl;
+    private final String casProtocol;
+
+    /**
+     * called with injection by SonarQube during server initialization
+     */
+    public RestAuthenticator(Configuration configuration) {
+        this.configuration = configuration;
+        casServerUrlPrefix = getCasServerUrlPrefix();
+        serviceUrl = getServiceUrl();
+        casProtocol = Strings.nullToEmpty(getCasProtocol()).toLowerCase(Locale.ENGLISH);
     }
-    catch (TicketValidationException ex) {
-      LOG.warn("ticket validation failed", ex);
+
+    private String getCasServerUrlPrefix() {
+        return configuration.get(SonarCasProperties.CAS_SERVER_URL_PREFIX.toString()).get();
     }
-  }
-  
-  private TicketValidator createTicketValidator() {
-    TicketValidator validator;
-    if ( "saml11".equals(casProtocol) ){
-      validator = createSaml11TicketValidator();
-    } else if ( "cas1".equalsIgnoreCase(casProtocol) ){
-      validator = createCas10TicketValidator();
-    } else if ( "cas2".equalsIgnoreCase(casProtocol) ){
-      validator = createCas20ServiceTicketValidator();
-    } else {
-      throw new IllegalStateException("unknown cas protocol ".concat(casProtocol));
+
+    private String getServiceUrl() {
+        return SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
     }
-    return validator;
-  }
-  
-  private Saml11TicketValidator createSaml11TicketValidator() {
-    /** TODO pass parameters **/
-    return new Saml11TicketValidator(getCasServerUrlPrefix());
-  }
-  
-  private Cas10TicketValidator createCas10TicketValidator() {
-    /** TODO pass parameters **/
-    return new Cas10TicketValidator(getCasServerUrlPrefix());
-  }
-  
-  private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
-    /** TODO pass parameters **/
-    return new Cas20ServiceTicketValidator(getCasServerUrlPrefix());
-  }
-  
+
+    private String getCasProtocol() {
+        return SonarCasProperties.CAS_PROTOCOL.mustGetString(configuration);
+    }
+
+    public void authenticate(Credentials credentials, HttpServletRequest request) {
+        try {
+            CasRestClient crc = new CasRestClient(casServerUrlPrefix, serviceUrl);
+            String ticket = crc.createServiceTicket(credentials.getUsername(), credentials.getPassword());
+            Assertion assertion = createTicketValidator().validate(ticket, serviceUrl);
+            if (assertion != null) {
+                LOG.info("successful authentication via cas rest api");
+                request.setAttribute(org.jasig.cas.client.util.AbstractCasFilter.CONST_CAS_ASSERTION, assertion);
+            } else {
+                LOG.warn("ticket validator returned no assertion");
+            }
+        } catch (CasAuthenticationException ex) {
+            LOG.warn("authentication failed", ex);
+        } catch (TicketValidationException ex) {
+            LOG.warn("ticket validation failed", ex);
+        }
+    }
+
+    private TicketValidator createTicketValidator() {
+        TicketValidator validator;
+        if ("saml11".equals(casProtocol)) {
+            validator = createSaml11TicketValidator();
+        } else if ("cas1".equalsIgnoreCase(casProtocol)) {
+            validator = createCas10TicketValidator();
+        } else if ("cas2".equalsIgnoreCase(casProtocol)) {
+            validator = createCas20ServiceTicketValidator();
+        } else {
+            throw new IllegalStateException("unknown cas protocol ".concat(casProtocol));
+        }
+        return validator;
+    }
+
+    private Saml11TicketValidator createSaml11TicketValidator() {
+        /** TODO pass parameters **/
+        return new Saml11TicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas10TicketValidator createCas10TicketValidator() {
+        /** TODO pass parameters **/
+        return new Cas10TicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
+        /** TODO pass parameters **/
+        return new Cas20ServiceTicketValidator(getCasServerUrlPrefix());
+    }
+
 }

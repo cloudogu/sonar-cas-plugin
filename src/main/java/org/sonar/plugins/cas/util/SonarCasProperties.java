@@ -22,10 +22,7 @@ package org.sonar.plugins.cas.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Properties;
+import org.sonar.api.config.Configuration;
 
 /**
  * This class provides Sonar CAS Plugin properties in a typed way..
@@ -106,62 +103,58 @@ public enum SonarCasProperties {
 
     SonarPropertyType type;
 
-    private static final Properties LOADED_PROPERTIES;
-
-    static {
-        String sonar_cas_plugin_property_file = "SONAR_CAS_PLUGIN_PROPERTY_FILE";
-
-        String pathToPropertyFile = System.getProperty(sonar_cas_plugin_property_file);
-        if (pathToPropertyFile == null) {
-            pathToPropertyFile = System.getenv(sonar_cas_plugin_property_file);
-            if (pathToPropertyFile == null) {
-                throw new IllegalStateException("Could not load CAS plugin property file. This file is vital for the CAS" +
-                        "plugin. Please provide a system property SONAR_CAS_PLUGIN_PROPERTY_FILE which points to a " +
-                        "property file just like this: '/opt/sonarqube/conf/sonar.properties'");
-            }
-        }
-        LOADED_PROPERTIES = new Properties();
-        try {
-            LOADED_PROPERTIES.load(new FileReader(pathToPropertyFile));
-        } catch (IOException e) {
-            LOG.error("Could not initialize CAS properties because an error occurred.", e);
-        }
-    }
-
     SonarCasProperties(String propertyKey, SonarPropertyType type) {
         this.propertyKey = propertyKey;
         this.type = type;
     }
 
-    public String getStringProperty() {
+    /**
+     * Returns a configuration value as string if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * thrown.
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured
+     */
+    public String mustGetString(Configuration config) {
         assertPropertyType(SonarPropertyType.STRING);
 
-        String property = LOADED_PROPERTIES.getProperty(propertyKey);
-        logPropertyNotFound(property);
-        return property;
+        return config.get(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
     }
 
-    public boolean getBooleanProperty() {
+    /**
+     * Returns a configuration value as string if the key was configured. Otherwise the given default value.
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured, otherwise the given default value.
+     */
+    public String getString(Configuration config, String defaultValue) {
+        assertPropertyType(SonarPropertyType.STRING);
+
+        return config.get(propertyKey).orElse(defaultValue);
+    }
+
+
+    /**
+     * Returns a configuration value as boolean if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * thrown.
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured
+     */
+    public boolean mustGetBoolean(Configuration config) {
         assertPropertyType(SonarPropertyType.BOOLEAN);
 
-        String property = LOADED_PROPERTIES.getProperty(propertyKey);
-        logPropertyNotFound(property);
-
-        return Boolean.valueOf(property);
+        return config.getBoolean(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
     }
 
-    public int getIntegerProperty() {
+
+    /**
+     * Returns a configuration value as integer if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * thrown.
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured
+     */
+    public int mustGetInteger(Configuration config) {
         assertPropertyType(SonarPropertyType.INTEGER);
-        String property = LOADED_PROPERTIES.getProperty(propertyKey);
-        logPropertyNotFound(property);
 
-        return Integer.valueOf(property);
-    }
-
-    private void logPropertyNotFound(String property) {
-        if (property == null) {
-            LOG.error("Could not find necessary property {} for CAS configuration", propertyKey);
-        }
+        return config.getInt(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
     }
 
     private void assertPropertyType(SonarPropertyType expectedType) {
@@ -179,5 +172,11 @@ public enum SonarCasProperties {
         STRING,
         BOOLEAN,
         INTEGER
+    }
+
+    private static class CasPropertyNotFoundException extends RuntimeException {
+        CasPropertyNotFoundException(String propertyKey) {
+            super("Could not find Sonar property with key " + propertyKey);
+        }
     }
 }

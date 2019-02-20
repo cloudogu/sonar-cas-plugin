@@ -8,6 +8,7 @@ import org.jasig.cas.client.validation.Cas30ProxyTicketValidator;
 import org.jasig.cas.client.validation.TicketValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.Display;
@@ -66,8 +67,11 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
     private final CasAttributeSettings attributeSettings;
     private final CasSessionStore casSessionStore;
+    private final Configuration config;
 
-    public CasIdentityProvider(CasAttributeSettings attributeSettings, CasSessionStoreFactory sessionStoreFactory) {
+    /** called with injection by SonarQube during server initialization */
+    public CasIdentityProvider(Configuration configuration, CasAttributeSettings attributeSettings, CasSessionStoreFactory sessionStoreFactory) {
+        this.config = configuration;
         this.attributeSettings = attributeSettings;
         this.casSessionStore = sessionStoreFactory.getInstance();
     }
@@ -206,15 +210,15 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
     @Override
     public boolean allowsUsersToSignUp() {
-        return SonarCasProperties.SONAR_CREATE_USERS.getBooleanProperty();
+        return SonarCasProperties.SONAR_CREATE_USERS.mustGetBoolean(config);
     }
 
     private String getSonarServiceUrl() {
-        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.getStringProperty();
+        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
         return sonarUrl + "/sessions/init/cas"; // cas corresponds to the value from getKey()
     }
 
     private String getCasServerUrlPrefix() {
-        return SonarCasProperties.CAS_SERVER_URL_PREFIX.getStringProperty();
+        return SonarCasProperties.CAS_SERVER_URL_PREFIX.mustGetString(config);
     }
 }

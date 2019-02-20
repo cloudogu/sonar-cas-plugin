@@ -2,6 +2,7 @@ package org.sonar.plugins.cas;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
@@ -19,6 +20,12 @@ import java.io.IOException;
  */
 public class AuthenticationFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticationFilter.class);
+    private final Configuration config;
+
+    /** called with injection by SonarQube during server initialization */
+    public AuthenticationFilter(Configuration configuration) {
+        this.config = configuration;
+    }
 
     @Override
     public UrlPattern doGetPattern() {
@@ -38,11 +45,11 @@ public class AuthenticationFilter extends ServletFilter {
     }
 
     private String getCasLoginUrl() {
-        return SonarCasProperties.CAS_SERVER_LOGIN_URL.getStringProperty();
+        return SonarCasProperties.CAS_SERVER_LOGIN_URL.mustGetString(config);
     }
 
     private String getSonarServiceUrl() {
-        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.getStringProperty();
+        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
         return sonarUrl + "/sessions/init/cas";
     }
 

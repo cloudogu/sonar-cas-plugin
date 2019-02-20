@@ -9,7 +9,6 @@ services:
       - "5000:5000"
     environment:
       - SONARQUBE_WEB_JVM_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5000
-      - SONAR_CAS_PLUGIN_PROPERTY_FILE=/opt/sonarqube/conf/sonar.properties
     volumes:
       - ./sonar-home/data:/opt/sonarqube/data
       - ./sonar-home/plugins:/opt/sonarqube/extensions/plugins

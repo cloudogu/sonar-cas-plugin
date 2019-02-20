@@ -21,6 +21,7 @@ package org.sonar.plugins.cas.logout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
@@ -42,6 +43,12 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasSonarSignOutInjectorFilter.class);
     private static final String CASLOGOUTURL_PLACEHOLDER = "CASLOGOUTURL";
+    private final Configuration config;
+
+    /** called with injection by SonarQube during server initialization */
+    public CasSonarSignOutInjectorFilter(Configuration configuration) {
+        this.config = configuration;
+    }
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -105,7 +112,7 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     }
 
     private String getCasLogoutUrl() {
-        return SonarCasProperties.CAS_SERVER_LOGOUT_URL.getStringProperty();
+        return SonarCasProperties.CAS_SERVER_LOGOUT_URL.mustGetString(config);
     }
 
     public void destroy() {

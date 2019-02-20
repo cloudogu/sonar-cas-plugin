@@ -19,8 +19,6 @@
  */
 package org.sonar.plugins.cas.util;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
@@ -30,46 +28,46 @@ import java.io.IOException;
 import java.util.Map;
 
 public abstract class AbstractCasFilter extends ServletFilter {
-  private static final String PROPERTY_SONAR_SERVER_URL = SonarCasProperties.SONAR_SERVER_URL.toString();
-  private final Filter casFilter;
-  private final Configuration configuration;
+    private final Filter casFilter;
+    private final Configuration configuration;
 
-  public AbstractCasFilter(final Configuration configuration, final Filter casFilter) {
-    this.configuration = configuration;
-    this.casFilter = casFilter;
-  }
+    /** called with injection by SonarQube during server initialization */
+    public AbstractCasFilter(final Configuration configuration, final Filter casFilter) {
+        this.configuration = configuration;
+        this.casFilter = casFilter;
+    }
 
-  @Override
-  public abstract UrlPattern doGetPattern();
+    @Override
+    public abstract UrlPattern doGetPattern();
 
-  public final void init(final FilterConfig initialConfig) throws ServletException {
-    final SettingsFilterConfig config = new SettingsFilterConfig(initialConfig, loadProperties());
-    casFilter.init(config);
-  }
+    public final void init(final FilterConfig initialConfig) throws ServletException {
+        final SettingsFilterConfig config = new SettingsFilterConfig(initialConfig, loadProperties());
+        casFilter.init(config);
+    }
 
-  public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
-    casFilter.doFilter(servletRequest, servletResponse, filterChain);
-  }
+    public final void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain filterChain) throws IOException, ServletException {
+        casFilter.doFilter(servletRequest, servletResponse, filterChain);
+    }
 
-  public final void destroy() {
-    casFilter.destroy();
-  }
+    public final void destroy() {
+        casFilter.destroy();
+    }
 
-  /**
-   * Validate and load properties.
-   * @return Map of properties.
-   */
-  protected Map<String, String> loadProperties() {
-    final Map<String, String> properties = Maps.newHashMap();
+    /**
+     * Validate and load properties.
+     *
+     * @return Map of properties.
+     */
+    protected Map<String, String> loadProperties() {
+        final Map<String, String> properties = Maps.newHashMap();
 
-    final String sonarUrl = configuration.get(PROPERTY_SONAR_SERVER_URL).orElse(null);
-    Preconditions.checkState(!Strings.isNullOrEmpty(sonarUrl), "Missing property: " + PROPERTY_SONAR_SERVER_URL);
-    Preconditions.checkState(!sonarUrl.endsWith("/"), "Property " + PROPERTY_SONAR_SERVER_URL + " must not end with slash: " + sonarUrl);
-    properties.put("service", sonarUrl + "/cas/validate");
+        String propertySonarServerURL = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
 
-    doCompleteProperties(configuration, properties);
-    return properties;
-  }
+        properties.put("service", propertySonarServerURL + "/cas/validate");
 
-  protected abstract void doCompleteProperties(Configuration configuration, Map<String, String> properties);
+        doCompleteProperties(configuration, properties);
+        return properties;
+    }
+
+    protected abstract void doCompleteProperties(Configuration configuration, Map<String, String> properties);
 }

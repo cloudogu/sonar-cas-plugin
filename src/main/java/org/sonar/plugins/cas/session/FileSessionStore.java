@@ -3,7 +3,6 @@ package org.sonar.plugins.cas.session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.util.SimpleJwt;
-import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,6 +12,7 @@ import java.util.Collections;
 
 public final class FileSessionStore implements CasSessionStore {
     private static final Logger LOG = LoggerFactory.getLogger(FileSessionStore.class);
+    private final String sessionStorePath;
 
     /**
      * This map contains the CAS granting ticket and the issued JWT. This map is only hit during back-channel logout.
@@ -28,8 +28,9 @@ public final class FileSessionStore implements CasSessionStore {
      * default visibility constructor for testing
      */
     FileSessionStore(String sessionStorePath) {
-        ticketToJwt = new GrantingTicketFileHandler(sessionStorePath);
-        jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
+        this.sessionStorePath = sessionStorePath;
+        this.ticketToJwt = new GrantingTicketFileHandler(sessionStorePath);
+        this.jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
     }
 
     public void prepareForWork() throws IOException {
@@ -37,7 +38,7 @@ public final class FileSessionStore implements CasSessionStore {
     }
 
     private void createSessionDirectory() throws IOException {
-        Path sessionStoreDir = Paths.get(SonarCasProperties.SESSION_STORE_PATH.getStringProperty());
+        Path sessionStoreDir = Paths.get(sessionStorePath);
         LOG.info("Creating CAS session store with path {}", sessionStoreDir.toString());
 
         Files.createDirectories(sessionStoreDir);
