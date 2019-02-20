@@ -57,8 +57,8 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
                          final FilterChain filterChain) throws IOException, ServletException {
         filterChain.doFilter(request, response);
 
-        if (! acceptsHtml(request)) {
-            LOG.error("Requested resource does not accept HTML-ish content. Javascript will not be injected");
+        if (!acceptsHtml(request)) {
+            LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
             filterChain.doFilter(request, response);
             return;
         }
