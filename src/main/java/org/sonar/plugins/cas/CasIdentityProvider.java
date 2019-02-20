@@ -80,6 +80,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     public void init(Context context) {
         try {
             HttpServletRequest request = context.getRequest();
+
             if (isLogin(request)) {
                 handleAuthentication(context);
             } else if (isLogout(request)) {
@@ -102,7 +103,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         context.authenticate(createUserIdentity(assertion));
 
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
-        SimpleJwt jwt = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+        SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
         LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
         casSessionStore.store(grantingTicket, jwt);

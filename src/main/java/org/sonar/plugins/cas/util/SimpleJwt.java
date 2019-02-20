@@ -16,7 +16,8 @@ import java.time.Instant;
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "SimpleJwt")
 public final class SimpleJwt {
-    private static final SimpleJwt nullObject = new SimpleJwt("jwt-null-object", 1L, true);
+    private static final String JWT_NULL_OBJECT = "jwt-null-object";
+    private static final SimpleJwt nullObject = new SimpleJwt(JWT_NULL_OBJECT, 1L, true);
 
     /**
      * The id uniquely identifies a token. It must not be <code>null</code> or the empty string.
@@ -95,6 +96,10 @@ public final class SimpleJwt {
         }
 
         return new SimpleJwt(jwtId, expirationAsEpochSeconds, false);
+    }
+
+    public boolean isNullObject() {
+        return this.jwtId.equals(JWT_NULL_OBJECT);
     }
 
     @Override

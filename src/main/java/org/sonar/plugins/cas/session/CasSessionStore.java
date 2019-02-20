@@ -55,4 +55,11 @@ public interface CasSessionStore {
      * Removes all expires JWT tokens.
      */
     void pruneExpiredEntries();
+
+    /**
+     * Updates the store with an update JWT which contains a newer expiration date.
+     *
+     * @param jwtWithLongerExpirationDate the new JWT object
+     */
+    void refreshJwt(SimpleJwt jwtWithLongerExpirationDate) throws IOException;
 }

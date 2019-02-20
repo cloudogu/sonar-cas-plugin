@@ -33,8 +33,12 @@ public final class FileSessionStore implements CasSessionStore {
         this.jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
     }
 
-    public void prepareForWork() throws IOException {
-        createSessionDirectory();
+    public void prepareForWork() {
+        try {
+            createSessionDirectory();
+        } catch (IOException e) {
+            throw new CasInitException(e);
+        }
     }
 
     private void createSessionDirectory() throws IOException {
@@ -51,7 +55,7 @@ public final class FileSessionStore implements CasSessionStore {
             jwtIdToJwt.store(jwt.getJwtId(), jwt);
         } catch (IOException e) {
             LOG.error("Could not store JWT " + jwt.getJwtId() + "to storage path.", e);
-            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
+            throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
     }
 
@@ -70,7 +74,7 @@ public final class FileSessionStore implements CasSessionStore {
             result = jwtIdToJwt.get(jwt.getJwtId());
         } catch (IOException e) {
             LOG.error("Could not return JWT file " + jwt.getJwtId(), e);
-            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
+            throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
         if (result == null) {
             result = SimpleJwt.getNullObject();
@@ -84,10 +88,11 @@ public final class FileSessionStore implements CasSessionStore {
 
         SimpleJwt jwt;
         try {
-            jwt = ticketToJwt.get(grantingTicketId);
+            String jwtId = ticketToJwt.get(grantingTicketId);
+            jwt = jwtIdToJwt.get(jwtId);
         } catch (IOException e) {
             LOG.error("Could not invalidate JWT with granting ticket " + grantingTicketId, e);
-            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
+            throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
         if (jwt == null) {
             return "no ticket found";
@@ -96,10 +101,10 @@ public final class FileSessionStore implements CasSessionStore {
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
         try {
-            ticketToJwt.replace(grantingTicketId, invalidated);
             jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
         } catch (IOException e) {
             LOG.error("Could not invalidate JWT file " + jwt.getJwtId(), e);
+            throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
 
         LOG.debug("successfully invalidated token {} by ticket {}", jwt.getJwtId(), grantingTicketId);
@@ -107,8 +112,35 @@ public final class FileSessionStore implements CasSessionStore {
         return invalidated.getJwtId();
     }
 
+    @Override
+    public void refreshJwt(SimpleJwt jwtWithLongerExpirationDate) {
+        String jwtId = jwtWithLongerExpirationDate.getJwtId();
+        LOG.debug("refresh token {}", jwtId);
+
+        try {
+            jwtIdToJwt.replace(jwtId, jwtWithLongerExpirationDate);
+        } catch (IOException e) {
+            LOG.error("Could not invalidate JWT file " + jwtId, e);
+            throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
+        }
+
+        LOG.debug("successfully refreshed token {}", jwtId);
+    }
+
     public void pruneExpiredEntries() {
         // TODO prune all the expired things
         LOG.debug("prune these tokens {}", Collections.emptyList());
+    }
+
+    private static class CasIOAuthenticationException extends RuntimeException {
+        CasIOAuthenticationException(String message) {
+            super(message);
+        }
+    }
+
+    private class CasInitException extends RuntimeException {
+        CasInitException(IOException e) {
+            super(e);
+        }
     }
 }

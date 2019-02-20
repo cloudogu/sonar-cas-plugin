@@ -18,54 +18,73 @@ public class JwtProcessorTest {
     private static final String USUAL_COOKIE_ATTRIBUTES = "Max-Age=259200; Expires=Fri, 15-Feb-2019 10:10:57 GMT; Path=/; HttpOnly";
 
     @Test
-    public void getJwtTokenShouldReturnToken() throws IOException {
+    public void getJwtTokenShouldReturnToken() {
         String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singleton(jwtHeader);
 
-        SimpleJwt actualToken = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+        SimpleJwt actualToken = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
         String expectedToken = "AWjhJmqstpMb_bcdEyYA";
         assertThat(actualToken.getJwtId()).isEqualTo(expectedToken);
     }
 
     @Test
-    public void getJwtTokenShouldReturnToken_twoCookies() throws IOException {
+    public void getJwtTokenShouldReturnToken_twoCookies()  {
         String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Arrays.asList(jwtHeader, unrelatedHeader);
 
-        SimpleJwt actualToken = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+        SimpleJwt actualToken = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
         String expectedToken = "AWjhJmqstpMb_bcdEyYA";
         assertThat(actualToken.getJwtId()).isEqualTo(expectedToken);
     }
 
     @Test(expected = IllegalStateException.class)
-    public void getJwtTokenShouldReturnToken_noCookies() throws IOException {
+    public void getJwtTokenShouldReturnToken_noCookies()  {
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singletonList(unrelatedHeader);
 
-        JwtProcessor.getJwtTokenFromRequestHeaders(headers);
+        JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
     }
 
     @Test
-    public void filterJwtTokenShouldReturnJwtCookie() {
+    public void mustFilterJwtTokenShouldReturnJwtCookie() {
         String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Arrays.asList(jwtHeader, unrelatedHeader);
 
-        String rawJwtCookie = JwtProcessor.filterJwtCookie(headers);
+        String rawJwtCookie = JwtProcessor.mustFilterJwtCookie(headers);
 
         assertThat(rawJwtCookie).isEqualTo(jwtHeader);
     }
 
     @Test(expected = IllegalStateException.class)
-    public void filterJwtTokenShouldThrowIllegalStateException() {
+    public void mustFilterJwtTokenShouldThrowIllegalStateException() {
         String unrelatedHeader = "TOTALLY=unrelated" +
                 USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singletonList(unrelatedHeader);
 
 
-        JwtProcessor.filterJwtCookie(headers);
+        JwtProcessor.mustFilterJwtCookie(headers);
+    }
+
+    @Test
+    public void filterJwtTokenShouldReturnEmptyStringForNoJwt() {
+        String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
+        Collection<String> headers = Collections.singletonList(unrelatedHeader);
+
+        String rawJwtCookie = JwtProcessor.filterJwtCookie(headers);
+
+        assertThat(rawJwtCookie).isEqualTo("");
+    }
+
+    @Test
+    public void filterJwtTokenShouldReturnEmptyStringForNoCookieHeaderAtAll() {
+        Collection<String> headers = Collections.emptyList();
+
+        String rawJwtCookie = JwtProcessor.filterJwtCookie(headers);
+
+        assertThat(rawJwtCookie).isEqualTo("");
     }
 }

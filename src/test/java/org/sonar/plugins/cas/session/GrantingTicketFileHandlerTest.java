@@ -49,7 +49,7 @@ public class GrantingTicketFileHandlerTest {
     }
 
     @Test
-    public void get() throws IOException {
+    public void getShouldReturnId() throws IOException {
         // given
         long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
         String jwtId = "AWjne4xYY4T-z3CxdIRY";
@@ -59,33 +59,14 @@ public class GrantingTicketFileHandlerTest {
         assertThat(Files.exists(Paths.get(sessionStore + File.separator + grantingTicket))).isTrue();
 
         // when
-        SimpleJwt actual = sut.get(grantingTicket);
+        String actual = sut.get(grantingTicket);
 
         // then
-        assertThat(actual).isEqualTo(originalJwt);
+        assertThat(actual).isEqualTo(originalJwt.getJwtId());
     }
 
     @Test(expected = IOException.class)
     public void getShouldThrowException() throws IOException {
         sut.get("banana");
-    }
-
-    @Test
-    public void replace() throws IOException {
-        // given
-        long expiryDateIn60SecondsTime = Instant.now().getEpochSecond();
-        SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration("AWjne4xYY4T-z3CxdIRY", expiryDateIn60SecondsTime);
-        String grantingTicketId = "ST-55-HqpNCMS1MO2enGkAqwMo-a20226e06c07";
-        sut.store(grantingTicketId, originalJwt);
-        SimpleJwt updatedJwt = originalJwt.cloneAsInvalidated();
-        assertThat(updatedJwt).isNotEqualTo(originalJwt);
-
-        // when
-        sut.replace(grantingTicketId, updatedJwt);
-
-        // then
-        SimpleJwt restoredUpdatedJwt = sut.get(grantingTicketId);
-        assertThat(restoredUpdatedJwt).isEqualTo(updatedJwt);
-        assertThat(restoredUpdatedJwt).isNotEqualTo(originalJwt);
     }
 }

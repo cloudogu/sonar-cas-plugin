@@ -1,6 +1,8 @@
 package org.sonar.plugins.cas.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
@@ -13,12 +15,35 @@ import java.util.stream.Collectors;
 import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
 
 public class JwtProcessor {
+    private static final Logger LOG = LoggerFactory.getLogger(JwtProcessor.class);
 
     private static final String JWT_ID = "jti";
     private static final String JWT_EXPIRATION_DATE = "exp";
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public static SimpleJwt getJwtTokenFromRequestHeaders(Collection<String> headers) {
+    public static SimpleJwt mustGetJwtTokenFromResponseHeaders(Collection<String> headers) {
+        String rawToken = mustFilterJwtCookie(headers);
+        String token = removeHeader(rawToken);
+        token = decodeJwtPayload(token);
+
+        return createJwt(token);
+    }
+
+    static String mustFilterJwtCookie(Collection<String> headers) {
+        String jwtCookie = filterJwtCookie(headers);
+
+        if (jwtCookie.isEmpty()) {
+            throw new IllegalStateException("Could not find JWT cookie in current request");
+        }
+
+        return jwtCookie;
+    }
+
+    public static SimpleJwt getJwtTokenFromResponseHeaders(Collection<String> headers) {
         String rawToken = filterJwtCookie(headers);
+        if(rawToken.isEmpty()) {
+            return SimpleJwt.getNullObject();
+        }
         String token = removeHeader(rawToken);
         token = decodeJwtPayload(token);
 
@@ -26,15 +51,9 @@ public class JwtProcessor {
     }
 
     static String filterJwtCookie(Collection<String> headers) {
-        String jwtCookie = headers.stream()
-                .filter(header -> header.startsWith(JWT_SESSION_COOKIE + "="))
-                .collect(Collectors.joining());
-
-        if (jwtCookie.isEmpty()) {
-            throw new IllegalStateException("Could not find JWT cookie in current request");
-        }
-
-        return jwtCookie;
+        return headers.stream()
+                    .filter(header -> header.startsWith(JWT_SESSION_COOKIE + "="))
+                    .collect(Collectors.joining());
     }
 
     private static String removeHeader(String rawToken) {
@@ -60,7 +79,7 @@ public class JwtProcessor {
     static SimpleJwt createJwt(String token) {
         Map map;
         try {
-            map = new ObjectMapper().readValue(token, Map.class);
+            map = OBJECT_MAPPER.readValue(token, Map.class);
         } catch (IOException e) {
             throw new RuntimeException("Exception during JWT parsing", e);
         }
