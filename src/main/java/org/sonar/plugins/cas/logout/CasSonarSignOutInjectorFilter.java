@@ -57,7 +57,9 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
                          final FilterChain filterChain) throws IOException, ServletException {
         filterChain.doFilter(request, response);
 
-        if (!acceptsHtml(request)) {
+        HttpServletRequest httpRequest = toHttp(request);
+
+        if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
             LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
             filterChain.doFilter(request, response);
             return;
@@ -91,11 +93,14 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         response.getOutputStream().println("</script>");
     }
 
-    private boolean acceptsHtml(ServletRequest request) {
-        HttpServletRequest httpServletRequest = toHttp(request);
+    private boolean isResourceBlacklisted(HttpServletRequest request) {
+        String url = request.getRequestURL().toString();
+        return url.contains("favicon.ico");
+    }
 
-        String acceptable = httpServletRequest.getHeader("accept");
-        LOG.debug("Resource {} accepts {}", httpServletRequest.getRequestURL(), acceptable);
+    private boolean acceptsHtml(HttpServletRequest request) {
+        String acceptable = request.getHeader("accept");
+        LOG.debug("Resource {} accepts {}", request.getRequestURL(), acceptable);
         return acceptable != null && acceptable.contains("html");
     }
 
