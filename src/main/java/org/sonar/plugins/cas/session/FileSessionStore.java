@@ -6,11 +6,13 @@ import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 
 public final class FileSessionStore implements CasSessionStore {
     private static final Logger LOG = LoggerFactory.getLogger(FileSessionStore.class);
-
-    private static final FileSessionStore STORE = new FileSessionStore();
 
     /**
      * This map contains the CAS granting ticket and the issued JWT. This map is only hit during back-channel logout.
@@ -22,42 +24,52 @@ public final class FileSessionStore implements CasSessionStore {
      */
     private JwtTokenFileHandler jwtIdToJwt;
 
-    private FileSessionStore() {
-        this(SonarCasProperties.SESSION_STORE_PATH.getStringProperty());
-    }
-
     /**
      * default visibility constructor for testing
      */
     FileSessionStore(String sessionStorePath) {
-        LOG.info("Creating CAS session STORE with path {}", sessionStorePath);
         ticketToJwt = new GrantingTicketFileHandler(sessionStorePath);
         jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
     }
 
-    public static CasSessionStore getInstance() {
-        return STORE;
+    public void prepareForWork() throws IOException {
+        createSessionDirectory();
+    }
+
+    private void createSessionDirectory() throws IOException {
+        Path sessionStoreDir = Paths.get(SonarCasProperties.SESSION_STORE_PATH.getStringProperty());
+        LOG.info("Creating CAS session store with path {}", sessionStoreDir.toString());
+
+        Files.createDirectories(sessionStoreDir);
     }
 
     public void store(String ticket, SimpleJwt jwt) {
-        ticketToJwt.store(ticket, jwt);
+        LOG.debug("store ticket {} to token {}", ticket, jwt.getJwtId());
         try {
+            ticketToJwt.store(ticket, jwt);
             jwtIdToJwt.store(jwt.getJwtId(), jwt);
         } catch (IOException e) {
-            LOG.error("Could not store JWT {} to storage path {}", jwt.getJwtId());
+            LOG.error("Could not store JWT " + jwt.getJwtId() + "to storage path.", e);
+            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
     }
 
     public boolean isJwtStored(SimpleJwt jwt) {
-        return jwtIdToJwt.isJwtStored(jwt.getJwtId());
+        boolean stored = jwtIdToJwt.isJwtStored(jwt.getJwtId());
+        LOG.debug("check if JWT {} is stored: {}", jwt.getJwtId(), stored);
+
+        return stored;
     }
 
     public SimpleJwt getJwtById(SimpleJwt jwt) {
-        SimpleJwt result = null;
+        LOG.debug("get token {}", jwt.getJwtId());
+
+        SimpleJwt result;
         try {
             result = jwtIdToJwt.get(jwt.getJwtId());
         } catch (IOException e) {
-            LOG.error("Could not find JWT file {}", jwt.getJwtId());
+            LOG.error("Could not return JWT file " + jwt.getJwtId(), e);
+            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
         if (result == null) {
             result = SimpleJwt.getNullObject();
@@ -67,7 +79,15 @@ public final class FileSessionStore implements CasSessionStore {
     }
 
     public String invalidateJwt(String grantingTicketId) {
-        SimpleJwt jwt = ticketToJwt.get(grantingTicketId);
+        LOG.debug("invalidate token by ticket {}", grantingTicketId);
+
+        SimpleJwt jwt;
+        try {
+            jwt = ticketToJwt.get(grantingTicketId);
+        } catch (IOException e) {
+            LOG.error("Could not invalidate JWT with granting ticket " + grantingTicketId, e);
+            throw new RuntimeException("An authentication problem occurred. Please let your SonarQube administrator know.");
+        }
         if (jwt == null) {
             return "no ticket found";
         }
@@ -75,16 +95,19 @@ public final class FileSessionStore implements CasSessionStore {
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
         try {
+            ticketToJwt.replace(grantingTicketId, invalidated);
             jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
         } catch (IOException e) {
-            LOG.error("Could not invalidate JWT file {}", jwt.getJwtId());
+            LOG.error("Could not invalidate JWT file " + jwt.getJwtId(), e);
         }
-        ticketToJwt.replace(grantingTicketId, invalidated);
+
+        LOG.debug("successfully invalidated token {} by ticket {}", jwt.getJwtId(), grantingTicketId);
 
         return invalidated.getJwtId();
     }
 
     public void pruneExpiredEntries() {
         // TODO prune all the expired things
+        LOG.debug("prune these tokens {}", Collections.emptyList());
     }
 }

@@ -23,8 +23,8 @@ package org.sonar.plugins.cas;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.sonar.api.Plugin;
-import org.sonar.api.config.Configuration;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.IgnoreCert;
 
 import java.util.ArrayList;
@@ -45,11 +45,8 @@ import java.util.List;
  */
 public final class CasPlugin implements Plugin {
 
-
     public CasPlugin() {
-    }
-
-    public CasPlugin(Configuration configuration) {
+        // called by SonarQube during initializing
     }
 
     public void define(Context context) {
@@ -68,12 +65,14 @@ public final class CasPlugin implements Plugin {
             // if (configuration.getBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
             IgnoreCert.disableSslVerification();
 
+            extensions.add(CasAttributeSettings.class);
+            extensions.add(CasSessionStoreFactory.class);
+
             extensions.add(CasIdentityProvider.class);
             extensions.add(CasSecurityRealm.class);
 
             extensions.add(ForceCasLoginFilter.class);
             extensions.add(AuthenticationFilter.class);
-            extensions.add(CasAttributeSettings.class);
 
             extensions.add(CasSonarSignOutInjectorFilter.class);
         }
@@ -86,5 +85,4 @@ public final class CasPlugin implements Plugin {
         //return (realmConf.isPresent() && CasSecurityRealm.KEY.equalsIgnoreCase(realmConf.get()));
         return true;
     }
-
 }

@@ -7,28 +7,39 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.time.Instant;
 
 /**
- * This class provides a basic support of JSON Web Token (https://tools.ietf.org/html/rfc7519) for Sonar-CAS-Interaction.
- *
+ * This class provides a basic support of <a href="https://tools.ietf.org/html/rfc7519">JSON Web Token</a> for
+ * Sonar-CAS-Interaction.
+ * <p>
  * Instances are immutable and thread-safe.
+ * </p>
  */
 @XmlAccessorType(XmlAccessType.FIELD)
 @XmlRootElement(name = "SimpleJwt")
-public class SimpleJwt {
-    private static final SimpleJwt nullObject = new SimpleJwt("null JWT", 1L, true);
+public final class SimpleJwt {
+    private static final SimpleJwt nullObject = new SimpleJwt("jwt-null-object", 1L, true);
 
+    /**
+     * The id uniquely identifies a token. It must not be <code>null</code> or the empty string.
+     */
     @XmlElement
     private String jwtId;
     /**
-     * the expiration date is given as epoch seconds in UTC
+     * The expiration date is given as epoch seconds in UTC and determines the point in time when the token is deleted
+     * for good. It must be strictly positive.
      */
     @XmlElement
     private long expiration;
     /**
-     * A invalid JWT is considered as invalid, that is the user has to re-login in order to get a new JWT.
+     * A JWT being considered invalid provides a way to reduce the possibility to login when a user already logged out
+     * but an attacker might have gained access to the JWT token. The user has to re-login in order to get a new JWT.
      */
     @XmlElement
     private boolean invalid;
 
+    /**
+     * Constructor used by JAXB initialization
+     */
+    @SuppressWarnings("unused")
     SimpleJwt() {
     }
 
@@ -46,7 +57,7 @@ public class SimpleJwt {
         return jwtId;
     }
 
-    public Instant getExpiration() {
+    Instant getExpiration() {
         return Instant.ofEpochSecond(expiration);
     }
 
@@ -60,6 +71,7 @@ public class SimpleJwt {
 
     /**
      * Takes this JWT and creates an invalidated copy
+     *
      * @return an invalidated copy
      */
     public SimpleJwt cloneAsInvalidated() {
@@ -68,7 +80,8 @@ public class SimpleJwt {
 
     /**
      * Creates a valid JWT from a given ID and epoch second timestamps
-     * @param jwtId the JWT identifies uniquely. Must not be null or the empty string.
+     *
+     * @param jwtId                    the JWT identifies uniquely. Must not be null or the empty string.
      * @param expirationAsEpochSeconds the instant when the JWT expires. Must not be negative
      * @return a JWT
      */

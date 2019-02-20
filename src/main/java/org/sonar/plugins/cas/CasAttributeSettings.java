@@ -40,7 +40,7 @@ public class CasAttributeSettings {
    * Constructor.
    * @param configuration The sonar settings object.
    */
-  public CasAttributeSettings(final Configuration configuration) {
+  public CasAttributeSettings(Configuration configuration) {
     settings = configuration;
   }
 

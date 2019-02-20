@@ -10,6 +10,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
+
 public class JwtProcessor {
 
     private static final String JWT_ID = "jti";
@@ -24,7 +26,9 @@ public class JwtProcessor {
     }
 
     static String filterJwtCookie(Collection<String> headers) {
-        String jwtCookie = headers.stream().filter(header -> header.startsWith("JWT-SESSION=")).collect(Collectors.joining());
+        String jwtCookie = headers.stream()
+                .filter(header -> header.startsWith(JWT_SESSION_COOKIE + "="))
+                .collect(Collectors.joining());
 
         if (jwtCookie.isEmpty()) {
             throw new IllegalStateException("Could not find JWT cookie in current request");
@@ -34,7 +38,7 @@ public class JwtProcessor {
     }
 
     private static String removeHeader(String rawToken) {
-        return rawToken.substring("JWT-SESSION=".length());
+        return rawToken.substring((JWT_SESSION_COOKIE + "=").length());
     }
 
     /**
@@ -54,7 +58,7 @@ public class JwtProcessor {
     }
 
     static SimpleJwt createJwt(String token) {
-        Map map = null;
+        Map map;
         try {
             map = new ObjectMapper().readValue(token, Map.class);
         } catch (IOException e) {
@@ -68,7 +72,7 @@ public class JwtProcessor {
     }
 
     public static SimpleJwt getJwtTokenFromCookies(Cookie[] cookies) {
-        Cookie cookie = CookieUtil.findCookieByName(cookies, "JWT-TOKEN");
+        Cookie cookie = CookieUtil.findCookieByName(cookies, JWT_SESSION_COOKIE);
         if (cookie == null) {
             return SimpleJwt.getNullObject();
         }

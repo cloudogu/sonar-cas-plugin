@@ -14,8 +14,12 @@ import org.sonar.api.server.authentication.Display;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.session.FileSessionStore;
-import org.sonar.plugins.cas.util.*;
+import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
+import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.JwtProcessor;
+import org.sonar.plugins.cas.util.SimpleJwt;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -61,9 +65,11 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
 
     private final CasAttributeSettings attributeSettings;
+    private final CasSessionStore casSessionStore;
 
-    public CasIdentityProvider(CasAttributeSettings attributeSettings) {
+    public CasIdentityProvider(CasAttributeSettings attributeSettings, CasSessionStoreFactory sessionStoreFactory) {
         this.attributeSettings = attributeSettings;
+        this.casSessionStore = sessionStoreFactory.getInstance();
     }
 
     @Override
@@ -95,7 +101,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         SimpleJwt jwt = JwtProcessor.getJwtTokenFromRequestHeaders(headers);
 
         LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
-        FileSessionStore.getInstance().store(grantingTicket, jwt);
+        casSessionStore.store(grantingTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
         removeRedirectCookie(context.getResponse());
@@ -156,7 +162,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private void handleLogout(Context context) throws IOException {
         LOG.debug("Found external logout case");
         String logoutAttributes = getLogoutRequestParameter(context.getRequest());
-        new LogoutHandler().logout(logoutAttributes);
+        new LogoutHandler(casSessionStore).logout(logoutAttributes);
 
         context.getResponse().sendRedirect(getSonarServiceUrl());
     }

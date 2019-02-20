@@ -25,6 +25,8 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
+import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.*;
 
 import javax.servlet.*;
@@ -55,9 +57,11 @@ public class ForceCasLoginFilter extends ServletFilter {
     static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
 
     private final RestAuthenticator restAuthenticator;
+    private final CasSessionStore casSessionStore;
 
-    public ForceCasLoginFilter(Configuration configuration) {
+    public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory) {
         this.restAuthenticator = new RestAuthenticator(configuration);
+        this.casSessionStore = sessionStoreFactory.getInstance();
     }
 
     public void init(final FilterConfig filterConfig) {
@@ -83,7 +87,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
-            new LogoutHandler().invalidateLoginCookiesIfNecessary(request.getCookies(), response);
+            new LogoutHandler(casSessionStore).invalidateLoginCookiesIfNecessary(request.getCookies(), response);
 
             chain.doFilter(request, servletResponse);
         } else {
@@ -97,7 +101,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         }
     }
 
-    private void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response) {
         String originalURL = request.getRequestURL().toString();
 
         int maxCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.getIntegerProperty();

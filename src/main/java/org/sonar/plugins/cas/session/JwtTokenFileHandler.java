@@ -53,10 +53,10 @@ class JwtTokenFileHandler {
 
     void replace(String jwtId, SimpleJwt invalidated) throws IOException {
         if (StringUtils.isEmpty(jwtId)) {
-            throw new IllegalArgumentException("Could not store JWT: jwtId must not be null");
+            throw new IllegalArgumentException("Could not replace JWT: jwtId must not be null");
         }
         if (invalidated == null) {
-            throw new IllegalArgumentException("Could not store JWT: jwt must not be null");
+            throw new IllegalArgumentException("Could not replace JWT: jwt must not be null");
         }
 
         String jwtFile = sessionStorePath + File.separator + jwtId;

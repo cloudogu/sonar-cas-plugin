@@ -14,7 +14,6 @@ services:
       - ./sonar-home/data:/opt/sonarqube/data
       - ./sonar-home/plugins:/opt/sonarqube/extensions/plugins
       - ./sonar-home/conf:/opt/sonarqube/conf
-      - ./sonar-home/sessionstore:/opt/sonarcas/sessionstore
     extra_hosts:
       - "cas.hitchhiker.com:${SONAR_CAS_LOCAL_IP}"
 

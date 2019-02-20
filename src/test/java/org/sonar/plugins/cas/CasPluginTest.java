@@ -45,7 +45,7 @@ public class CasPluginTest {
             .setProperty("sonar.cas.protocol", "cas2")
     );
 
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+    final List<Object> extensions = new CasPlugin().collectExtensions();
 
     assertThat(extensions).hasSize(4);
     assertThat(extensions).doesNotHaveDuplicates();
@@ -59,7 +59,7 @@ public class CasPluginTest {
       .setProperty("sonar.authenticator.createUsers", "true")
       .setProperty("sonar.cas.protocol", "cas1")
     );
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+    final List<Object> extensions = new CasPlugin().collectExtensions();
 
     assertThat(extensions).hasSize(4);
     assertThat(extensions).doesNotHaveDuplicates();
@@ -73,7 +73,7 @@ public class CasPluginTest {
       .setProperty("sonar.authenticator.createUsers", "true")
       .setProperty("sonar.cas.protocol", "saml11")
     );
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+    final List<Object> extensions = new CasPlugin().collectExtensions();
 
     assertThat(extensions).hasSize(4);
     assertThat(extensions).doesNotHaveDuplicates();
@@ -91,7 +91,7 @@ public class CasPluginTest {
       .setProperty("sonar.cas.protocol", "other")
     );
 
-    new CasPlugin(configuration).collectExtensions();
+    new CasPlugin().collectExtensions();
   }
 
   @Test
@@ -105,7 +105,7 @@ public class CasPluginTest {
       .setProperty("sonar.cas.protocol", "saml11")
     );
 
-    new CasPlugin(configuration).collectExtensions();
+    new CasPlugin().collectExtensions();
   }
 
   @Test
@@ -117,13 +117,13 @@ public class CasPluginTest {
       .setProperty("sonar.security.realm", "cas")
       .setProperty("sonar.authenticator.createUsers", "true")
     );
-    new CasPlugin(configuration).collectExtensions();
+    new CasPlugin().collectExtensions();
   }
 
   @Test
   public void disable_extensions_if_default_realm() {
     final Configuration configuration = new ConfigurationBridge(new MapSettings());
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+    final List<Object> extensions = new CasPlugin().collectExtensions();
 
     assertThat(extensions).isEmpty();
   }
@@ -133,7 +133,7 @@ public class CasPluginTest {
     final Configuration configuration = new ConfigurationBridge(new MapSettings()
             .setProperty("sonar.security.realm", "LDAP")
     );
-    final List<Object> extensions = new CasPlugin(configuration).collectExtensions();
+    final List<Object> extensions = new CasPlugin().collectExtensions();
 
     assertThat(extensions).isEmpty();
   }
