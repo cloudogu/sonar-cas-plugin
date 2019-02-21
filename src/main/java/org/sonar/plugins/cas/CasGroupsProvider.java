@@ -19,45 +19,40 @@
  */
 package org.sonar.plugins.cas;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
+import com.google.common.base.Preconditions;
+import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalGroupsProvider;
-import org.sonar.api.utils.SonarException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.*;
 
 
 /**
- * External group provider implementation for CAS group attributes.
- * It provides groups that are delivered by the CAS server for the known users.
+ * The groups provider is the last step in the authentication chain for username and password based CAS authentication.
+ * The provider will consume the CAS assertion from the {@link HttpServletRequest} and extract all role and group attribute values.
+ * <p/>
+ * The assertion has been added to the request by the {@link CasAuthenticator}, which is called before the groups provider.
+ *
  * @author Jan Boerner, TRIOLOGY GmbH
+ * @author Sebastian Sdorra, Cloudogu GmbH
  */
-public class CasGroupsProvider extends ExternalGroupsProvider {
+class CasGroupsProvider extends ExternalGroupsProvider {
 
-  Map<String, List<String>> groupMappings;
+  private final CasAttributeSettings settings;
 
-  /**
-   * Constructs the CasGroupsProvider
-   * @param userGroupMapping List of known user to group mappings.
-   */
-  public CasGroupsProvider(final Map<String, List<String>> userGroupMapping) {
-    groupMappings = userGroupMapping;
+  CasGroupsProvider(CasAttributeSettings settings) {
+    this.settings = settings;
   }
 
-  /* (non-Javadoc)
-   * @see org.sonar.api.security.ExternalGroupsProvider#doGetGroups(java.lang.String)
-   */
   @Override
-  public Collection<String> doGetGroups(final String username) {
-    final Collection<String> result = new ArrayList<String>();
-    try {
-      final List<String> groups = groupMappings.get(username);
-      result.addAll(groups);
-    } catch (final NullPointerException e) {
-      throw new SonarException("Unable to retrieve groups for user " + username, e);
-    }
-    return result;
-  }
+  public Collection<String> doGetGroups(Context context) {
+    Assertion assertion = (Assertion) context.getRequest().getAttribute(Assertion.class.getName());
+    Preconditions.checkState(assertion != null, "could not find assertions in the request");
 
+    Set<String> groups = settings.getGroups(assertion.getAttributes());
+    if (groups == null) {
+      groups = Collections.emptySet();
+    }
+    return groups;
+  }
 }

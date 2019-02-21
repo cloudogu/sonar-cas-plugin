@@ -1,6 +1,7 @@
 # ---- Maven
 target/
 bin/
+tmp/
 
 # ---- IntelliJ IDEA
 *.iws
@@ -11,7 +12,7 @@ bin/
 # ---- Eclipse
 .classpath
 .project
-.settings
+.configuration
 
 # ---- Mac OS X
 .DS_Store
@@ -29,3 +30,8 @@ Thumbs.db
 Desktop.ini
 /pom.xml.releaseBackup
 /release.properties
+
+sonar-home/data
+sonar-home/sessionstore
+sonar-home/plugins
+.env

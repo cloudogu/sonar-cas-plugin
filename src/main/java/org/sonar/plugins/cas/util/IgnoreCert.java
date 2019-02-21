@@ -19,72 +19,66 @@
  */
 package org.sonar.plugins.cas.util;
 
+import javax.net.ssl.*;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-
-import javax.net.ssl.HostnameVerifier;
-import javax.net.ssl.HttpsURLConnection;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSession;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
 
 /**
  * Disable certification validation check. This is useful in development environemnt
  * with self signed certificates. This will prevent the SSLHandshakeExeption. Do not use
  * this in production environment because it will be a security risk, e.g. man-in-the-middle
  * attacks can not be identified.
- * @author Philip Pohle, TRIOLOGY GmbH
  *
+ * @author Philip Pohle, TRIOLOGY GmbH
  */
 public class IgnoreCert extends HttpServlet {
 
-  private static final long serialVersionUID = -9002436159316961665L;
+    private static final long serialVersionUID = -9002436159316961665L;
 
-  @Override
-  public void init() throws ServletException {
-    //		disableSslVerification();
-  }
-
-  public static void disableSslVerification() {
-    try {
-      // Create a trust manager that does not validate certificate chains
-      final TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-        public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-          return null;
-        }
-
-        public void checkClientTrusted(final X509Certificate[] certs,
-            final String authType) {
-        }
-
-        public void checkServerTrusted(final X509Certificate[] certs,
-            final String authType) {
-        }
-      } };
-
-      // Install the all-trusting trust manager
-      final SSLContext sc = SSLContext.getInstance("SSL");
-      sc.init(null, trustAllCerts, new java.security.SecureRandom());
-      HttpsURLConnection
-      .setDefaultSSLSocketFactory(sc.getSocketFactory());
-
-      // Create all-trusting host name verifier
-      final HostnameVerifier allHostsValid = new HostnameVerifier() {
-        public boolean verify(final String arg0, final SSLSession arg1) {
-          return true;
-        }
-      };
-
-      // Install the all-trusting host verifier
-      HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-    } catch (final NoSuchAlgorithmException e) {
-      e.printStackTrace();
-    } catch (final KeyManagementException e) {
-      e.printStackTrace();
+    @Override
+    public void init() throws ServletException {
+        //		disableSslVerification();
     }
-  }
+
+    public static void disableSslVerification() {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            final TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                    return null;
+                }
+
+                public void checkClientTrusted(final X509Certificate[] certs,
+                                               final String authType) {
+                }
+
+                public void checkServerTrusted(final X509Certificate[] certs,
+                                               final String authType) {
+                }
+            }};
+
+            // Install the all-trusting trust manager
+            final SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection
+                    .setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+            // Create all-trusting host name verifier
+            final HostnameVerifier allHostsValid = new HostnameVerifier() {
+                public boolean verify(final String arg0, final SSLSession arg1) {
+                    return true;
+                }
+            };
+
+            // Install the all-trusting host verifier
+            HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+        } catch (final NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        } catch (final KeyManagementException e) {
+            e.printStackTrace();
+        }
+    }
 }

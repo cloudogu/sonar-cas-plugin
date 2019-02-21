@@ -95,13 +95,9 @@ public final class CasRestClient {
     buffer.append("username=").append(encode(username));
     buffer.append("&password=").append(encode(password));
 
-    BufferedWriter bwr = null;
-    try {
-      bwr = createWriter(connection);
+    try (BufferedWriter bwr = createWriter(connection)) {
       bwr.write(buffer.toString());
       bwr.flush();
-    } finally {
-      Closeables.closeQuietly(bwr);
     }
   }
 
@@ -110,13 +106,9 @@ public final class CasRestClient {
 
     LOG.debug("Service url is : {}", encodedServiceURL);
 
-    BufferedWriter writer = null;
-    try {
-      writer = createWriter(connection);
+    try (BufferedWriter writer = createWriter(connection)) {
       writer.write(encodedServiceURL);
       writer.flush();
-    } finally {
-      Closeables.closeQuietly(writer);
     }
   }
 
