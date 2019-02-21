@@ -68,13 +68,13 @@ public final class CasPlugin implements Plugin {
             extensions.add(CasAttributeSettings.class);
             extensions.add(CasSessionStoreFactory.class);
 
-            extensions.add(CasTokenRefreshFilter.class);
 
             extensions.add(CasIdentityProvider.class);
             extensions.add(CasSecurityRealm.class);
 
             extensions.add(ForceCasLoginFilter.class);
             extensions.add(AuthenticationFilter.class);
+            extensions.add(CasTokenRefreshFilter.class);
 
             extensions.add(CasSonarSignOutInjectorFilter.class);
         }

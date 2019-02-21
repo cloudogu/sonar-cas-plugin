@@ -89,9 +89,11 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
-            new LogoutHandler(casSessionStore).invalidateLoginCookiesIfNecessary(request.getCookies(), response);
+            boolean redirectToLoginPage = new LogoutHandler(casSessionStore).handleInvalidJwtCookie(request, response);
 
-            chain.doFilter(request, servletResponse);
+            if (!redirectToLoginPage) {
+                chain.doFilter(request, servletResponse);
+            }
         } else {
             // keep the original URL during redirect to the CAS server in order to have the URL opened as intended by the user
             saveRequestedURLInCookie(request, response);
