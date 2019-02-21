@@ -49,8 +49,10 @@ public class LogoutHandler {
      */
     public boolean handleInvalidJwtCookie(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean shouldUserBeLoggedOut = shouldUserBeLoggedOut(request.getCookies());
+        boolean requestToLoginPage = isRequestToLoginPage(request);
 
-        if (shouldUserBeLoggedOut) {
+        boolean removeCookiesAndRedirectToLogin = shouldUserBeLoggedOut && !requestToLoginPage;
+        if (removeCookiesAndRedirectToLogin) {
             LOG.debug("User authentication cookies will be removed because an invalid JWT token was found");
             // Security advice:
             // Do NOT remove the user's token from the session store. It must stay blacklisted until it is removed
@@ -59,7 +61,12 @@ public class LogoutHandler {
             redirectToLogin(request, response);
         }
 
-        return shouldUserBeLoggedOut;
+        return removeCookiesAndRedirectToLogin;
+    }
+
+    private boolean isRequestToLoginPage(HttpServletRequest request) {
+        LOG.debug("User is already being redirected to the log-in page. Will not remove cookies.");
+        return request.getRequestURL().toString().contains("/sessions/new");
     }
 
     /**
