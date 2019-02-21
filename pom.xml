@@ -36,6 +36,12 @@
             <email>sebastian.sdorra@cloudogu.com</email>
             <timezone>Europe/Berlin</timezone>
         </developer>
+		<developer>
+			<id>boris.schaa</id>
+			<name>Boris Schaa</name>
+			<email>boris.schaa@cloudogu.com</email>
+			<timezone>Europe/Berlin</timezone>
+		</developer>
 	</developers>
 
 	<scm>
