@@ -19,54 +19,36 @@
  */
 package org.sonar.plugins.cas;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.jasig.cas.client.util.AbstractCasFilter;
-import org.jasig.cas.client.validation.Assertion;
+import org.sonar.api.security.Authenticator;
+import org.sonar.api.security.ExternalGroupsProvider;
 import org.sonar.api.security.ExternalUsersProvider;
 import org.sonar.api.security.UserDetails;
 
+/**
+ * This provider returns only an empty user object, because of the realm authentication order of sonar:
+ *
+ * <ol>
+ *  <li>{@link ExternalUsersProvider#doGetUserDetails}</li>
+ *  <li>{@link org.sonar.api.security.Authenticator#doAuthenticate(Authenticator.Context)}}</li>
+ *  <li>{@link org.sonar.api.security.ExternalGroupsProvider#doGetGroups(ExternalGroupsProvider.Context)}</li>
+ * </ol>
+ *
+ * <p>We are not able to authenticate the user in the {@link ExternalUsersProvider}, because of the missing password for
+ * the user. Without the authentication we are not able to fetch the assertion (CAS' way to provide user details) of the user. Hence we return an empty
+ * {@link UserDetails} object and, at the same time, store it in the {@link javax.servlet.http.HttpServletRequest}. The {@link UserDetails} object will be populated
+ * by the {@link CasAuthenticator} in the next step.</p>
+ *
+ * <p>Note: This is needed in order to circumvent the restrictions imposed by the authentication API of SonarQube.</p>
+ *
+ * @author Sebastian Sdorra, Cloudogu GmbH
+ */
 public class CasUserProvider extends ExternalUsersProvider {
-  private final Map<String, List<String>> groupMappings;
-  private final CasAttributeSettings settings;
-
-  public CasUserProvider(final CasAttributeSettings settings, final Map<String, List<String>> userGroupMapping) {
-    groupMappings = userGroupMapping;
-    this.settings = settings;
-  }
 
   @Override
   public UserDetails doGetUserDetails(final Context context) {
-    UserDetails user = null;
-    final Assertion assertion = (Assertion) context.getRequest().getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);
-    if (assertion != null && assertion.getPrincipal() != null) {
-      user = new UserDetails();
-      user.setName(assertion.getPrincipal().getName());
-      final Map<String,Object> attributes = assertion.getPrincipal().getAttributes();
-      if (null != attributes) {
-        if (null != attributes.get(settings.geteMailAttribute())) {
-          user.setEmail((String) attributes.get(settings.geteMailAttribute()));
-        }
-        if (null != settings.getRoleAttributes()) {
-          final List<String> groups = new ArrayList<String>();
-          for (final String role : settings.getRoleAttributes()) {
-            final Object o = attributes.get(role);
-            if (o instanceof String) {
-              groups.add((String) o);
-            } else if (o instanceof List) {
-              for (final Object g : (List<?>) o) {
-                if (g instanceof String) {
-                  groups.add((String) g);
-                }
-              }
-            }
-          }
-          groupMappings.put(user.getName(), groups);
-        }
-      }
-    }
+    // add empty UserDetails object to request, the UserDetails are filled by the CasAuthenticator
+    UserDetails user = new UserDetails();
+    context.getRequest().setAttribute(UserDetails.class.getName(), user);
     return user;
   }
 }

@@ -1,0 +1,36 @@
+version: '3'
+services:
+
+  sonar:
+    image: sonarqube:6.7.4
+    ports:
+      - "9000:9000"
+      - "9092:9092"
+      - "5000:5000"
+    environment:
+      - SONARQUBE_WEB_JVM_OPTS=-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5000
+    volumes:
+      - ./sonar-home/data:/opt/sonarqube/data
+      - ./sonar-home/plugins:/opt/sonarqube/extensions/plugins
+      - ./sonar-home/conf:/opt/sonarqube/conf
+    extra_hosts:
+      - "cas.hitchhiker.com:${SONAR_CAS_LOCAL_IP}"
+
+  cas:
+    # Tag version does not really represent CAS server version. Please check pom.xml to get real version.
+    image: apereo/cas:v5.1.3
+    ports:
+      - "8443:8443"
+    volumes:
+      - ./docker/tmp:/root/.m2/repository/
+      - ./docker/config:/cas-overlay/etc/cas/config:ro
+      - ./docker/services:/cas-overlay/etc/cas/services:ro
+      - ./docker/keystore.jks:/cas-overlay/etc/cas/thekeystore:ro
+      - ./docker/pom.xml:/cas-overlay/pom.xml
+    extra_hosts:
+      - "sonar.hitchhiker.com:${SONAR_SONAR_LOCAL_IP}"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/cas"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5

@@ -19,50 +19,84 @@
  */
 package org.sonar.plugins.cas;
 
-import java.util.Arrays;
-import java.util.List;
+import org.sonar.api.config.Configuration;
+import org.sonar.api.server.ServerSide;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import org.apache.commons.lang.StringUtils;
-import org.sonar.api.ServerExtension;
-import org.sonar.api.config.Settings;
-import org.sonar.plugins.cas.util.SonarCasPropertyNames;
+import java.util.*;
 
 /**
- * Parse the settings and provide attribute configuration.
+ * Parse the config, provide attribute configuration and util methods for extracting the attribute values.
+ *
  * @author Jan Boerner, TRIOLOGY GmbH
+ * @author Sebastian Sdorra, Cloudogu GmbH
  */
-public class CasAttributeSettings implements ServerExtension {
-  private final Settings settings;
+@ServerSide
+public class CasAttributeSettings {
 
-  /**
-   * Constructor.
-   * @param pSettings The sonar settings object.
-   */
-  public CasAttributeSettings(final Settings pSettings) {
-    settings = pSettings;
-  }
+    private final Configuration config;
 
-  /**
-   * @return the roleAttributes
-   */
-  public List<String> getRoleAttributes() {
-    final String str = StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.ROLES_ATTRIBUTE.toString()), null);
-    return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
-  }
+    /** called with injection by SonarQube during server initialization */
+    public CasAttributeSettings(Configuration configuration) {
+        config = configuration;
+    }
+
+    /**
+     * @return the roleAttributes
+     */
+    private List<String> getRoleAttributes() {
+        final String str = SonarCasProperties.ROLES_ATTRIBUTE.getString(config, null);
+        return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
+    }
 
 
-  /**
-   * @return the fullNameAttribute
-   */
-  public String getFullNameAttribute() {
-    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.FULL_NAME_ATTRIBUTE.toString()), "cn");
-  }
+    /**
+     * @return the fullNameAttribute
+     */
+    private String getFullNameAttribute() {
+        return SonarCasProperties.FULL_NAME_ATTRIBUTE.getString(config, "cn");
+    }
 
-  /**
-   * @return the eMailAttribute
-   */
-  public String geteMailAttribute() {
-    return StringUtils.defaultIfBlank(settings.getString(SonarCasPropertyNames.EMAIL_ATTRIBUTE.toString()), "mail");
-  }
+    /**
+     * @return the eMailAttribute
+     */
+    private String getMailAttribute() {
+        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
+    }
 
+    Set<String> getGroups(Map<String, Object> attributes) {
+        Set<String> groups = null;
+        for (String key : getRoleAttributes()) {
+            Collection<String> roles = getCollectionAttribute(attributes, key);
+            if (roles != null) {
+                if (groups == null) {
+                    groups = new HashSet<>();
+                }
+                groups.addAll(roles);
+            }
+        }
+        return groups;
+    }
+
+    String getEmail(Map<String, Object> attributes) {
+        return getStringAttribute(attributes, getMailAttribute());
+    }
+
+    String getDisplayName(Map<String, Object> attributes) {
+        return getStringAttribute(attributes, getFullNameAttribute());
+    }
+
+    private Collection<String> getCollectionAttribute(Map<String, Object> attributes, String key) {
+        if (attributes.containsKey(key)) {
+            return (Collection<String>) attributes.get(key);
+        }
+        return null;
+    }
+
+    private String getStringAttribute(Map<String, Object> attributes, String key) {
+        if (attributes.containsKey(key)) {
+            return (String) attributes.get(key);
+        }
+        return null;
+    }
 }

@@ -2,22 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
-		<groupId>org.codehaus.sonar-plugins</groupId>
-		<artifactId>parent</artifactId>
-		<version>15</version>
-	</parent>
-
+    <groupId>com.cloudogu.sonar</groupId>
 	<artifactId>sonar-cas-plugin</artifactId>
-	<version>0.3-TRIO-SNAPSHOT</version>
+	<version>1.0.0-SNAPSHOT</version>
 	<packaging>sonar-plugin</packaging>
+
+    <description>CAS Support for SonarQube</description>
 
 	<name>Sonar CAS Plugin</name>
 	<inceptionYear>2012</inceptionYear>
 	<organization>
-		<name>SonarSource</name>
-		<url>http://www.sonarsource.com</url>
+		<name>Cloudogu GmbH</name>
+		<url>https://cloudogu.com</url>
 	</organization>
+
 	<licenses>
 		<license>
 			<name>GNU LGPL 3</name>
@@ -32,26 +30,43 @@
 			<name>Simon Brandhof</name>
 			<timezone>+1</timezone>
 		</developer>
+        <developer>
+            <id>ssdorra</id>
+            <name>Sebastian Sdorra</name>
+            <email>sebastian.sdorra@cloudogu.com</email>
+            <timezone>Europe/Berlin</timezone>
+        </developer>
+		<developer>
+			<id>boris.schaa</id>
+			<name>Boris Schaa</name>
+			<email>boris.schaa@cloudogu.com</email>
+			<timezone>Europe/Berlin</timezone>
+		</developer>
 	</developers>
 
 	<scm>
-		<connection>scm:git:https://github.com/DaSilva2010/sonar-cas.git</connection>
-		<developerConnection>scm:git:https://github.com/DaSilva2010/sonar-cas.git</developerConnection>
-		<url>https://github.com/DaSilva2010/sonar-cas</url>
-		<tag>0.1-TRIO</tag>
+		<connection>scm:git:https://github.com/cloudogu/sonar-cas-plugin.git</connection>
+		<developerConnection>scm:git:git@github.com:cloudogu/sonar-cas-plugin.git</developerConnection>
+		<url>https://github.com/cloudogu/sonar-cas-plugin</url>
 	</scm>
 	<issueManagement>
 		<system>JIRA</system>
-		<url>http://jira.codehaus.org/browse/SONARPLUGINS/component/15492</url>
+		<url>https://github.com/cloudogu/sonar-cas-plugin/issues</url>
 	</issueManagement>
-	<ciManagement>
+
+	<!--ciManagement>
 		<system>Cloudbees</system>
 		<url>https://sonarplugins.ci.cloudbees.com/job/cas/</url>
-	</ciManagement>
+	</ciManagement-->
 
 	<properties>
-		<sonar.version>3.7</sonar.version>
-		<cas.version>3.2.1</cas.version>
+		<sonar.version>6.7</sonar.version>
+		<cas.version>3.5.0</cas.version>
+		<jjwt.version>0.9.0</jjwt.version>
+
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
 	</properties>
 
 	<dependencies>
@@ -62,11 +77,19 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.codehaus.sonar</groupId>
+			<groupId>org.sonarsource.sonarqube</groupId>
 			<artifactId>sonar-plugin-api</artifactId>
 			<version>${sonar.version}</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>io.jsonwebtoken</groupId>
+			<artifactId>jjwt</artifactId>
+			<version>${jjwt.version}</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.jasig.cas.client</groupId>
 			<artifactId>cas-client-core</artifactId>
@@ -78,15 +101,55 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+
+        <dependency>
+            <groupId>org.jasig.cas.client</groupId>
+            <artifactId>cas-client-support-saml</artifactId>
+            <version>${cas.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>commons-logging</groupId>
+                    <artifactId>commons-logging</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.25</version>
+        </dependency>
+
+        <!-- TODO only guava or commons-lang, but not both -->
+
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.6</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>17.0</version>
+        </dependency>
+
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+            <version>1.10</version>
+        </dependency>
+
 		<dependency>
 			<groupId>org.opensaml</groupId>
 			<artifactId>opensaml</artifactId>
 			<version>1.1</version>
 		</dependency>
+
 		<dependency>
 			<groupId>javax.servlet</groupId>
-			<artifactId>servlet-api</artifactId>
-			<version>2.4</version>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
 			<scope>provided</scope>
 		</dependency>
 
@@ -96,116 +159,68 @@
 			<version>4.10</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<dependency>
+			<groupId>javax.xml</groupId>
+			<artifactId>jaxb-impl</artifactId>
+			<version>2.1</version>
+			<scope>provided</scope>
+		</dependency>
+
 		<dependency>
 			<groupId>org.easytesting</groupId>
 			<artifactId>fest-assert</artifactId>
 			<version>1.4</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.mockito</groupId>
 			<artifactId>mockito-all</artifactId>
 			<version>1.9.0</version>
 			<scope>test</scope>
 		</dependency>
+
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-nop</artifactId>
-			<version>1.6.6</version>
+			<version>1.7.25</version>
 			<scope>test</scope>
 		</dependency>
+
+        <dependency>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+            <version>1.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- debugging -->
+
+        <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
+            <artifactId>sonar-server</artifactId>
+            <version>${sonar.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+
 	</dependencies>
 
 	<build>
 		<plugins>
 			<plugin>
-				<groupId>org.codehaus.sonar</groupId>
-				<artifactId>sonar-packaging-maven-plugin</artifactId>
+                <groupId>org.sonarsource.sonar-packaging-maven-plugin</groupId>
+                <artifactId>sonar-packaging-maven-plugin</artifactId>
+                <version>1.17</version>
+                <extensions>true</extensions>
 				<configuration>
-					<pluginKey>cas</pluginKey>
-					<pluginName>CAS</pluginName>
+					<pluginKey>casplugin</pluginKey>
 					<pluginClass>org.sonar.plugins.cas.CasPlugin</pluginClass>
 				</configuration>
 			</plugin>
 		</plugins>
-		<pluginManagement>
-			<plugins>
-				<!--This plugin's configuration is used to store Eclipse m2e settings
-					only. It has no influence on the Maven build itself. -->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.codehaus.sonar
-										</groupId>
-										<artifactId>
-											sonar-packaging-maven-plugin
-										</artifactId>
-										<versionRange>
-											[1.3,)
-										</versionRange>
-										<goals>
-											<goal>
-												check-dependencies
-											</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											com.mycila.maven-license-plugin
-										</groupId>
-										<artifactId>
-											maven-license-plugin
-										</artifactId>
-										<versionRange>
-											[1.9.0,)
-										</versionRange>
-										<goals>
-											<goal>check</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore />
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
-	</build>
 
-	<profiles>
-		<profile>
-			<id>default-tools.jar</id>
-			<activation>
-				<property>
-					<name>java.vendor</name>
-					<value>Sun Microsystems Inc.</value>
-				</property>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>com.sun</groupId>
-					<artifactId>tools</artifactId>
-					<version>1.4.2</version>
-					<scope>system</scope>
-					<systemPath>${java.home}/../lib/tools.jar</systemPath>
-				</dependency>
-			</dependencies>
-		</profile>
-	</profiles>
+	</build>
 
 </project>
