@@ -21,7 +21,6 @@ package org.sonar.plugins.cas;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
-import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -115,8 +114,7 @@ public final class CasAuthenticator extends Authenticator {
         try {
             CasRestClient crc = new CasRestClient(casServerUrlPrefix, serviceUrl);
             String ticket = crc.createServiceTicket(context.getUsername(), context.getPassword());
-            Cas30ProxyTicketValidator validator = new Cas30ProxyTicketValidator(getCasServerUrlPrefix());
-            Assertion assertion = validator.validate(ticket, serviceUrl);
+            Assertion assertion = createTicketValidator().validate(ticket, serviceUrl);
             if (assertion != null) {
                 LOG.info("successful authentication via cas rest api");
                 // add assertions to request attribute, in order to process groups with the CasGroupsProvider
@@ -142,10 +140,9 @@ public final class CasAuthenticator extends Authenticator {
 
 
         // populate user details from assertion
-        AttributePrincipal principal = assertion.getPrincipal();
+        Map<String, Object> attributes = assertion.getAttributes();
 
-        Map<String, Object> attributes = principal.getAttributes();
-        user.setUserId(principal.getName());
+        user.setUserId(assertion.getPrincipal().getName());
 
         String displayName = attributeSettings.getDisplayName(attributes);
         if (!Strings.isNullOrEmpty(displayName)) {
