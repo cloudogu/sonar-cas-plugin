@@ -31,7 +31,6 @@ import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
 import org.sonar.plugins.cas.util.CasRestClient;
-import org.sonar.plugins.cas.util.RestAuthenticator;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -50,23 +49,25 @@ import java.util.Map;
 @ServerSide
 public final class CasAuthenticator extends Authenticator {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RestAuthenticator.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CasAuthenticator.class);
 
     private final Configuration configuration;
     private final CasAttributeSettings attributeSettings;
 
     private final String casServerUrlPrefix;
     private final String serviceUrl;
-    private final String casProtocol;
+    private final TicketValidatorFactory ticketValidatorFactory;
 
-    /** called with injection by SonarQube during server initialization */
-    CasAuthenticator(Configuration configuration, CasAttributeSettings attributeSettings) {
+    /**
+     * called with injection by SonarQube during server initialization
+     */
+    CasAuthenticator(Configuration configuration, CasAttributeSettings attributeSettings, TicketValidatorFactory ticketValidatorFactory) {
         this.configuration = configuration;
         this.attributeSettings = attributeSettings;
 
         casServerUrlPrefix = getCasServerUrlPrefix();
         serviceUrl = getServiceUrl();
-        casProtocol = Strings.nullToEmpty(getCasProtocol()).toLowerCase(Locale.ENGLISH);
+        this.ticketValidatorFactory = ticketValidatorFactory;
     }
 
     private String getCasServerUrlPrefix() {
@@ -77,48 +78,16 @@ public final class CasAuthenticator extends Authenticator {
         return SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
     }
 
-    private String getCasProtocol() {
-        return SonarCasProperties.CAS_PROTOCOL.mustGetString(configuration);
-    }
-
-    private TicketValidator createTicketValidator() {
-        TicketValidator validator;
-        if ("saml11".equals(casProtocol)) {
-            validator = createSaml11TicketValidator();
-        } else if ("cas1".equalsIgnoreCase(casProtocol)) {
-            validator = createCas10TicketValidator();
-        } else if ("cas2".equalsIgnoreCase(casProtocol)) {
-            validator = createCas20ServiceTicketValidator();
-        } else {
-            throw new IllegalStateException("unknown cas protocol ".concat(casProtocol));
-        }
-        return validator;
-    }
-
-    private Saml11TicketValidator createSaml11TicketValidator() {
-        /** TODO pass parameters **/
-        return new Saml11TicketValidator(getCasServerUrlPrefix());
-    }
-
-    private Cas10TicketValidator createCas10TicketValidator() {
-        /** TODO pass parameters **/
-        return new Cas10TicketValidator(getCasServerUrlPrefix());
-    }
-
-    private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
-        /** TODO pass parameters **/
-        return new Cas30ServiceTicketValidator(getCasServerUrlPrefix());
-    }
-
     @Override
     public boolean doAuthenticate(Context context) {
         try {
             CasRestClient crc = new CasRestClient(casServerUrlPrefix, serviceUrl);
             String ticket = crc.createServiceTicket(context.getUsername(), context.getPassword());
-            Cas30ProxyTicketValidator validator = new Cas30ProxyTicketValidator(getCasServerUrlPrefix());
+
+            TicketValidator validator = ticketValidatorFactory.create();
             Assertion assertion = validator.validate(ticket, serviceUrl);
             if (assertion != null) {
-                LOG.info("successful authentication via cas rest api");
+                LOG.info("successful authentication via CAS REST API");
                 // add assertions to request attribute, in order to process groups with the CasGroupsProvider
                 context.getRequest().setAttribute(Assertion.class.getName(), assertion);
 

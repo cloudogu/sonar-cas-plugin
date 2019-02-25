@@ -19,6 +19,7 @@ Before you start, you need to pick a reachable host name. This host name is used
 ```properties
 cas.authn.attributeRepository.stub.attributes.mail=tricia.mcmillan@hitchhiker.com
 cas.authn.attributeRepository.stub.attributes.displayName=Tricia McMillan
+cas.authn.attributeRepository.stub.attributes.groups=admin
 
 cas.authn.accept.users=admin::secretPassword
 ``` 
@@ -69,7 +70,7 @@ docker-compose logs -f cas
 
 # Plugin configuration
 
-### enable CAS plugin
+### configure CAS plugin to handle authentication
 
 `sonar.security.realm=cas`
 
@@ -138,7 +139,7 @@ values should be separated with commas without further whitespace (e.g. 'groups,
 
 Currently not supported related to Sonar limitations but is solved with CAS2 attributes.
 
-`sonar.cas.fullNameAttribute=cn`
+`sonar.cas.fullNameAttribute=displayName`
 
 ### Attribute holding the user's email address.
 
@@ -155,5 +156,7 @@ The tolerance in milliseconds for drifting clocks when validating SAML 1.1 ticke
 ### Ignore certification validation errors.
 
 **CAUTION! NEVER USE IN PROD! SECURITY RISK!**
+
+This is only for development environments where a proper certificate chain is unfeasible. 
 
 `sonar.cas.disableCertValidation=false`

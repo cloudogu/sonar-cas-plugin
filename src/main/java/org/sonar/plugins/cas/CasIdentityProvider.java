@@ -4,8 +4,8 @@ import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
-import org.jasig.cas.client.validation.Cas30ProxyTicketValidator;
 import org.jasig.cas.client.validation.TicketValidationException;
+import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
@@ -68,14 +68,19 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private final CasAttributeSettings attributeSettings;
     private final CasSessionStore casSessionStore;
     private final Configuration config;
+    private TicketValidatorFactory ticketValidatorFactory;
 
     /**
      * called with injection by SonarQube during server initialization
      */
-    public CasIdentityProvider(Configuration configuration, CasAttributeSettings attributeSettings, CasSessionStoreFactory sessionStoreFactory) {
+    public CasIdentityProvider(Configuration configuration,
+                               CasAttributeSettings attributeSettings,
+                               CasSessionStoreFactory sessionStoreFactory,
+                               TicketValidatorFactory ticketValidatorFactory) {
         this.config = configuration;
         this.attributeSettings = attributeSettings;
         this.casSessionStore = sessionStoreFactory.getInstance();
+        this.ticketValidatorFactory = ticketValidatorFactory;
     }
 
     @Override
@@ -99,7 +104,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         LOG.debug("Found internal login case");
 
         String grantingTicket = context.getRequest().getParameter("ticket");
-        Cas30ProxyTicketValidator validator = new Cas30ProxyTicketValidator(getCasServerUrlPrefix());
+        TicketValidator validator = ticketValidatorFactory.create();
         Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
 
         context.authenticate(createUserIdentity(assertion));

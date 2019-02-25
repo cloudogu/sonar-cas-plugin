@@ -56,13 +56,11 @@ public class ForceCasLoginFilter extends ServletFilter {
             "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
     static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
 
-    private final RestAuthenticator restAuthenticator;
     private final CasSessionStore casSessionStore;
     private final Configuration config;
 
     public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory) {
         this.config = configuration;
-        this.restAuthenticator = new RestAuthenticator(configuration);
         this.casSessionStore = sessionStoreFactory.getInstance();
     }
 
@@ -75,15 +73,6 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         final HttpServletRequest request = RequestUtil.toHttp(servletRequest);
         final HttpServletResponse response = (HttpServletResponse) servletResponse;
-
-        // authenticate non browser clients
-        if (!RequestUtil.isBrowser(request)) {
-            Credentials credentials = RequestUtil.getBasicAuthentication(request);
-            if (credentials != null) {
-                LOG.debug("Found non-browser authentication request");
-                restAuthenticator.authenticate(credentials, request);
-            }
-        }
 
         String requestedURL = request.getRequestURL().toString();
 

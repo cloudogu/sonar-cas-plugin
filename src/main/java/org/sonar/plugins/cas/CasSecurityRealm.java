@@ -49,17 +49,11 @@ public class CasSecurityRealm extends SecurityRealm {
   private final CasAuthenticator authenticator;
   private final CasGroupsProvider groupsProvider;
 
-  /**
-   * Constructs a new {@link CasSecurityRealm}.
-   * This constructor is called by dependency injection framework of sonarqube,
-   *
-   * @param configuration sonarqube configuration
-   * @param settings cas attribute settings
-   */
-  public CasSecurityRealm(Configuration configuration, CasAttributeSettings settings) {
+  /** This constructor is called by dependency injection framework of sonarqube, */
+  public CasSecurityRealm(Configuration configuration, CasAttributeSettings attributes, TicketValidatorFactory ticketValidatorFactory) {
     this.userProvider = new CasUserProvider();
-    this.authenticator = new CasAuthenticator(configuration, settings);
-    this.groupsProvider = new CasGroupsProvider(settings);
+    this.authenticator = new CasAuthenticator(configuration, attributes, ticketValidatorFactory);
+    this.groupsProvider = new CasGroupsProvider(attributes);
   }
 
   @Override

@@ -17,7 +17,7 @@ import java.util.Collection;
 import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
 
 public class CasTokenRefreshFilter extends ServletFilter {
-    private static final Logger LOG = LoggerFactory.getLogger(ForceCasLoginFilter.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CasTokenRefreshFilter.class);
     private CasSessionStoreFactory sessionStoreFactory;
 
     public CasTokenRefreshFilter(CasSessionStoreFactory sessionStoreFactory) {

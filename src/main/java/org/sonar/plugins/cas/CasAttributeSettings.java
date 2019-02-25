@@ -37,7 +37,9 @@ public class CasAttributeSettings {
 
     private final Configuration config;
 
-    /** called with injection by SonarQube during server initialization */
+    /**
+     * called with injection by SonarQube during server initialization
+     */
     public CasAttributeSettings(Configuration configuration) {
         config = configuration;
     }
@@ -55,7 +57,7 @@ public class CasAttributeSettings {
 
     private List<String> getRoleAttributes() {
         final String str = SonarCasProperties.ROLES_ATTRIBUTE.getString(config, "");
-        if (! str.isEmpty()) {
+        if (!str.isEmpty()) {
             return Arrays.asList(str.split("\\s*,\\s*"));
         }
         return Collections.emptyList();
@@ -66,7 +68,7 @@ public class CasAttributeSettings {
 
         Object attribute = attributes.get(key);
         if (attribute instanceof Collection) {
-            for ( Object item : (Collection) attribute ) {
+            for (Object item : (Collection) attribute) {
                 builder.add(item.toString());
             }
         } else if (attribute != null) {
@@ -94,9 +96,6 @@ public class CasAttributeSettings {
     }
 
     private String getStringAttribute(Map<String, Object> attributes, String key) {
-        if (attributes.containsKey(key)) {
-            return (String) attributes.get(key);
-        }
-        return null;
+        return (String) attributes.get(key);
     }
 }

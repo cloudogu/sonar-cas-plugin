@@ -111,6 +111,7 @@ public enum SonarCasProperties {
     /**
      * Returns a configuration value as string if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */
@@ -122,6 +123,7 @@ public enum SonarCasProperties {
 
     /**
      * Returns a configuration value as string if the key was configured. Otherwise the given default value.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured, otherwise the given default value.
      */
@@ -135,6 +137,7 @@ public enum SonarCasProperties {
     /**
      * Returns a configuration value as boolean if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */
@@ -144,10 +147,16 @@ public enum SonarCasProperties {
         return config.getBoolean(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
     }
 
+    public boolean getBoolean(Configuration config, boolean defaultValue) {
+        assertPropertyType(SonarPropertyType.BOOLEAN);
+
+        return config.getBoolean(propertyKey).orElse(defaultValue);
+    }
 
     /**
      * Returns a configuration value as integer if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */

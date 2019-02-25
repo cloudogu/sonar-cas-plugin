@@ -55,17 +55,11 @@ public final class CasPlugin implements Plugin {
 
     List<Object> collectExtensions() {
         List<Object> extensions = new ArrayList<>();
+
         if (isRealmEnabled()) {
-            String protocol = "cas2";
-
-            Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
-                    "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
-
-            // The ignore certification validation should only be used in development (security risk)!
-            // if (configuration.mustGetBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
-            IgnoreCert.disableSslVerification();
-
+            extensions.add(DevelopmentServerStartHandler.class);
             extensions.add(CasAttributeSettings.class);
+            extensions.add(TicketValidatorFactory.class);
             extensions.add(CasSessionStoreFactory.class);
 
 
@@ -83,8 +77,6 @@ public final class CasPlugin implements Plugin {
     }
 
     private boolean isRealmEnabled() {
-        //Optional<String> realmConf = configuration.get("sonar.security.realm");
-        //return (realmConf.isPresent() && CasSecurityRealm.KEY.equalsIgnoreCase(realmConf.get()));
         return true;
     }
 }
