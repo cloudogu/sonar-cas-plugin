@@ -69,7 +69,9 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private final CasSessionStore casSessionStore;
     private final Configuration config;
 
-    /** called with injection by SonarQube during server initialization */
+    /**
+     * called with injection by SonarQube during server initialization
+     */
     public CasIdentityProvider(Configuration configuration, CasAttributeSettings attributeSettings, CasSessionStoreFactory sessionStoreFactory) {
         this.config = configuration;
         this.attributeSettings = attributeSettings;
@@ -157,9 +159,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         }
 
         Set<String> groups = attributeSettings.getGroups(attributes);
-        if (groups != null) {
-            builder = builder.setGroups(groups);
-        }
+        builder = builder.setGroups(groups);
 
         return builder.build();
     }

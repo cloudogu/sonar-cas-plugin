@@ -19,6 +19,7 @@
  */
 package org.sonar.plugins.cas;
 
+import com.google.common.collect.ImmutableSet;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
@@ -41,56 +42,55 @@ public class CasAttributeSettings {
         config = configuration;
     }
 
-    /**
-     * @return the roleAttributes
-     */
-    private List<String> getRoleAttributes() {
-        final String str = SonarCasProperties.ROLES_ATTRIBUTE.getString(config, null);
-        return null != str ? Arrays.asList(str.split("\\s*,\\s*")) : null;
-    }
-
-
-    /**
-     * @return the fullNameAttribute
-     */
-    private String getFullNameAttribute() {
-        return SonarCasProperties.FULL_NAME_ATTRIBUTE.getString(config, "cn");
-    }
-
-    /**
-     * @return the eMailAttribute
-     */
-    private String getMailAttribute() {
-        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
-    }
-
     Set<String> getGroups(Map<String, Object> attributes) {
-        Set<String> groups = null;
+        Set<String> groups = new HashSet<>();
         for (String key : getRoleAttributes()) {
             Collection<String> roles = getCollectionAttribute(attributes, key);
             if (roles != null) {
-                if (groups == null) {
-                    groups = new HashSet<>();
-                }
                 groups.addAll(roles);
             }
         }
         return groups;
     }
 
+    private List<String> getRoleAttributes() {
+        final String str = SonarCasProperties.ROLES_ATTRIBUTE.getString(config, "");
+        if (! str.isEmpty()) {
+            return Arrays.asList(str.split("\\s*,\\s*"));
+        }
+        return Collections.emptyList();
+    }
+
+    private Collection<String> getCollectionAttribute(Map<String, Object> attributes, String key) {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+
+        Object attribute = attributes.get(key);
+        if (attribute instanceof Collection) {
+            for ( Object item : (Collection) attribute ) {
+                builder.add(item.toString());
+            }
+        } else if (attribute != null) {
+            builder.add(attribute.toString());
+        }
+
+        return builder.build();
+    }
+
     String getEmail(Map<String, Object> attributes) {
-        return getStringAttribute(attributes, getMailAttribute());
+        String mailAttribute = getMailAttribute();
+        return getStringAttribute(attributes, mailAttribute);
+    }
+
+    private String getMailAttribute() {
+        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
     }
 
     String getDisplayName(Map<String, Object> attributes) {
         return getStringAttribute(attributes, getFullNameAttribute());
     }
 
-    private Collection<String> getCollectionAttribute(Map<String, Object> attributes, String key) {
-        if (attributes.containsKey(key)) {
-            return (Collection<String>) attributes.get(key);
-        }
-        return null;
+    private String getFullNameAttribute() {
+        return SonarCasProperties.FULL_NAME_ATTRIBUTE.getString(config, "cn");
     }
 
     private String getStringAttribute(Map<String, Object> attributes, String key) {
