@@ -49,7 +49,7 @@ class CasGroupsProvider extends ExternalGroupsProvider {
     Assertion assertion = (Assertion) context.getRequest().getAttribute(Assertion.class.getName());
     Preconditions.checkState(assertion != null, "could not find assertions in the request");
 
-    Set<String> groups = settings.getGroups(assertion.getAttributes());
+    Set<String> groups = settings.getGroups(assertion.getPrincipal().getAttributes());
     if (groups == null) {
       groups = Collections.emptySet();
     }
