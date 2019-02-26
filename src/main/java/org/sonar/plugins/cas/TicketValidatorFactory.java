@@ -11,12 +11,16 @@ import java.util.Locale;
  *
  */
 @ServerSide
-public class TicketValidatorFactory {
+public final class TicketValidatorFactory {
     private static final String DEFAULT_CAS_PROTOCOL = "cas3";
     private final Configuration configuration;
 
     public TicketValidatorFactory(Configuration configuration) {
         this.configuration = configuration;
+    }
+
+    TicketValidatorFactory(Configuration configuration, String impl) {
+        this(configuration);
     }
 
     TicketValidator create() {

@@ -22,7 +22,9 @@ package org.sonar.plugins.cas;
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
 import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.jasig.cas.client.validation.*;
+import org.jasig.cas.client.validation.Assertion;
+import org.jasig.cas.client.validation.TicketValidationException;
+import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
@@ -30,11 +32,9 @@ import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
-import org.sonar.plugins.cas.util.CasRestClient;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,45 +47,37 @@ import java.util.Map;
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
 @ServerSide
-public final class CasAuthenticator extends Authenticator {
+public class CasAuthenticator extends Authenticator {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasAuthenticator.class);
 
     private final Configuration configuration;
     private final CasAttributeSettings attributeSettings;
 
-    private final String casServerUrlPrefix;
-    private final String serviceUrl;
     private final TicketValidatorFactory ticketValidatorFactory;
+    private final CasRestClient casRestClient;
 
     /**
      * called with injection by SonarQube during server initialization
      */
-    CasAuthenticator(Configuration configuration, CasAttributeSettings attributeSettings, TicketValidatorFactory ticketValidatorFactory) {
+    CasAuthenticator(Configuration configuration, CasAttributeSettings attributeSettings,
+                     TicketValidatorFactory ticketValidatorFactory, CasRestClientFactory casRestClientFactory) {
         this.configuration = configuration;
         this.attributeSettings = attributeSettings;
 
-        casServerUrlPrefix = getCasServerUrlPrefix();
-        serviceUrl = getServiceUrl();
         this.ticketValidatorFactory = ticketValidatorFactory;
-    }
-
-    private String getCasServerUrlPrefix() {
-        return SonarCasProperties.CAS_SERVER_URL_PREFIX.mustGetString(configuration);
-    }
-
-    private String getServiceUrl() {
-        return SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
+        this.casRestClient = casRestClientFactory.create();
     }
 
     @Override
     public boolean doAuthenticate(Context context) {
         try {
-            CasRestClient crc = new CasRestClient(casServerUrlPrefix, serviceUrl);
-            String ticket = crc.createServiceTicket(context.getUsername(), context.getPassword());
+            String ticket = casRestClient.createServiceTicket(context.getUsername(), context.getPassword());
 
             TicketValidator validator = ticketValidatorFactory.create();
+            String serviceUrl = getServiceUrl();
             Assertion assertion = validator.validate(ticket, serviceUrl);
+
             if (assertion != null) {
                 LOG.info("successful authentication via CAS REST API");
                 // add assertions to request attribute, in order to process groups with the CasGroupsProvider
@@ -93,9 +85,9 @@ public final class CasAuthenticator extends Authenticator {
 
                 populateUserDetails(context.getRequest(), assertion);
                 return true;
-            } else {
-                LOG.warn("ticket validator returned no assertion");
             }
+
+            LOG.warn("ticket validator returned no assertion");
         } catch (CasAuthenticationException ex) {
             LOG.warn("authentication failed", ex);
         } catch (TicketValidationException ex) {
@@ -108,7 +100,6 @@ public final class CasAuthenticator extends Authenticator {
         // get user attributes from request, which was previously added by the CasUserProvider
         UserDetails user = (UserDetails) request.getAttribute(UserDetails.class.getName());
         Preconditions.checkState(user != null, "could not find UserDetails in the request");
-
 
         // populate user details from assertion
         AttributePrincipal principal = assertion.getPrincipal();
@@ -125,5 +116,9 @@ public final class CasAuthenticator extends Authenticator {
         if (!Strings.isNullOrEmpty(email)) {
             user.setEmail(email);
         }
+    }
+
+    private String getServiceUrl() {
+        return SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
     }
 }

@@ -20,12 +20,9 @@
 
 package org.sonar.plugins.cas;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.sonar.api.Plugin;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.IgnoreCert;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +57,7 @@ public final class CasPlugin implements Plugin {
             extensions.add(DevelopmentServerStartHandler.class);
             extensions.add(CasAttributeSettings.class);
             extensions.add(TicketValidatorFactory.class);
+            extensions.add(CasRestClientFactory.class);
             extensions.add(CasSessionStoreFactory.class);
 
 

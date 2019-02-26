@@ -17,7 +17,7 @@
  * License along with this program; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02
  */
-package org.sonar.plugins.cas.util;
+package org.sonar.plugins.cas;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
@@ -25,6 +25,7 @@ import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.plugins.cas.util.CasAuthenticationException;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
@@ -38,7 +39,7 @@ import java.net.URLEncoder;
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  * @see <a href="https://wiki.jasig.org/display/casum/restful+api">CAS RESTful API</a>
  */
-public final class CasRestClient {
+public class CasRestClient {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasRestClient.class);
 
@@ -59,7 +60,7 @@ public final class CasRestClient {
      * @throws CasAuthenticationException
      */
     public String createServiceTicket(final String username, final String password) throws CasAuthenticationException {
-        String st = null;
+        String st;
 
         try {
             String tgt = createGrantingTicket(casServerUrl, username, password);
@@ -107,8 +108,7 @@ public final class CasRestClient {
         }
     }
 
-    private String createGrantingTicket(String casServerUrl, String username,
-                                        String password)
+    private String createGrantingTicket(String casServerUrl, String username, String password)
             throws IOException, CasAuthenticationException {
         HttpURLConnection connection = null;
 
@@ -144,7 +144,7 @@ public final class CasRestClient {
     }
 
     private String createServiceTicket(String tgt) throws IOException, CasAuthenticationException {
-        String st = null;
+        String st;
         HttpURLConnection connection = null;
 
         try {

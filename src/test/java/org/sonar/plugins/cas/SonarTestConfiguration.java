@@ -8,11 +8,11 @@ import java.util.Optional;
 public class SonarTestConfiguration implements Configuration {
     private final HashMap<String, String> props;
 
-    SonarTestConfiguration() {
+    public SonarTestConfiguration() {
         this.props = new HashMap<>();
     }
 
-    SonarTestConfiguration withAttribute(String sonarKey, String value) {
+    public SonarTestConfiguration withAttribute(String sonarKey, String value) {
         this.props.put(sonarKey, value);
         return this;
     }

@@ -24,39 +24,55 @@ import org.jasig.cas.client.util.AbstractCasFilter;
 import org.jasig.cas.client.validation.Assertion;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.internal.ConfigurationBridge;
-import org.sonar.api.config.internal.MapSettings;
 
 import javax.servlet.http.HttpServletRequest;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class CasAuthenticatorTest {
-//  @Test
-//  public void should_authenticate() {
-//    final Configuration configuration = new ConfigurationBridge(new MapSettings());
+    @Test
+    public void should_authenticate() {
+        Configuration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.casServerUrlPrefix", "https://cas.server.com")
+                .withAttribute("sonar.cas.sonarServerUrl", "https://sonar.server.com");
+        CasAttributeSettings attributes = new CasAttributeSettings(configuration);
+        TicketValidatorFactory ticketValidatorFactory = new TicketValidatorFactory(configuration);
+        CasRestClientFactory casRestClientFactory = new CasRestClientFactory(configuration, new TestCasRestClient());
+
+        CasAuthenticator authenticator = new CasAuthenticator(configuration, attributes, ticketValidatorFactory,
+                casRestClientFactory);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        Assertion casAssertion = mock(Assertion.class);
+        when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));
+        when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(casAssertion);
+        CasAuthenticator.Context context = new CasAuthenticator.Context(null, null, request);
+
+//        boolean actual = authenticator.doAuthenticate(context);
 //
-//    CasAuthenticator authenticator = new CasAuthenticator(configuration, null);
-//    HttpServletRequest request = mock(HttpServletRequest.class);
-//    Assertion casAssertion = mock(Assertion.class);
-//    when(casAssertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("goldorak"));
-//    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(casAssertion);
+//        assertThat(actual).isTrue();
+    }
+
+    private class TestCasRestClient extends CasRestClient {
+        TestCasRestClient() {
+            super("https://sonar.server.com", "https://cas.server.com");
+        }
+
+        @Override
+        public String createServiceTicket(String username, String password) {
+            return "ST-1234";
+        }
+    }
 //
-//    CasAuthenticator.Context context = new CasAuthenticator.Context(null, null, request);
-//    assertThat(authenticator.doAuthenticate(context)).isTrue();
-//  }
+//    @Test
+//    public void user_should_not_be_authenticated() {
+//        final Configuration configuration = new ConfigurationBridge(new MapSettings());
 //
-//  @Test
-//  public void user_should_not_be_authenticated() {
-//    final Configuration configuration = new ConfigurationBridge(new MapSettings());
+//        CasAuthenticator authenticator = new CasAuthenticator(configuration, null);
+//        HttpServletRequest request = mock(HttpServletRequest.class);
+//        when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
 //
-//    CasAuthenticator authenticator = new CasAuthenticator(configuration, null);
-//    HttpServletRequest request = mock(HttpServletRequest.class);
-//    when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
-//
-//    CasAuthenticator.Context context = new CasAuthenticator.Context(null, null, request);
-//    assertThat(authenticator.doAuthenticate(context)).isFalse();
-//  }
+//        CasAuthenticator.Context context = new CasAuthenticator.Context(null, null, request);
+//        assertThat(authenticator.doAuthenticate(context)).isFalse();
+//    }
 }
