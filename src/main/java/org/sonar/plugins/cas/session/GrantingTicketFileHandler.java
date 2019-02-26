@@ -23,9 +23,9 @@ class GrantingTicketFileHandler {
             throw new IllegalArgumentException("Could not store ST->JWT: jwt must not be null");
         }
 
-        byte[] jwtIdAsByts = jwt.getJwtId().getBytes();
+        byte[] jwtIdAsBytes = jwt.getJwtId().getBytes();
         Path path = Paths.get(sessionStorePath, grantingTicketId);
-        Files.write(path, jwtIdAsByts);
+        Files.write(path, jwtIdAsBytes);
     }
 
     public String get(String grantingTicketId) throws IOException {

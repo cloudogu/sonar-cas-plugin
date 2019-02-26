@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.JwtProcessor;
-import org.sonar.plugins.cas.util.RequestUtil;
+import org.sonar.plugins.cas.util.HttpUtil;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.*;
@@ -29,11 +29,11 @@ public class CasTokenRefreshFilter extends ServletFilter {
         // nothing to init
     }
 
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain chain)
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
-        final HttpServletRequest request = RequestUtil.toHttp(servletRequest);
-        final HttpServletResponse response = (HttpServletResponse) servletResponse;
+        HttpServletRequest request = HttpUtil.toHttp(servletRequest);
+        HttpServletResponse response = HttpUtil.toHttp(servletResponse);
 
         SimpleJwt requestJwt = JwtProcessor.getJwtTokenFromCookies(request.getCookies());
         SimpleJwt responseJwt = getJwtFromResponse(response);

@@ -103,7 +103,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private void handleAuthentication(Context context) throws IOException, TicketValidationException {
         LOG.debug("Found internal login case");
 
-        String grantingTicket = context.getRequest().getParameter("ticket");
+        String grantingTicket = getServiceTicketParameter(context.getRequest());
         TicketValidator validator = ticketValidatorFactory.create();
         Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
 
@@ -183,15 +183,22 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         return "POST".equals(requestMethod) && !logoutAttributes.isEmpty();
     }
 
-    private String getLogoutRequestParameter(HttpServletRequest request) {
-        return StringUtils.defaultIfEmpty(request.getParameter("logoutRequest"), "");
-    }
-
     private boolean isLogin(HttpServletRequest request) {
+        String ticket = getServiceTicketParameter(request);
+
         String requestMethod = request.getMethod();
-        String ticket = StringUtils.defaultIfEmpty(request.getParameter("ticket"), "");
 
         return "GET".equals(requestMethod) && !ticket.isEmpty();
+    }
+
+    private String getServiceTicketParameter(HttpServletRequest request) {
+        String ticket = request.getParameter("ticket");
+        return StringUtils.defaultIfEmpty(ticket, "");
+    }
+
+    private String getLogoutRequestParameter(HttpServletRequest request) {
+        String logoutRequest = request.getParameter("logoutRequest");
+        return StringUtils.defaultIfEmpty(logoutRequest, "");
     }
 
     @Override
@@ -222,9 +229,5 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private String getSonarServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
         return sonarUrl + "/sessions/init/cas"; // cas corresponds to the value from getKey()
-    }
-
-    private String getCasServerUrlPrefix() {
-        return SonarCasProperties.CAS_SERVER_URL_PREFIX.mustGetString(config);
     }
 }

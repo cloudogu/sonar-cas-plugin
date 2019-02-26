@@ -64,15 +64,15 @@ public class ForceCasLoginFilter extends ServletFilter {
         this.casSessionStore = sessionStoreFactory.getInstance();
     }
 
-    public void init(final FilterConfig filterConfig) {
+    public void init(FilterConfig filterConfig) {
         // nothing to do
     }
 
-    public void doFilter(final ServletRequest servletRequest, final ServletResponse servletResponse, final FilterChain chain)
+    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
-        final HttpServletRequest request = RequestUtil.toHttp(servletRequest);
-        final HttpServletResponse response = (HttpServletResponse) servletResponse;
+        HttpServletRequest request = HttpUtil.toHttp(servletRequest);
+        HttpServletResponse response = HttpUtil.toHttp(servletResponse);
 
         String requestedURL = request.getRequestURL().toString();
 

@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
+import org.sonar.plugins.cas.util.HttpUtil;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.FilterChain;
@@ -41,7 +42,8 @@ public class AuthenticationFilter extends ServletFilter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
         String loginRedirectUrl = getCasLoginUrl() + "?service=" + getSonarServiceUrl();
         LOG.debug("redirecting for CAS authentication to {}", loginRedirectUrl);
-        ((HttpServletResponse) response).sendRedirect(loginRedirectUrl);
+        HttpServletResponse resp = HttpUtil.toHttp(response);
+        resp.sendRedirect(loginRedirectUrl);
     }
 
     private String getCasLoginUrl() {

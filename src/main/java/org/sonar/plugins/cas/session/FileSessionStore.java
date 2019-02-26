@@ -37,7 +37,7 @@ public final class FileSessionStore implements CasSessionStore {
         try {
             createSessionDirectory();
         } catch (IOException e) {
-            throw new CasInitException(e);
+            throw new CasInitializationException(e);
         }
     }
 
@@ -138,8 +138,8 @@ public final class FileSessionStore implements CasSessionStore {
         }
     }
 
-    private class CasInitException extends RuntimeException {
-        CasInitException(IOException e) {
+    private class CasInitializationException extends RuntimeException {
+        CasInitializationException(IOException e) {
             super(e);
         }
     }

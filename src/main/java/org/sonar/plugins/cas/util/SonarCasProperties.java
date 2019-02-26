@@ -19,13 +19,10 @@
  */
 package org.sonar.plugins.cas.util;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 
 /**
- * This class provides Sonar CAS Plugin properties in a typed way..
+ * This class provides Sonar CAS Plugin properties in a typed way.
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  */
@@ -133,7 +130,6 @@ public enum SonarCasProperties {
         return config.get(propertyKey).orElse(defaultValue);
     }
 
-
     /**
      * Returns a configuration value as boolean if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
@@ -185,7 +181,7 @@ public enum SonarCasProperties {
 
     private static class CasPropertyNotFoundException extends RuntimeException {
         CasPropertyNotFoundException(String propertyKey) {
-            super("Could not find Sonar property with key " + propertyKey);
+            super("Could not find Sonar property with key " + propertyKey + " when it was expected to be configured.");
         }
     }
 }
