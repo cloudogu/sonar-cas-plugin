@@ -49,7 +49,16 @@ public final class TicketValidatorFactory {
     }
 
     private Saml11TicketValidator createSaml11TicketValidator() {
-        return new Saml11TicketValidator(getCasServerUrlPrefix());
+        Saml11TicketValidator saml11TicketValidator = new Saml11TicketValidator(getCasServerUrlPrefix());
+
+        // the validator's internal tolerance is already at 1000 millis so the drifting tolerance does not
+        // need to be set at any circumstance.
+        int tolerance = SonarCasProperties.SAML11_TIME_TOLERANCE.getInteger(configuration, -1);
+        if(tolerance != -1) {
+            saml11TicketValidator.setTolerance(tolerance);
+        }
+
+        return saml11TicketValidator;
     }
 
     private Cas10TicketValidator createCas10TicketValidator() {
