@@ -5,14 +5,14 @@ import org.junit.Test;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class TicketValidatorFactoryTest {
+public class CasTicketValidatorFactoryTest {
 
     @Test(expected = IllegalStateException.class)
     public void createShouldThrowExceptionOnUnknownProtocol() {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol", "BreadAndButterProtocolV3.rot")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         sut.create();
     }
@@ -22,7 +22,7 @@ public class TicketValidatorFactoryTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol", "saml11")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.create();
         assertThat(actual).isNotNull().isInstanceOf(Saml11TicketValidator.class);
@@ -33,7 +33,7 @@ public class TicketValidatorFactoryTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol", "cas1")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.create();
         assertThat(actual).isNotNull().isInstanceOf(Cas10TicketValidator.class);
@@ -44,7 +44,7 @@ public class TicketValidatorFactoryTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol", "cas2")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.create();
         assertThat(actual).isNotNull().isInstanceOf(Cas20ServiceTicketValidator.class);
@@ -55,7 +55,7 @@ public class TicketValidatorFactoryTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com")
                 .withAttribute("sonar.cas.protocol", "cas3");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.create();
 
@@ -67,7 +67,7 @@ public class TicketValidatorFactoryTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol<----was not configured", "dummy")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
-        TicketValidatorFactory sut = new TicketValidatorFactory(configuration);
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.create();
         assertThat(actual).isNotNull().isInstanceOf(Cas30ServiceTicketValidator.class);

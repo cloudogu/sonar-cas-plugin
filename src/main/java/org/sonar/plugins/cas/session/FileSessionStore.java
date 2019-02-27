@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
 
 public final class FileSessionStore implements CasSessionStore {
     private static final Logger LOG = LoggerFactory.getLogger(FileSessionStore.class);
@@ -127,9 +126,8 @@ public final class FileSessionStore implements CasSessionStore {
         LOG.debug("successfully refreshed token {}", jwtId);
     }
 
-    public void pruneExpiredEntries() {
-        // TODO prune all the expired things
-        LOG.debug("prune these tokens {}", Collections.emptyList());
+    public int removeExpiredEntries() {
+        return new SessionFileRemover(sessionStorePath).cleanUp();
     }
 
     private static class CasIOAuthenticationException extends RuntimeException {

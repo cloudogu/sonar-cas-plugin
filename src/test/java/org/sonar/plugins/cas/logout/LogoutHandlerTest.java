@@ -12,8 +12,8 @@ import java.io.IOException;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
-import static org.sonar.plugins.cas.JwtTestData.JWT_TOKEN;
-import static org.sonar.plugins.cas.JwtTestData.getJwtToken;
+import static org.sonar.plugins.cas.AuthTestData.JWT_TOKEN;
+import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
 
 public class LogoutHandlerTest {

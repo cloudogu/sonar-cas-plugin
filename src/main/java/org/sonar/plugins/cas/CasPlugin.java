@@ -23,6 +23,7 @@ package org.sonar.plugins.cas;
 import org.sonar.api.Plugin;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
+import org.sonar.plugins.cas.session.SessionStoreCleaner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,9 +57,10 @@ public final class CasPlugin implements Plugin {
         if (isRealmEnabled()) {
             extensions.add(DevelopmentServerStartHandler.class);
             extensions.add(CasAttributeSettings.class);
-            extensions.add(TicketValidatorFactory.class);
+            extensions.add(CasTicketValidatorFactory.class);
             extensions.add(CasRestClientFactory.class);
             extensions.add(CasSessionStoreFactory.class);
+            extensions.add(SessionStoreCleaner.class);
 
 
             extensions.add(CasIdentityProvider.class);

@@ -9,11 +9,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class JwtTokenFileHandler {
+    private static final Charset CONTENT_CHARSET = StandardCharsets.US_ASCII;
     private String sessionStorePath;
 
     JwtTokenFileHandler(String sessionStorePath) {
@@ -26,9 +28,8 @@ class JwtTokenFileHandler {
     }
 
     public SimpleJwt get(String jwtId) throws IOException {
-        Charset charset = Charset.forName("US-ASCII");
         Path filePath = Paths.get(sessionStorePath + File.separator + jwtId);
-        try (BufferedReader reader = Files.newBufferedReader(filePath, charset)) {
+        try (BufferedReader reader = Files.newBufferedReader(filePath, CONTENT_CHARSET)) {
             return JAXB.unmarshal(reader, SimpleJwt.class);
         }
     }
@@ -44,8 +45,7 @@ class JwtTokenFileHandler {
         String jwtFile = sessionStorePath + File.separator + jwtId;
         Path path = Files.createFile(Paths.get(jwtFile));
 
-        Charset charset = Charset.forName("US-ASCII");
-        try (BufferedWriter writer = Files.newBufferedWriter(path, charset)) {
+        try (BufferedWriter writer = Files.newBufferedWriter(path, CONTENT_CHARSET)) {
             JAXB.marshal(jwt, writer);
             writer.flush();
         }

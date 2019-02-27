@@ -68,7 +68,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     private final CasAttributeSettings attributeSettings;
     private final CasSessionStore casSessionStore;
     private final Configuration config;
-    private TicketValidatorFactory ticketValidatorFactory;
+    private final TicketValidatorFactory ticketValidatorFactory;
 
     /**
      * called with injection by SonarQube during server initialization
@@ -89,7 +89,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
             HttpServletRequest request = context.getRequest();
 
             if (isLogin(request)) {
-                handleAuthentication(context);
+                handleLogin(context);
             } else if (isLogout(request)) {
                 handleLogout(context);
             } else {
@@ -100,14 +100,15 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         }
     }
 
-    private void handleAuthentication(Context context) throws IOException, TicketValidationException {
+    private void handleLogin(Context context) throws IOException, TicketValidationException {
         LOG.debug("Found internal login case");
 
         String grantingTicket = getServiceTicketParameter(context.getRequest());
         TicketValidator validator = ticketValidatorFactory.create();
         Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
 
-        context.authenticate(createUserIdentity(assertion));
+        UserIdentity userIdentity = createUserIdentity(assertion);
+        context.authenticate(userIdentity);
 
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
