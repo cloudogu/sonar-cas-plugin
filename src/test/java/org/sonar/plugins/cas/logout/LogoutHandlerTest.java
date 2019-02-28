@@ -1,6 +1,8 @@
 package org.sonar.plugins.cas.logout;
 
 import org.junit.Test;
+import org.sonar.plugins.cas.AuthTestData;
+import org.sonar.plugins.cas.SonarTestConfiguration;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.SimpleJwt;
@@ -14,25 +16,34 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.JWT_TOKEN;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
 public class LogoutHandlerTest {
 
     @Test
-    public void logoutShouldInvalidateTicketInStore() {
+    public void logoutShouldInvalidateTicketInStore() throws IOException {
+        SonarTestConfiguration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.sonarServerUrl", "sonar.url.com");
         CasSessionStore store = mock(CasSessionStore.class);
         String ticketID = "ST-2-MCVscBHPvotTXcRW7kFF-45aa256f981c";
-        String logoutRequest = getLogoutRequest(ticketID);
-        LogoutHandler sut = new LogoutHandler(store);
 
-        sut.logout(logoutRequest);
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String logoutRequest = AuthTestData.getLogoutTicketForId(ticketID);
+        when(request.getParameter("logoutRequest")).thenReturn(logoutRequest);
+        HttpServletResponse response = mock(HttpServletResponse.class);
+        LogoutHandler sut = new LogoutHandler(configuration, store);
 
+        // when
+        sut.logout(request, response);
+
+        // then
         verify(store).invalidateJwt(ticketID);
     }
 
     @Test
     public void handleInvalidJwtCookie() throws IOException {
         // given
+        SonarTestConfiguration configuration = new SonarTestConfiguration();
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
@@ -47,7 +58,7 @@ public class LogoutHandlerTest {
         when(request.getContextPath()).thenReturn("http://sonar.url.com/");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
-        LogoutHandler sut = new LogoutHandler(store);
+        LogoutHandler sut = new LogoutHandler(configuration, store);
 
         // when
         boolean removeCookiesAndRedirectToLogin = sut.handleInvalidJwtCookie(request, response);
@@ -58,19 +69,5 @@ public class LogoutHandlerTest {
         verify(response, times(2)).addCookie(any());
         verify(response).sendRedirect("http://sonar.url.com//sessions/new");
         assertThat(removeCookiesAndRedirectToLogin).isTrue();
-    }
-
-    private String getLogoutRequest(String ticketID) {
-        return "<samlp:LogoutRequest " +
-                "xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" " +
-                "ID=\"LR-1-GcWNE4kZSwIynPKkRuDGnbXN1l9WoZXr9AX\" " +
-                "Version=\"2.0\" " +
-                "IssueInstant=\"2019-02-26T12:39:09Z\">" +
-                "   <saml:NameID " +
-                "       xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">" +
-                "       @NOT_USED@" +
-                "   </saml:NameID>" +
-                "   <samlp:SessionIndex>" + ticketID + "</samlp:SessionIndex>" +
-                "</samlp:LogoutRequest>";
     }
 }

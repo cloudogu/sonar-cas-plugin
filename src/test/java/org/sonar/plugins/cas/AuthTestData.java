@@ -22,7 +22,11 @@ public class AuthTestData {
                 "gVi7z6jEsgI3z0Y3k3oXYpIDUzMoqZd8INwvXAq_Z0E";
     }
 
-    static String getLogoutTicket() {
+    public static String getLogoutTicket() {
+        return getLogoutTicketForId("ST-4-F79YAkFe2SjoURpJutQ7-45aa256f981c");
+    }
+
+    public static String getLogoutTicketForId(String id) {
         return "<samlp:LogoutRequest " +
                 "       xmlns:samlp=\"urn:oasis:names:tc:SAML:2.0:protocol\" " +
                 "       ID=\"LR-2-aGgkCE5XTQrFeM9oFfNX2gP5hKQqVHDDczm\" " +
@@ -32,7 +36,7 @@ public class AuthTestData {
                 "           xmlns:saml=\"urn:oasis:names:tc:SAML:2.0:assertion\">" +
                 "       @NOT_USED@" +
                 "   </saml:NameID>" +
-                "   <samlp:SessionIndex>ST-4-F79YAkFe2SjoURpJutQ7-45aa256f981c</samlp:SessionIndex>" +
+                "   <samlp:SessionIndex>" + id + "</samlp:SessionIndex>" +
                 "</samlp:LogoutRequest>";
     }
 }

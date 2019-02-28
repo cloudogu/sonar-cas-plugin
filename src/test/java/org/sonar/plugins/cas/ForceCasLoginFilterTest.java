@@ -18,7 +18,7 @@ import java.io.IOException;
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
 public class ForceCasLoginFilterTest {
     private static final long EXPIRATION_AS_EPOCH_SECONDS = 1550331060L;

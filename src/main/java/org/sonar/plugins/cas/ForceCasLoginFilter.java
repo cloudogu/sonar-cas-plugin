@@ -57,10 +57,10 @@ public class ForceCasLoginFilter extends ServletFilter {
     static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
 
     private final CasSessionStore casSessionStore;
-    private final Configuration config;
+    private final Configuration configuration;
 
     public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory) {
-        this.config = configuration;
+        this.configuration = configuration;
         this.casSessionStore = sessionStoreFactory.getInstance();
     }
 
@@ -78,7 +78,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
-            boolean redirectToLoginPage = new LogoutHandler(casSessionStore).handleInvalidJwtCookie(request, response);
+            boolean redirectToLoginPage = new LogoutHandler(configuration, casSessionStore).handleInvalidJwtCookie(request, response);
 
             if (!redirectToLoginPage) {
                 chain.doFilter(request, servletResponse);
@@ -97,7 +97,7 @@ public class ForceCasLoginFilter extends ServletFilter {
     private void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response) {
         String originalURL = request.getRequestURL().toString();
 
-        int maxCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.mustGetInteger(config);
+        int maxCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.mustGetInteger(configuration);
         Cookie cookie = CookieUtil.createHttpOnlyCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, originalURL, maxCookieAge);
 
         response.addCookie(cookie);

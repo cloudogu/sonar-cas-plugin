@@ -4,8 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.HttpUtil;
+import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.*;
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
-import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
 public class CasTokenRefreshFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(CasTokenRefreshFilter.class);
@@ -25,7 +25,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig)  {
+    public void init(FilterConfig filterConfig) {
         // nothing to init
     }
 
@@ -67,7 +67,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
     }
 
     boolean isTokenRefreshed(SimpleJwt responseJwt, SimpleJwt requestJwt) {
-        if(responseJwt.isNullObject() || requestJwt.isNullObject()) {
+        if (responseJwt.isNullObject() || requestJwt.isNullObject()) {
             return false;
         }
 
