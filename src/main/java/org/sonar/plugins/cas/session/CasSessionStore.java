@@ -7,17 +7,55 @@ import java.io.IOException;
 /**
  * This interface provides methods for storing JWT tokens and CAS tickets for a sustained authentication safety.
  *
- * <h3>Security advice:</h3>
+ * <h1>Security advice</h1>
  * <p>
  * Even though the cookie might be removed, the tickets and tokens within the session store must not
  * be removed because an attacker might have gained access to the user's token. Instead the token stays
  * blacklisted until it reaches its expiration date.
  * </p>
+ *
+ * <h1>Implementation details</h1>
+ *
+ * <h2>Speed of authentication check for requested resources</h2>
+ *
+ * <p>
+ * In terms of {@link #fetchStoredJwt(SimpleJwt)}, implementations should go great lengths to return as fast as possible
+ * because this method is going to be called at each user request.
+ * </p>
+ *
+ * <h2>JWT invalidation versus removal</h2>
+ * <p>
+ * When the user logs out, implementations must keep an invalidated, persisted copy of the JWT as well as the original
+ * service ticket instead of removing them from the session store right away. Usually this is done with:</p>
+ *
+ * <pre>
+ * String invalidateJwt(String grantingTicketId) {
+ *      SimpleJwt currentlyStoredJwt = getJwtFromStoreByServiceTicket(grantingTicketId)
+ *      SimpleJwt invalidatedJwt = jwtFromUserRequest.cloneAsInvalidated();
+ *      replaceJwtInStore(invalidatedJwt);
+ *
+ *      return invalidatedJwt.getJwtId();
+ * }
+ * </pre>
+ *
+ * <p>
+ * During store it back in the session store. This is necessary for blacklisting JWTs until they expired. Only when a
+ * JWT is expired it can be removed, usually with {@link #removeExpiredEntries()}.
+ * </p>
+ *
+ * <h2>Removing JWT tokens and service tickets</h2>
+ *
+ * <p>
+ * Implementations must make sure that the tickets and JWT tokens are persisted over server restart and system
+ * re-creation. Furthermore, implementations may want to properly remove persisted tickets and tokens in order to
+ * free up space taken with implementing the method {@link #removeExpiredEntries()}.
+ * </p>
  */
 public interface CasSessionStore {
     /**
      * This method provides a way of one-time initialization before implementations start their work. Implementations
-     * may throw exceptions if crucial preparation steps fail which render the implementation to be useless.
+     * may throw exceptions if crucial preparation steps fail which render the implementation to be useless. If possible
+     * a fail-fast algorithm (like failing at server start-up) should be used to see possible configuration mishaps etc.
      */
     void prepareForWork() throws IOException;
 
@@ -32,28 +70,35 @@ public interface CasSessionStore {
     void store(String ticket, SimpleJwt jwt);
 
     /**
-     * @param jwt
-     * @return
+     * Returns <code>true</code> when the JWT is maintained by the session store.
+     *
+     * @param jwt the JWT as given by the user's cookie.
+     * @return Returns <code>true</code> when the JWT is maintained by the session store, otherwise false.
      */
     boolean isJwtStored(SimpleJwt jwt);
 
     /**
-     * @param jwt
-     * @return
+     * Returns a stored JWT for a blacklisting check.
+     *
+     * <p>This method is used for quick check if the user is authenticated for any requested resource. </p>
+     *
+     * @param jwt the JWT as created from the user's cookie
+     * @return the currently stored JWT.
      */
-    SimpleJwt getJwtById(SimpleJwt jwt);
+    SimpleJwt fetchStoredJwt(SimpleJwt jwt);
 
     /**
-     * Render existing JWT invalid.
+     * Render an existing JWT invalid which is identified by the granting ticket and store it back in the session store.
      *
-     * @param grantingTicketId the CAS granting ticket ID
+     * @param serviceTicketId the CAS service ticket ID
      * @return the JWT id which is now invalid.
      */
-    String invalidateJwt(String grantingTicketId);
+    String invalidateJwt(String serviceTicketId);
 
     /**
-     * Removes all expires JWT tokens.
-     * @return the number of removed entries
+     * Removes all expires JWT tokens and service tickets in order to release allocated resources.
+     *
+     * @return the number of removed tokens and tickets.
      */
     int removeExpiredEntries();
 

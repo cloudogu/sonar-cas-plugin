@@ -34,7 +34,7 @@ import java.net.URL;
 import java.net.URLEncoder;
 
 /**
- * Client for the cas rest api.
+ * Client for the CAS REST API.
  *
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  * @see <a href="https://wiki.jasig.org/display/casum/restful+api">CAS RESTful API</a>

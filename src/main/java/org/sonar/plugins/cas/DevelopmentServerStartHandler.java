@@ -9,6 +9,9 @@ import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.IgnoreCert;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
+/**
+ * This class deactivates SSL support during SonarQube start-up and should ONLY be used for development purposes.
+ */
 @ServerSide
 public class DevelopmentServerStartHandler implements ServerStartHandler {
     private static final Logger LOG = LoggerFactory.getLogger(DevelopmentServerStartHandler.class);
@@ -21,9 +24,14 @@ public class DevelopmentServerStartHandler implements ServerStartHandler {
 
     @Override
     public void onServerStart(Server server) {
-        if (SonarCasProperties.DISABLE_CERT_VALIDATION.getBoolean(configuration, false)) {
-            LOG.warn("SSL certificate check is disabled. Please DISABLE SSL disabling on a production machine for security reasons.");
+        if (isSslSupportDeactivated()) {
+            LOG.error("SSL certificate check is disabled. Please ENABLE SSL disabling on a production machine for " +
+                    "security reasons by configuring the property 'sonar.cas.disableCertValidation'.");
             IgnoreCert.disableSslVerification();
         }
+    }
+
+    private boolean isSslSupportDeactivated() {
+        return SonarCasProperties.DISABLE_CERT_VALIDATION.getBoolean(configuration, false);
     }
 }

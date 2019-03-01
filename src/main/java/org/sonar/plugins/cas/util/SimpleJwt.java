@@ -71,9 +71,9 @@ public final class SimpleJwt {
     }
 
     /**
-     * Takes this JWT and creates an invalidated copy
+     * Takes this JWT and creates an invalidated copy for blacklisting purposes.
      *
-     * @return an invalidated copy
+     * @return an invalidated copy of the original JWT.
      */
     public SimpleJwt cloneAsInvalidated() {
         return new SimpleJwt(this.jwtId, this.expiration, true);

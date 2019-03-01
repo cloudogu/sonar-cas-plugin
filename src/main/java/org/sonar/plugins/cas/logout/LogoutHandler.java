@@ -97,7 +97,7 @@ public class LogoutHandler {
             return false;
         }
 
-        SimpleJwt storedJwt = casSessionStore.getJwtById(jwt);
+        SimpleJwt storedJwt = casSessionStore.fetchStoredJwt(jwt);
         LOG.debug("Is the found JWT token {} invalid? {}", jwt.getJwtId(), storedJwt.isInvalid());
 
         return storedJwt.isInvalid();

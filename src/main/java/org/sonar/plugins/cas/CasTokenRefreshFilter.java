@@ -16,9 +16,12 @@ import java.util.Collection;
 
 import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
+/**
+ * This class updates the JWT with a newer expiration date in the session store when SonarQube sends a newer JWT.
+ */
 public class CasTokenRefreshFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(CasTokenRefreshFilter.class);
-    private CasSessionStoreFactory sessionStoreFactory;
+    private final CasSessionStoreFactory sessionStoreFactory;
 
     public CasTokenRefreshFilter(CasSessionStoreFactory sessionStoreFactory) {
         this.sessionStoreFactory = sessionStoreFactory;
@@ -52,6 +55,14 @@ public class CasTokenRefreshFilter extends ServletFilter {
             return SimpleJwt.getNullObject();
         }
 
+        if (!containsRefreshJwtCookie(headers)) {
+            return SimpleJwt.getNullObject();
+        }
+
+        return JwtProcessor.getJwtTokenFromResponseHeaders(headers);
+    }
+
+    private boolean containsRefreshJwtCookie(Collection<String> headers) {
         String refreshedTokenHeader = null;
         for (String header : headers) {
             if (header.contains(JWT_SESSION_COOKIE)) {
@@ -59,11 +70,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
                 break;
             }
         }
-        if (refreshedTokenHeader == null) {
-            return SimpleJwt.getNullObject();
-        }
-
-        return JwtProcessor.getJwtTokenFromResponseHeaders(headers);
+        return refreshedTokenHeader == null;
     }
 
     boolean isTokenRefreshed(SimpleJwt responseJwt, SimpleJwt requestJwt) {
@@ -75,7 +82,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
 
         boolean equalIds = responseJwt.getJwtId().equals(requestJwt.getJwtId());
         boolean equalJwts = responseJwt.equals(requestJwt);
-        // during the issuing of JWTs thi
+
         return equalIds && !equalJwts;
     }
 

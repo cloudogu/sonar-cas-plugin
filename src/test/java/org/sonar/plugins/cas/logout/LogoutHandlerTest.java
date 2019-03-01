@@ -47,7 +47,7 @@ public class LogoutHandlerTest {
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
-        when(store.getJwtById(JWT_TOKEN)).thenReturn(invalidJwtToken);
+        when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         String jwtCookieDoughContent = getJwtToken();
@@ -65,7 +65,7 @@ public class LogoutHandlerTest {
 
         // then
         verify(store).isJwtStored(JWT_TOKEN);
-        verify(store).getJwtById(JWT_TOKEN);
+        verify(store).fetchStoredJwt(JWT_TOKEN);
         verify(response, times(2)).addCookie(any());
         verify(response).sendRedirect("http://sonar.url.com//sessions/new");
         assertThat(removeCookiesAndRedirectToLogin).isTrue();

@@ -34,7 +34,7 @@ public class ForceCasLoginFilterTest {
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
-        when(store.getJwtById(JWT_TOKEN)).thenReturn(invalidJwtToken);
+        when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         String jwtCookieDoughContent = getJwtToken();
@@ -68,7 +68,7 @@ public class ForceCasLoginFilterTest {
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
-        when(store.getJwtById(JWT_TOKEN)).thenReturn(invalidJwtToken);
+        when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
 
         String jwtCookieDoughContent = getJwtToken();
         Cookie httpOnlyCookie = CookieUtil.createHttpOnlyCookie(JWT_SESSION_COOKIE, jwtCookieDoughContent, 100);

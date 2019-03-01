@@ -20,6 +20,7 @@ import java.io.IOException;
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
 public class AuthenticationFilter extends ServletFilter {
+    static final String SONAR_LOGIN_URL_PATH = "/sessions/new";
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticationFilter.class);
     private final Configuration config;
 
@@ -30,7 +31,7 @@ public class AuthenticationFilter extends ServletFilter {
 
     @Override
     public UrlPattern doGetPattern() {
-        return UrlPattern.create("/sessions/new");
+        return UrlPattern.create(SONAR_LOGIN_URL_PATH);
     }
 
     @Override

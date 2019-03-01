@@ -65,7 +65,7 @@ public final class FileSessionStore implements CasSessionStore {
         return stored;
     }
 
-    public SimpleJwt getJwtById(SimpleJwt jwt) {
+    public SimpleJwt fetchStoredJwt(SimpleJwt jwt) {
         LOG.debug("get token {}", jwt.getJwtId());
 
         SimpleJwt result;
@@ -82,15 +82,15 @@ public final class FileSessionStore implements CasSessionStore {
         return result;
     }
 
-    public String invalidateJwt(String grantingTicketId) {
-        LOG.debug("invalidate token by ticket {}", grantingTicketId);
+    public String invalidateJwt(String serviceTicketId) {
+        LOG.debug("invalidate token by ticket {}", serviceTicketId);
 
         SimpleJwt jwt;
         try {
-            String jwtId = ticketToJwt.get(grantingTicketId);
+            String jwtId = ticketToJwt.get(serviceTicketId);
             jwt = jwtIdToJwt.get(jwtId);
         } catch (IOException e) {
-            LOG.error("Could not invalidate JWT with granting ticket " + grantingTicketId, e);
+            LOG.error("Could not invalidate JWT with granting ticket " + serviceTicketId, e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
         if (jwt == null) {
@@ -106,7 +106,7 @@ public final class FileSessionStore implements CasSessionStore {
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
 
-        LOG.debug("successfully invalidated token {} by ticket {}", jwt.getJwtId(), grantingTicketId);
+        LOG.debug("successfully invalidated token {} by ticket {}", jwt.getJwtId(), serviceTicketId);
 
         return invalidated.getJwtId();
     }

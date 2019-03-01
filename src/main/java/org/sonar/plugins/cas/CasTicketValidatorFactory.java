@@ -8,7 +8,20 @@ import org.sonar.plugins.cas.util.SonarCasProperties;
 import java.util.Locale;
 
 /**
+ * This class provides support for different CAS validation protocols of which these are supported:
  *
+ * <ul>
+ * <li>SAML 1.1</li>
+ * <li>CAS 1</li>
+ * <li>CAS 2</li>
+ * <li>CAS 3, which is also the default protocol.</li>
+ * </ul>
+ *
+ * <p>
+ *     The protocol is configurable by the sonar property <code>sonar.cas.protocol</code>. Furthermore the CAS server
+ *     URL (configurable by setting <code>sonar.cas.casServerUrlPrefix</code> is needed in order to redirect SonarQube's
+ *     validation request .
+ * </p>
  */
 @ServerSide
 public final class CasTicketValidatorFactory implements TicketValidatorFactory {
@@ -50,7 +63,7 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
         // the validator's internal tolerance is already at 1000 millis so the drifting tolerance does not
         // need to be set at any circumstance.
         int tolerance = SonarCasProperties.SAML11_TIME_TOLERANCE.getInteger(configuration, -1);
-        if(tolerance != -1) {
+        if (tolerance != -1) {
             saml11TicketValidator.setTolerance(tolerance);
         }
 
