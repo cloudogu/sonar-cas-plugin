@@ -76,6 +76,8 @@ In terms of the Sonar CAS plugin, there are two ways of logging out from SonarQu
 1. Logout over SonarQube
 1. Single Logout (SLO) 
 
+At a certain point both are similar because in the end the back-channel logout mechanism is used.
+
 #### Logout over SonarQube
 
 1. User logs in into SonarQube (as usual)
@@ -85,6 +87,9 @@ In terms of the Sonar CAS plugin, there are two ways of logging out from SonarQu
 1. CAS receives log out.
 1. CAS sends back-channel logout request to all registered services
 1. CasIdentityProvider receives logout with service ticket
+1. CasIdentityProvider fetches the JWT from the session store
+   - the session store contains a reference from service ticket to JWT ID
+   - with the JWT ID the stored JWT is fetched
 1. CasIdentityProvider invalidates user's JWT
    - invalidated JWT updates the original JWT in the session store
 
@@ -96,6 +101,9 @@ In terms of the Sonar CAS plugin, there are two ways of logging out from SonarQu
 1. CAS receives log out.
 1. CAS sends back-channel logout request to all registered services
 1. CasIdentityProvider receives logout with service ticket
+1. CasIdentityProvider fetches the JWT from the session store
+   - the session store contains a reference from service ticket to JWT ID
+   - with the JWT ID the stored JWT is fetched
 1. CasIdentityProvider invalidates user's JWT
    - invalidated JWT updates the original JWT in the session store
 
