@@ -24,8 +24,7 @@ import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalGroupsProvider;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.*;
-
+import java.util.Collection;
 
 /**
  * The groups provider is the last step in the authentication chain for username and password based CAS authentication.
@@ -38,17 +37,17 @@ import java.util.*;
  */
 class CasGroupsProvider extends ExternalGroupsProvider {
 
-  private final CasAttributeSettings settings;
+    private final CasAttributeSettings settings;
 
-  CasGroupsProvider(CasAttributeSettings settings) {
-    this.settings = settings;
-  }
+    CasGroupsProvider(CasAttributeSettings settings) {
+        this.settings = settings;
+    }
 
-  @Override
-  public Collection<String> doGetGroups(Context context) {
-    Assertion assertion = (Assertion) context.getRequest().getAttribute(Assertion.class.getName());
-    Preconditions.checkState(assertion != null, "could not find assertions in the request");
+    @Override
+    public Collection<String> doGetGroups(Context context) {
+        Assertion assertion = (Assertion) context.getRequest().getAttribute(Assertion.class.getName());
+        Preconditions.checkState(assertion != null, "could not find assertions in the request");
 
-    return settings.getGroups(assertion.getPrincipal().getAttributes());
-  }
+        return settings.getGroups(assertion.getPrincipal().getAttributes());
+    }
 }
