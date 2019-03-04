@@ -96,7 +96,7 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         String casLogoutUrl = getCasLogoutUrl();
         String javaScriptToInject = builder.toString().replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
         response.getOutputStream().println(javaScriptToInject);
-        response.getOutputStream().println("window.onload = logoutHandler;");
+        response.getOutputStream().println("window.onload = logoutMenuHandler;");
         response.getOutputStream().println("</script>");
     }
 

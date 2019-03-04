@@ -1,5 +1,24 @@
+function logoutMenuHandler() {
+    var menuHandlerTimer = setInterval(function () {
+        var elem1 = document.getElementById('global-navigation');
+        if (!elem1) {
+            return;
+        }
+        var elem2 = elem1.getElementsByClassName('js-user-authenticated')[0];
+        if (!elem2) {
+            return;
+        }
+        var elem3 = elem2.getElementsByTagName('a')[0];
+        if (elem3) {
+            elem3.addEventListener('click', logoutHandler);
+
+            clearInterval(menuHandlerTimer);
+        }
+    }, 250);
+}
+
 function logoutHandler() {
-    var timer = setInterval(function () {
+    var logoutHandlerTimer = setInterval(function () {
         var elem1 = document.getElementById('global-navigation');
         if (! elem1) { return; }
         var elem2 = elem1.getElementsByClassName('js-user-authenticated')[0];
@@ -10,10 +29,10 @@ function logoutHandler() {
         if (elem4) {
             elem4.addEventListener('click', function () {
                 window.location.href = 'CASLOGOUTURL';
-                return true;
+                return false;
             });
-            clearInterval(timer);
+            clearInterval(logoutHandlerTimer);
         }
 
-    }, 500);
+    }, 100);
 }
