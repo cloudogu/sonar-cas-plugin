@@ -3,6 +3,7 @@ package org.sonar.plugins.cas.logout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
@@ -22,6 +23,10 @@ import java.io.StringReader;
 
 import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
+/**
+ * This class handles log-out related actions like checking for valid JWT cookies and invalidating JWT during logout.
+ */
+@ServerSide
 public class LogoutHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LogoutHandler.class);
 
@@ -60,6 +65,9 @@ public class LogoutHandler {
     public boolean handleInvalidJwtCookie(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean shouldUserBeLoggedOut = shouldUserBeLoggedOut(request.getCookies());
         boolean requestToLoginPage = isRequestToLoginPage(request);
+        if (requestToLoginPage) {
+            LOG.debug("User is already being redirected to the log-in page. Will do nothing.");
+        }
 
         boolean removeCookiesAndRedirectToLogin = shouldUserBeLoggedOut && !requestToLoginPage;
         if (removeCookiesAndRedirectToLogin) {
@@ -75,7 +83,6 @@ public class LogoutHandler {
     }
 
     private boolean isRequestToLoginPage(HttpServletRequest request) {
-        LOG.debug("User is already being redirected to the log-in page. Will not remove cookies.");
         return request.getRequestURL().toString().contains("/sessions/new");
     }
 

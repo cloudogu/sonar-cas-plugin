@@ -62,10 +62,13 @@ public class ForceCasLoginFilter extends ServletFilter {
 
     private final CasSessionStore casSessionStore;
     private final Configuration configuration;
+    private LogoutHandler logoutHandler;
 
-    public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory) {
+    public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory,
+                               LogoutHandler logoutHandler) {
         this.configuration = configuration;
         this.casSessionStore = sessionStoreFactory.getInstance();
+        this.logoutHandler = logoutHandler;
     }
 
     public void init(FilterConfig filterConfig) {
@@ -81,7 +84,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
-            boolean redirectToLoginPage = new LogoutHandler(configuration, casSessionStore).handleInvalidJwtCookie(request, response);
+            boolean redirectToLoginPage = logoutHandler.handleInvalidJwtCookie(request, response);
 
             if (!redirectToLoginPage) {
                 chain.doFilter(request, servletResponse);

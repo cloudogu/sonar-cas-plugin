@@ -22,6 +22,7 @@ package org.sonar.plugins.cas;
 
 import org.sonar.api.Plugin;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
+import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.session.SessionStoreCleaner;
 
@@ -36,7 +37,6 @@ import java.util.List;
  * <li>{@link CasSecurityRealm} for the username and password authentication</li>
  * </ul>
  * <p>
- * TODO apply values from the configuration, but sonarqube does not allow injection on plugin entrypoints
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
@@ -57,12 +57,15 @@ public final class CasPlugin implements Plugin {
         if (isRealmEnabled()) {
             extensions.add(DevelopmentServerStartHandler.class);
             extensions.add(CasAttributeSettings.class);
+
             extensions.add(CasTicketValidatorFactory.class);
             extensions.add(CasRestClientFactory.class);
             extensions.add(CasSessionStoreFactory.class);
             extensions.add(SessionStoreCleaner.class);
 
 
+            extensions.add(LoginHandler.class);
+            extensions.add(LogoutHandler.class);
             extensions.add(CasIdentityProvider.class);
             extensions.add(CasSecurityRealm.class);
 

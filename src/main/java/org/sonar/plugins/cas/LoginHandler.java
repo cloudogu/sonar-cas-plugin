@@ -9,6 +9,7 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.session.CasSessionStore;
@@ -27,6 +28,10 @@ import java.util.Set;
 
 import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
+/**
+ * This class handles the initial authentication use case.
+ */
+@ServerSide
 class LoginHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LoginHandler.class);
 
@@ -35,7 +40,10 @@ class LoginHandler {
     private final CasSessionStore sessionStore;
     private final TicketValidatorFactory validatorFactory;
 
-    LoginHandler(Configuration configuration,
+    /**
+     * called with injection by SonarQube during server initialization
+     */
+    public LoginHandler(Configuration configuration,
                  CasAttributeSettings attributeSettings,
                  CasSessionStore sessionStore,
                  TicketValidatorFactory ticketValidatorFactory) {
@@ -46,11 +54,15 @@ class LoginHandler {
     }
 
     void handleLogin(BaseIdentityProvider.Context context) throws IOException, TicketValidationException {
+        LOG.debug("Starting to handle login. Trying to validate login with CAS");
+
         String grantingTicket = getServiceTicketParameter(context.getRequest());
         TicketValidator validator = validatorFactory.create();
         Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
 
         UserIdentity userIdentity = createUserIdentity(assertion);
+
+        LOG.debug("Received assertion. Authenticating with user {}", userIdentity.getName());
         context.authenticate(userIdentity);
 
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");

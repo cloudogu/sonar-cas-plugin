@@ -7,6 +7,7 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
+import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 
@@ -70,7 +71,9 @@ public class CasIdentityProviderTest {
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
-        CasIdentityProvider sut = new CasIdentityProvider(config, attributeSettings, sessionStoreFactory, validatorFactory);
+        LoginHandler loginHandler = new LoginHandler(config, attributeSettings, sessionStore, validatorFactory);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStore);
+        CasIdentityProvider sut = new CasIdentityProvider(config, loginHandler, null);
 
         // when
         sut.init(context);
@@ -111,7 +114,8 @@ public class CasIdentityProviderTest {
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
-        CasIdentityProvider sut = new CasIdentityProvider(config, null, sessionStoreFactory, null);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStore);
+        CasIdentityProvider sut = new CasIdentityProvider(config, null, logoutHandler);
 
         // when
         sut.init(context);
@@ -120,5 +124,4 @@ public class CasIdentityProviderTest {
         String expectedRedirUrl = "sonar.url.com/sessions/init/cas";
         verify(response).sendRedirect(expectedRedirUrl);
     }
-
 }

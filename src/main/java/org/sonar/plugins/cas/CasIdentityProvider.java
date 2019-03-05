@@ -9,8 +9,6 @@ import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.Display;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.session.CasSessionStore;
-import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -48,22 +46,17 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
 
-    private final CasAttributeSettings attributes;
-    private final CasSessionStore casSessionStore;
     private final Configuration configuration;
-    private final TicketValidatorFactory validatorFactory;
+    private final LoginHandler loginHandler;
+    private final LogoutHandler logoutHandler;
 
     /**
      * called with injection by SonarQube during server initialization
      */
-    public CasIdentityProvider(Configuration configuration,
-                               CasAttributeSettings attributes,
-                               CasSessionStoreFactory sessionStoreFactory,
-                               TicketValidatorFactory ticketValidatorFactory) {
+    public CasIdentityProvider(Configuration configuration, LoginHandler loginHandler, LogoutHandler logoutHandler) {
         this.configuration = configuration;
-        this.attributes = attributes;
-        this.casSessionStore = sessionStoreFactory.getInstance();
-        this.validatorFactory = ticketValidatorFactory;
+        this.loginHandler = loginHandler;
+        this.logoutHandler = logoutHandler;
     }
 
     @Override
@@ -73,10 +66,10 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
             if (isLogin(request)) {
                 LOG.debug("Found internal login case");
-                new LoginHandler(configuration, attributes, casSessionStore, validatorFactory).handleLogin(context);
+                loginHandler.handleLogin(context);
             } else if (isLogout(request)) {
                 LOG.debug("Found external logout case");
-                new LogoutHandler(configuration, casSessionStore).logout(context.getRequest(), context.getResponse());
+                logoutHandler.logout(context.getRequest(), context.getResponse());
             } else {
                 LOG.debug("CasIdentityProvider found an unexpected case. Ignoring this request to {}", request.getRequestURL());
             }

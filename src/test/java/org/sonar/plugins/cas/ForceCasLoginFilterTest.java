@@ -3,6 +3,7 @@ package org.sonar.plugins.cas;
 import org.junit.Test;
 import org.mockito.verification.VerificationMode;
 import org.sonar.api.config.Configuration;
+import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.CookieUtil;
@@ -29,7 +30,8 @@ public class ForceCasLoginFilterTest {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory.getInstance());
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
@@ -63,7 +65,8 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory.getInstance());
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
