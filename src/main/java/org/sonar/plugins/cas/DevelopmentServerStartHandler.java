@@ -25,7 +25,7 @@ public class DevelopmentServerStartHandler implements ServerStartHandler {
     @Override
     public void onServerStart(Server server) {
         if (isSslSupportDeactivated()) {
-            LOG.error("SSL certificate check is disabled. Please ENABLE SSL disabling on a production machine for " +
+            LOG.warn("SSL certificate check is disabled. Please ENABLE SSL disabling on a production machine for " +
                     "security reasons by configuring the property 'sonar.cas.disableCertValidation'.");
             IgnoreCert.disableSslVerification();
         }
