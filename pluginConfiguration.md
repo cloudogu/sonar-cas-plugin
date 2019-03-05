@@ -51,9 +51,9 @@ Default is false.
 ### Path to CAS Session Store
 
 As SonarQube does not provide a session (other than by issueing JWT tokens). When the user
-logs out, the cookie containing the necessary JWT token is removed. WhatBut SonarQube *DOES
+logs out, the cookie containing the necessary JWT token is removed. Even so, SonarQube *DOES
 NOT* ensure that the JWT token (which is now no-longer valid) is ignored. Instead the JWT
-token is still valid, enabling anyone to use SonarQube. 
+token is still considered valid, enabling the possessor to continue to work with SonarQube. 
   
 The CAS plugin makes sure to blacklist existing tokens when the user logs out. In order to do
 this the tokens must be stored persistently in order to outlive server or container restarts or even container recreations. Administrators may want to mount this as its own volume in order to scale with number of unexpired sessions.
@@ -75,7 +75,7 @@ Default is 30 minutes, 0 disables the cleanup (this SHOULD NOT be done in a prod
 
 `sonar.cas.sessionStore.cleanUpIntervalInSeconds = 1800`
 
-### Configure CAS Attribute(s) 
+### Configure CAS Roles Attribute(s) 
 
 Attributes holding the authorities (groups, roles, etc.) the user belongs to. Multiple
 values should be separated with commas without further whitespace (e.g. 'groups,roles').
@@ -110,3 +110,13 @@ The tolerance in milliseconds for drifting clocks when validating SAML 1.1 ticke
 This is only for development environments where a proper certificate chain is unfeasible. 
 
 `sonar.cas.disableCertValidation=false`
+
+### Cookie age that contains a redirect URL
+
+When logged out, the user may call any SonarQube URL and is then redirected to the CAS. CAS itself is unable to retain
+any further information and redirects only to a fix SonarQube URL. The original URL, as called from the user, is saved
+in a cookie. After a successful login the system redirects to that URL.
+
+This setting controls how long (in seconds) the cookie may be valid until it is discarded.
+
+`sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds=300`

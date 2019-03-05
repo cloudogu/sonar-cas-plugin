@@ -18,17 +18,21 @@ authenticating system, namely the CAS.
 
 ## Use cases within the authentication lifecycle
 
-lorem ipsum
+Authentication is a fickle thing, even without having an external authentication system. This plug-in focuses on these
+use cases:
 
-1. Login
+1. Local Log-in and Single Sign-on (SSO)
 1. Usual resource request
 1. JWT refresh
-1. Logout
+1. Local Log-out and Single Log-out (SLO)
    1. Logout over SonarQube
-   1. Single Logout (SLO)
+   1. Single Log-out
 1. Clean-up
 
-### Login
+### Local Log-in and Single Sign-on (SSO)
+
+Due to the nature of CAS a signing in on the CAS is easy as 1-2-3. This includes SSO with services registered with
+CAS.
 
 1. User wants to get resource
    - enters URL in Browser: https://sonar.server.com/
@@ -50,6 +54,8 @@ lorem ipsum
 
 ### Usual resource request
 
+Once the user is signed-in every request must be checked with the blacklist.
+
 1. User wants to get resource
    - Browser contains valid and unexpired JWT cookie
 1. ForceCasLoginFilter asks session store if JWT is expired
@@ -58,6 +64,9 @@ lorem ipsum
    - JWT cookie is still the same
 
 ### JWT refresh
+
+Every now and then SonarQube issues an updated JWT in order to ensure that a signed-in user may continue her work.
+This JWT contains updated expiration information which needs to go in the JWT session store as well. 
 
 1. User wants to get resource
    - Browser contains valid and unexpired JWT cookie
