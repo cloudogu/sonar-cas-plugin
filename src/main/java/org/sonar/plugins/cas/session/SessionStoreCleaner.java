@@ -10,13 +10,13 @@ import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.TimeUnit;
 
 @ServerSide
 public final class SessionStoreCleaner implements ServerStartHandler {
     private static final Logger LOG = LoggerFactory.getLogger(SessionStoreCleaner.class);
-    private static final int SESSION_STORE_CLEANUP_INTERVAL_IN_SECS_DEFAULT = 60 * 30;
+    private static final int SESSION_STORE_CLEANUP_INTERVAL_IN_SECS_DEFAULT = (int) TimeUnit.MINUTES.toSeconds(30);
     private static final int SESSION_STORE_CLEANUP_DISABLED = 0;
-    private static final int MILLIS = 1000;
 
     private final CasSessionStoreFactory sessionStoreFactory;
     private final int cleanUpIntervalInSeconds;
@@ -25,7 +25,6 @@ public final class SessionStoreCleaner implements ServerStartHandler {
     /**
      * called with injection by SonarQube during server initialization
      */
-    @SuppressWarnings("unused")
     public SessionStoreCleaner(Configuration configuration, CasSessionStoreFactory sessionStoreFactory) {
         this.sessionStoreFactory = sessionStoreFactory;
         this.cleanUpIntervalInSeconds = SonarCasProperties.SESSION_STORE_CLEANUP_INTERVAL_IN_SECS
@@ -53,7 +52,8 @@ public final class SessionStoreCleaner implements ServerStartHandler {
     private void runTask(TimerTask task) {
         // The CAS session store is persistent. This means there _may be_ clean-up work to tend to after a server start
         long firstOccurrenceImmediate = 0;
-        timer.scheduleAtFixedRate(task, firstOccurrenceImmediate, cleanUpIntervalInSeconds * MILLIS);
+        long intervalInMillis = TimeUnit.SECONDS.toMillis(cleanUpIntervalInSeconds);
+        timer.scheduleAtFixedRate(task, firstOccurrenceImmediate, intervalInMillis);
     }
 
     private boolean isCleanUpDisabled() {
