@@ -2,10 +2,9 @@ package org.sonar.plugins.cas.session;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.plugins.cas.util.JwtFileUtil;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
-import javax.xml.bind.JAXB;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -178,10 +177,10 @@ class SessionFileRemover {
         List<SimpleJwt> list = new ArrayList<>(foundFiles.size());
 
         for (Path file : foundFiles) {
-            try (BufferedReader reader = Files.newBufferedReader(file, StandardCharsets.US_ASCII)) {
-                SimpleJwt jwt = JAXB.unmarshal(reader, SimpleJwt.class);
+            try {
+                SimpleJwt jwt = new JwtFileUtil().unmarshal(file);
                 list.add(jwt);
-            } catch (IOException e) {
+            } catch(Exception e) {
                 LOG.error("Could not parse JWT file.", e);
             }
         }

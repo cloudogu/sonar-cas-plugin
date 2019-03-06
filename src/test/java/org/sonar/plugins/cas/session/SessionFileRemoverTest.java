@@ -272,6 +272,28 @@ public class SessionFileRemoverTest {
         assertThat(actualFiles).containsOnly(expected1, expected2, expected3);
     }
 
+    @Test
+    public void readingExceptionShouldNotThrowException() throws IOException {
+        long timeHasNoMatter = Instant.now().getEpochSecond();
+        String jwtFile1 = "AWkLDwrSoTPaa1Du9LQ1";
+        String jwtFile2 = "AWkLDwrSoTPaa1Du9LQ2";
+        String jwtFile3 = "AWkLDwrSoTPaa1Du9LQ3";
+        Collection<Path> existingFiles = createJwtFiles(timeHasNoMatter, jwtFile1, jwtFile2, jwtFile3);
+        Path bogusFile = sessionStore.resolve("AWkLDwrSoTPaa1Du9LQ4");
+        byte[] bogusInput = "<banana><potassium value=\"9001\" /></banana>".getBytes();
+        Files.write(bogusFile, bogusInput);
+        ArrayList<Path> filesList = new ArrayList<>();
+        filesList.add(bogusFile); // first file produces an exception
+        filesList.addAll(existingFiles);
+
+        // when
+        List<SimpleJwt> actualJwts = sut.parseJwtFiles(filesList);
+
+        // then no exception and correct data
+        List<SimpleJwt> expected = createJwts(timeHasNoMatter, jwtFile1, jwtFile2, jwtFile3);
+        assertThat(actualJwts.toArray()).containsOnly(expected.toArray());
+    }
+
     // utility methods
 
     private long countExistingFiles() {
@@ -282,15 +304,20 @@ public class SessionFileRemoverTest {
         }
     }
 
-    private void createJwtFiles(long expirationDate, String... jwtIds) {
+    private Collection<Path> createJwtFiles(long expirationDate, String... jwtIds) {
+        Collection<Path> createdJwtPaths = new ArrayList<>();
+
         try {
             for (String id : jwtIds) {
                 JwtTokenFileHandler fileHandler = new JwtTokenFileHandler(sessionStore.toString());
                 fileHandler.store(id, SimpleJwt.fromIdAndExpiration(id, expirationDate));
+
+                createdJwtPaths.add(sessionStore.resolve(id));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return createdJwtPaths;
     }
 
     private List<SimpleJwt> createJwts(long expirationDate, String... jwtIds) {
