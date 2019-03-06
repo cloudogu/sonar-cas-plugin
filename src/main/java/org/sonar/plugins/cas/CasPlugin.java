@@ -54,32 +54,25 @@ public final class CasPlugin implements Plugin {
     List<Object> collectExtensions() {
         List<Object> extensions = new ArrayList<>();
 
-        if (isRealmEnabled()) {
-            extensions.add(DevelopmentServerStartHandler.class);
-            extensions.add(CasAttributeSettings.class);
+        extensions.add(DevelopmentServerStartHandler.class);
+        extensions.add(CasAttributeSettings.class);
 
-            extensions.add(CasTicketValidatorFactory.class);
-            extensions.add(CasRestClientFactory.class);
-            extensions.add(CasSessionStoreFactory.class);
-            extensions.add(SessionStoreCleaner.class);
+        extensions.add(CasTicketValidatorFactory.class);
+        extensions.add(CasRestClientFactory.class);
+        extensions.add(CasSessionStoreFactory.class);
+        extensions.add(SessionStoreCleaner.class);
 
+        extensions.add(LoginHandler.class);
+        extensions.add(LogoutHandler.class);
+        extensions.add(CasIdentityProvider.class);
+        extensions.add(CasSecurityRealm.class);
 
-            extensions.add(LoginHandler.class);
-            extensions.add(LogoutHandler.class);
-            extensions.add(CasIdentityProvider.class);
-            extensions.add(CasSecurityRealm.class);
+        extensions.add(ForceCasLoginFilter.class);
+        extensions.add(AuthenticationFilter.class);
+        extensions.add(CasTokenRefreshFilter.class);
 
-            extensions.add(ForceCasLoginFilter.class);
-            extensions.add(AuthenticationFilter.class);
-            extensions.add(CasTokenRefreshFilter.class);
-
-            extensions.add(CasSonarSignOutInjectorFilter.class);
-        }
+        extensions.add(CasSonarSignOutInjectorFilter.class);
 
         return extensions;
-    }
-
-    private boolean isRealmEnabled() {
-        return true;
     }
 }
