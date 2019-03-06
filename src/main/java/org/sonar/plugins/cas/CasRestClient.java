@@ -21,8 +21,6 @@ package org.sonar.plugins.cas;
 
 import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
-import com.google.common.io.CharStreams;
-import com.google.common.io.Closeables;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
@@ -60,41 +58,21 @@ public class CasRestClient {
      * @throws CasAuthenticationException if any service call or connection fails this exception is thrown
      */
     public String createServiceTicket(final String username, final String password) throws CasAuthenticationException {
-        String st;
+        String tgt = createGrantingTicket(casServerUrl, username, password);
 
-        try {
-            String tgt = createGrantingTicket(casServerUrl, username, password);
+        LOG.debug("TGT is: {}", tgt);
 
-            LOG.debug("TGT is : {}", tgt);
+        String st = createServiceTicket(tgt);
 
-            st = createServiceTicket(tgt);
-
-            LOG.debug("ST is : {}", st);
-        } catch (IOException ex) {
-            throw new CasAuthenticationException("cas validation failed", ex);
-        }
+        LOG.debug("ST is: {}", st);
 
         return st;
-    }
-
-    private void appendCredentials(HttpURLConnection connection, String username,
-                                   String password)
-            throws IOException, CasAuthenticationException {
-        StringBuilder buffer = new StringBuilder();
-
-        buffer.append("username=").append(encode(username));
-        buffer.append("&password=").append(encode(password));
-
-        try (BufferedWriter bwr = createWriter(connection)) {
-            bwr.write(buffer.toString());
-            bwr.flush();
-        }
     }
 
     private void appendServiceUrl(HttpURLConnection connection) throws IOException, CasAuthenticationException {
         String encodedServiceURL = "service=".concat(encode(serviceUrl));
 
-        LOG.debug("Service url is : {}", encodedServiceURL);
+        LOG.debug("Service url is: {}", encodedServiceURL);
 
         try (BufferedWriter writer = createWriter(connection)) {
             writer.write(encodedServiceURL);
@@ -102,19 +80,22 @@ public class CasRestClient {
         }
     }
 
-    private void close(HttpURLConnection c) {
+    private void safelyClose(HttpURLConnection c) {
         if (c != null) {
             c.disconnect();
         }
     }
 
-    private String createGrantingTicket(String casServerUrl, String username, String password)
-            throws IOException, CasAuthenticationException {
+    String createGrantingTicket(String casServerUrl, String username, String password)
+            throws CasAuthenticationException {
         HttpURLConnection connection = null;
 
         try {
             connection = open(casServerUrl + "/v1/tickets");
-            appendCredentials(connection, username, password);
+
+            String encodedUsername = encode(username);
+            String encodedPassword = encode(password);
+            appendCredentials(connection, encodedUsername, encodedPassword);
 
             int rc = connection.getResponseCode();
 
@@ -131,19 +112,30 @@ public class CasRestClient {
             }
 
             return extractTgtFromLocation(location);
+        } catch (Exception e) {
+            throw new CasAuthenticationException("Could not create Granting Ticket.", e);
         } finally {
-            close(connection);
+            safelyClose(connection);
         }
     }
 
-    private BufferedReader createReader(HttpURLConnection connection)
+    void appendCredentials(HttpURLConnection connection, String encodedUsername, String encodedPassword)
             throws IOException {
-        return new BufferedReader(
-                new InputStreamReader(connection.getInputStream(), Charsets.UTF_8)
-        );
+        String encodedCredentials = "username=".concat(encodedUsername).concat("&password=").concat(encodedPassword);
+
+        try (BufferedWriter bwr = createWriter(connection)) {
+            bwr.write(encodedCredentials);
+            bwr.flush();
+        }
     }
 
-    private String createServiceTicket(String tgt) throws IOException, CasAuthenticationException {
+    private BufferedReader createReader(HttpURLConnection connection) throws IOException {
+        InputStream stream = connection.getInputStream();
+        InputStreamReader in = new InputStreamReader(stream, Charsets.UTF_8);
+        return new BufferedReader(in);
+    }
+
+    String createServiceTicket(String tgt) throws CasAuthenticationException {
         String st;
         HttpURLConnection connection = null;
 
@@ -154,28 +146,29 @@ public class CasRestClient {
             int rc = connection.getResponseCode();
 
             if (rc != HttpServletResponse.SC_OK) {
-                throw new CasAuthenticationException(
-                        "could not create service ticket, web service returned " + rc);
+                throw new CasAuthenticationException("could not create service ticket, web service returned " + rc);
             }
 
             String content;
-            BufferedReader reader = null;
-            try {
-                reader = createReader(connection);
-                content = CharStreams.toString(reader);
-            } finally {
-                Closeables.closeQuietly(reader);
+            StringBuilder contentBuilder = new StringBuilder();
+            char[] readBuffer = new char[256];
+
+            try (BufferedReader reader = createReader(connection)) {
+                while (reader.read(readBuffer) != -1) {
+                    contentBuilder.append(readBuffer);
+                }
+                content = contentBuilder.toString().trim();
             }
 
             if (Strings.isNullOrEmpty(content)) {
-                throw new CasAuthenticationException(
-                        "could not create service ticket, body is empty");
+                throw new CasAuthenticationException("could not create service ticket, body is empty");
             }
 
-            st = content.trim();
-
+            st = content;
+        } catch (Exception e) {
+            throw new CasAuthenticationException("Could not create Service Ticket.", e);
         } finally {
-            close(connection);
+            safelyClose(connection);
         }
 
         return st;
@@ -185,18 +178,17 @@ public class CasRestClient {
         return casServerUrl + "/v1/tickets/" + tgt;
     }
 
-    private BufferedWriter createWriter(HttpURLConnection connection)
-            throws IOException {
-        return new BufferedWriter(
-                new OutputStreamWriter(connection.getOutputStream(), Charsets.UTF_8)
-        );
+    private BufferedWriter createWriter(HttpURLConnection connection) throws IOException {
+        OutputStream stream = connection.getOutputStream();
+        OutputStreamWriter out = new OutputStreamWriter(stream, Charsets.UTF_8);
+        return new BufferedWriter(out);
     }
 
     private String encode(String value) throws CasAuthenticationException {
         try {
             return URLEncoder.encode(value, "UTF-8");
         } catch (UnsupportedEncodingException ex) {
-            throw new CasAuthenticationException("failure durring encoding", ex);
+            throw new CasAuthenticationException("failure during encoding", ex);
         }
     }
 
@@ -211,9 +203,8 @@ public class CasRestClient {
         return location.substring(index + 1);
     }
 
-    private HttpURLConnection open(final String url) throws IOException {
-        HttpURLConnection connection =
-                (HttpURLConnection) new URL(url).openConnection();
+    HttpURLConnection open(final String url) throws IOException {
+        HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection();
 
         connection.setRequestMethod("POST");
         connection.setDoInput(true);

@@ -1,21 +1,16 @@
 package org.sonar.plugins.cas.session;
 
 import org.apache.commons.lang.StringUtils;
+import org.sonar.plugins.cas.util.JwtFileUtil;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
-import javax.xml.bind.JAXB;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 class JwtTokenFileHandler {
-    private static final Charset CONTENT_CHARSET = StandardCharsets.US_ASCII;
+
     private String sessionStorePath;
 
     JwtTokenFileHandler(String sessionStorePath) {
@@ -23,15 +18,13 @@ class JwtTokenFileHandler {
     }
 
     boolean isJwtStored(String jwtId) {
-        String jwtFile = sessionStorePath + File.separator + jwtId;
-        return Files.exists(Paths.get(jwtFile));
+        Path path = Paths.get(sessionStorePath, jwtId);
+        return Files.exists(path);
     }
 
-    public SimpleJwt get(String jwtId) throws IOException {
-        Path filePath = Paths.get(sessionStorePath + File.separator + jwtId);
-        try (BufferedReader reader = Files.newBufferedReader(filePath, CONTENT_CHARSET)) {
-            return JAXB.unmarshal(reader, SimpleJwt.class);
-        }
+    public SimpleJwt get(String jwtId) {
+        Path filePath = Paths.get(sessionStorePath, jwtId);
+        return new JwtFileUtil().unmarshal(filePath);
     }
 
     void store(String jwtId, SimpleJwt jwt) throws IOException {
@@ -42,13 +35,9 @@ class JwtTokenFileHandler {
             throw new IllegalArgumentException("Could not store JWT: jwt must not be null");
         }
 
-        String jwtFile = sessionStorePath + File.separator + jwtId;
-        Path path = Files.createFile(Paths.get(jwtFile));
+        Path path = Paths.get(sessionStorePath, jwtId);
 
-        try (BufferedWriter writer = Files.newBufferedWriter(path, CONTENT_CHARSET)) {
-            JAXB.marshal(jwt, writer);
-            writer.flush();
-        }
+        new JwtFileUtil().marshalIntoNewFile(path, jwt);
     }
 
     void replace(String jwtId, SimpleJwt invalidated) throws IOException {
@@ -59,9 +48,8 @@ class JwtTokenFileHandler {
             throw new IllegalArgumentException("Could not replace JWT: jwt must not be null");
         }
 
-        String jwtFile = sessionStorePath + File.separator + jwtId;
-
-        Files.delete(Paths.get(jwtFile));
+        Path path = Paths.get(sessionStorePath, jwtId);
+        Files.delete(path);
 
         store(jwtId, invalidated);
     }

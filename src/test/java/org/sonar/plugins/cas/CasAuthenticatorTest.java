@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 public class CasAuthenticatorTest {
     @Test
-    public void should_authenticate() throws TicketValidationException {
+    public void userShouldAuthenticate() throws TicketValidationException {
         Configuration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerUrlPrefix", "https://cas.server.com")
                 .withAttribute("sonar.cas.sonarServerUrl", "https://sonar.server.com");
@@ -56,7 +56,7 @@ public class CasAuthenticatorTest {
         TicketValidatorFactory ticketValidatorFactory = mock(TicketValidatorFactory.class);
         when(ticketValidatorFactory.create()).thenReturn(validator);
 
-        CasRestClientFactory casRestClientFactory = new CasRestClientFactory(configuration, new TestCasRestClient());
+        CasRestClientFactory casRestClientFactory = new CasRestClientFactory(configuration, new EasyTicketTestCasRestClient());
 
         CasAuthenticator authenticator = new CasAuthenticator(configuration, attributes, ticketValidatorFactory,
                 casRestClientFactory);
@@ -67,19 +67,8 @@ public class CasAuthenticatorTest {
         assertThat(actual).isTrue();
     }
 
-    private class TestCasRestClient extends CasRestClient {
-        TestCasRestClient() {
-            super("https://sonar.server.com", "https://cas.server.com");
-        }
-
-        @Override
-        public String createServiceTicket(String username, String password) {
-            return "ST-1234";
-        }
-    }
-
     @Test
-    public void user_should_not_be_authenticated() {
+    public void userShouldNotBeAuthenticated() {
         Configuration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerUrlPrefix", "https://cas.server.com")
                 .withAttribute("sonar.cas.sonarServerUrl", "https://sonar.server.com");
@@ -88,7 +77,7 @@ public class CasAuthenticatorTest {
         TicketValidatorFactory ticketValidatorFactory = mock(TicketValidatorFactory.class);
         when(ticketValidatorFactory.create()).thenReturn(validator);
 
-        CasRestClientFactory clientFactory = new CasRestClientFactory(configuration, new TestCasRestClient());
+        CasRestClientFactory clientFactory = new CasRestClientFactory(configuration, new EasyTicketTestCasRestClient());
         CasAuthenticator authenticator = new CasAuthenticator(configuration, null, ticketValidatorFactory, clientFactory);
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
@@ -100,5 +89,16 @@ public class CasAuthenticatorTest {
 
         // then
         assertThat(actual).isFalse();
+    }
+
+    static class EasyTicketTestCasRestClient extends CasRestClient {
+        EasyTicketTestCasRestClient() {
+            super("https://sonar.server.com", "https://cas.server.com");
+        }
+
+        @Override
+        public String createServiceTicket(String username, String password) {
+            return "ST-1234";
+        }
     }
 }

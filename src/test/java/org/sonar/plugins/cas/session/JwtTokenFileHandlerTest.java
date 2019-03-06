@@ -55,7 +55,7 @@ public class JwtTokenFileHandlerTest {
         SimpleJwt jwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
 
         sut.store(jwtId, jwt);
-        boolean actuallyStored = Files.exists(Paths.get(sessionStore + File.separator + jwtId));
+        boolean actuallyStored = Files.exists(sessionStore.resolve(jwtId));
 
         assertThat(actuallyStored).isTrue();
     }
@@ -77,8 +77,8 @@ public class JwtTokenFileHandlerTest {
         // for further tests see equals tests in SimpleJwtTest
     }
 
-    @Test(expected = IOException.class)
-    public void getShouldThrowException() throws IOException {
+    @Test(expected = RuntimeException.class)
+    public void getShouldThrowException() {
         sut.get("banana");
     }
 

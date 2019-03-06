@@ -71,7 +71,7 @@ public final class FileSessionStore implements CasSessionStore {
         SimpleJwt result;
         try {
             result = jwtIdToJwt.get(jwt.getJwtId());
-        } catch (IOException e) {
+        } catch (Exception e) {
             LOG.error("Could not return JWT file " + jwt.getJwtId(), e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
