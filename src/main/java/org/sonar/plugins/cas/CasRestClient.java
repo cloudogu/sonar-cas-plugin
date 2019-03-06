@@ -37,7 +37,7 @@ import java.net.URLEncoder;
  * Client for the CAS REST API.
  *
  * @author Sebastian Sdorra, TRIOLOGY GmbH
- * @see <a href="https://wiki.jasig.org/display/casum/restful+api">CAS RESTful API</a>
+ * @see <a href="https://apereo.github.io/cas/6.0.x/protocol/REST-Protocol.html">CAS RESTful API</a>
  */
 public class CasRestClient {
 
@@ -54,10 +54,10 @@ public class CasRestClient {
     /**
      * Creates a service ticket for the given username and password.
      *
-     * @param username username
-     * @param password password
-     * @return service ticket
-     * @throws CasAuthenticationException
+     * @param username username the username provided by the basic authentication
+     * @param password password the password provided by the basic authentication
+     * @return the service ticket identifier
+     * @throws CasAuthenticationException if any service call or connection fails this exception is thrown
      */
     public String createServiceTicket(final String username, final String password) throws CasAuthenticationException {
         String st;

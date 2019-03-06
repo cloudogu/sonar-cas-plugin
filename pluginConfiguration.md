@@ -8,6 +8,8 @@ These properties are configured within the typical `sonar.properties` file.
 
 ### Allow Users to sign up
 
+Allow yet unknown users to authenticate. When set to `false`, only existing users will be able to authenticate.
+
 `sonar.authenticator.createUsers=true`
 
 ### force CAS authentication (no anonymous access allowed)
