@@ -1,7 +1,7 @@
 package org.sonar.plugins.cas.session;
 
 import org.apache.commons.lang.StringUtils;
-import org.sonar.plugins.cas.util.JwtFileUtil;
+import org.sonar.plugins.cas.util.JwtFiles;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import java.io.IOException;
@@ -27,7 +27,7 @@ class SessionFileHandler {
 
     SimpleJwt readJwtFile(String jwtId) {
         Path filePath = Paths.get(sessionStorePath, jwtId);
-        return new JwtFileUtil().unmarshal(filePath);
+        return JwtFiles.unmarshal(filePath);
     }
 
     void writeJwtFile(String jwtId, SimpleJwt jwt) {
@@ -40,7 +40,7 @@ class SessionFileHandler {
 
         Path path = Paths.get(sessionStorePath, jwtId);
 
-        new JwtFileUtil().marshalIntoNewFile(path, jwt);
+        JwtFiles.marshalIntoNewFile(path, jwt);
     }
 
     void replaceJwtFile(String jwtId, SimpleJwt invalidated) throws IOException {

@@ -11,15 +11,13 @@ import java.nio.file.Path;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class JwtFileUtilTest {
+public class JwtFilesTest {
 
-    private JwtFileUtil sut;
     private Path sessionStore;
 
     @Before
     public void setUp() throws Exception {
         sessionStore = Files.createTempDirectory("sessionStore");
-        sut = new JwtFileUtil();
     }
 
     @After
@@ -31,11 +29,11 @@ public class JwtFileUtilTest {
     public void unmarshalReturnsParsedFile() {
         SimpleJwt jwt = SimpleJwt.fromIdAndExpiration("1234", 1L);
         Path newFile = sessionStore.resolve("1234");
-        new JwtFileUtil().marshalIntoNewFile(newFile, jwt);
+        JwtFiles.marshalIntoNewFile(newFile, jwt);
         Path file = sessionStore.resolve("1234");
 
         // when
-        SimpleJwt actual = sut.unmarshal(file);
+        SimpleJwt actual = JwtFiles.unmarshal(file);
 
         // then
         assertThat(actual).isEqualTo(jwt);
@@ -47,7 +45,7 @@ public class JwtFileUtilTest {
         byte[] bogusInput = "<banana><potassium value=\"9001\" /></banana>".getBytes();
         Files.write(bogusFile, bogusInput);
 
-        sut.unmarshal(bogusFile);
+        JwtFiles.unmarshal(bogusFile);
     }
 
     @Test
@@ -55,7 +53,7 @@ public class JwtFileUtilTest {
         SimpleJwt jwt = SimpleJwt.fromIdAndExpiration("1234", 1L);
         Path newFile = sessionStore.resolve("1234");
 
-        new JwtFileUtil().marshalIntoNewFile(newFile, jwt);
+        JwtFiles.marshalIntoNewFile(newFile, jwt);
 
         Path expectedFile = sessionStore.resolve("1234");
         boolean exists = Files.exists(expectedFile);

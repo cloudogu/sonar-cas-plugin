@@ -9,8 +9,11 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public final class JwtFileUtil {
+public final class JwtFiles {
     private static final Charset CONTENT_CHARSET = StandardCharsets.US_ASCII;
+
+    private JwtFiles() {
+    }
 
     /**
      * Reads a file from <code>filePath</code> and returns a SimpleJwt for it.
@@ -21,7 +24,7 @@ public final class JwtFileUtil {
      * @throws JwtFileConversionException Throws an exception if the file cannot be parsed as the desired type or when
      *                                    there happens errors during I/O.
      */
-    public SimpleJwt unmarshal(Path filePath) {
+    public static SimpleJwt unmarshal(Path filePath) {
         if (filePath == null) {
             throw new IllegalArgumentException("FilePath must not be null.");
         }
@@ -50,7 +53,7 @@ public final class JwtFileUtil {
      * @throws JwtFileConversionException Throws an exception if the object cannot be parsed into the desired type or
      *                                    when there happens errors during I/O.
      */
-    public void marshalIntoNewFile(Path filePath, SimpleJwt jwt) {
+    public static void marshalIntoNewFile(Path filePath, SimpleJwt jwt) {
         if (filePath == null) {
             throw new IllegalArgumentException("FilePath must not be null.");
         }
@@ -67,12 +70,12 @@ public final class JwtFileUtil {
         }
     }
 
-    private BufferedWriter createWriterForNewFile(Path pathToNewFile) throws IOException {
+    private static BufferedWriter createWriterForNewFile(Path pathToNewFile) throws IOException {
         Path newFile = Files.createFile(pathToNewFile);
         return Files.newBufferedWriter(newFile, CONTENT_CHARSET);
     }
 
-    private class JwtFileConversionException extends RuntimeException {
+    private static class JwtFileConversionException extends RuntimeException {
         JwtFileConversionException(String msg, Exception e) {
             super(msg, e);
         }
