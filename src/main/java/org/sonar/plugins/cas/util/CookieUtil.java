@@ -5,6 +5,7 @@ import org.apache.commons.lang.StringUtils;
 import javax.servlet.http.Cookie;
 
 public final class CookieUtil {
+    public static final String JWT_SESSION_COOKIE = "JWT-SESSION";
 
     /**
      * Creates a http-only cookie (that is, cookies not to be read by scripts) with a name, a value, and an expiration

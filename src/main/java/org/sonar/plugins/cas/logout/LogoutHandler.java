@@ -2,10 +2,14 @@ package org.sonar.plugins.cas.logout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
+import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
+import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -18,20 +22,32 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.io.StringReader;
 
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+
+/**
+ * This class handles log-out related actions like checking for valid JWT cookies and invalidating JWT during logout.
+ */
+@ServerSide
 public class LogoutHandler {
-    public static final String JWT_SESSION_COOKIE = "JWT-SESSION";
     private static final Logger LOG = LoggerFactory.getLogger(LogoutHandler.class);
+
+    private final Configuration configuration;
     private final CasSessionStore casSessionStore;
 
-    public LogoutHandler(CasSessionStore casSessionStore) {
-        this.casSessionStore = casSessionStore;
+    public LogoutHandler(Configuration configuration, CasSessionStoreFactory casSessionStoreFactory) {
+        this.configuration = configuration;
+        this.casSessionStore = casSessionStoreFactory.getInstance();
     }
 
-    public void logout(String logoutRequestRaw) {
-        LogoutRequest logoutRequest = JAXB.unmarshal(new StringReader(logoutRequestRaw), LogoutRequest.class);
+    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String logoutAttributes = request.getParameter("logoutRequest");
+
+        LogoutRequest logoutRequest = JAXB.unmarshal(new StringReader(logoutAttributes), LogoutRequest.class);
         String jwtId = casSessionStore.invalidateJwt(logoutRequest.sessionId);
 
         LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, logoutRequest.sessionId);
+
+        response.sendRedirect(getSonarServiceUrl());
     }
 
     /**
@@ -50,6 +66,9 @@ public class LogoutHandler {
     public boolean handleInvalidJwtCookie(HttpServletRequest request, HttpServletResponse response) throws IOException {
         boolean shouldUserBeLoggedOut = shouldUserBeLoggedOut(request.getCookies());
         boolean requestToLoginPage = isRequestToLoginPage(request);
+        if (requestToLoginPage) {
+            LOG.debug("User is already being redirected to the log-in page. Will do nothing.");
+        }
 
         boolean removeCookiesAndRedirectToLogin = shouldUserBeLoggedOut && !requestToLoginPage;
         if (removeCookiesAndRedirectToLogin) {
@@ -65,7 +84,6 @@ public class LogoutHandler {
     }
 
     private boolean isRequestToLoginPage(HttpServletRequest request) {
-        LOG.debug("User is already being redirected to the log-in page. Will not remove cookies.");
         return request.getRequestURL().toString().contains("/sessions/new");
     }
 
@@ -87,7 +105,7 @@ public class LogoutHandler {
             return false;
         }
 
-        SimpleJwt storedJwt = casSessionStore.getJwtById(jwt);
+        SimpleJwt storedJwt = casSessionStore.fetchStoredJwt(jwt);
         LOG.debug("Is the found JWT token {} invalid? {}", jwt.getJwtId(), storedJwt.isInvalid());
 
         return storedJwt.isInvalid();
@@ -99,6 +117,11 @@ public class LogoutHandler {
 
         Cookie xsrfCookie = CookieUtil.createDeletionCookie("XSRF-TOKEN");
         response.addCookie(xsrfCookie);
+    }
+
+    private String getSonarServiceUrl() {
+        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
+        return sonarUrl + "/sessions/init/cas"; // cas corresponds to the value from getKey()
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {

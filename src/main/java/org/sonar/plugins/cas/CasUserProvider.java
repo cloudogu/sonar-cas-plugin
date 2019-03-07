@@ -28,9 +28,9 @@ import org.sonar.api.security.UserDetails;
  * This provider returns only an empty user object, because of the realm authentication order of sonar:
  *
  * <ol>
- *  <li>{@link ExternalUsersProvider#doGetUserDetails}</li>
- *  <li>{@link org.sonar.api.security.Authenticator#doAuthenticate(Authenticator.Context)}}</li>
- *  <li>{@link org.sonar.api.security.ExternalGroupsProvider#doGetGroups(ExternalGroupsProvider.Context)}</li>
+ * <li>{@link ExternalUsersProvider#doGetUserDetails}</li>
+ * <li>{@link org.sonar.api.security.Authenticator#doAuthenticate(Authenticator.Context)}}</li>
+ * <li>{@link org.sonar.api.security.ExternalGroupsProvider#doGetGroups(ExternalGroupsProvider.Context)}</li>
  * </ol>
  *
  * <p>We are not able to authenticate the user in the {@link ExternalUsersProvider}, because of the missing password for
@@ -44,11 +44,11 @@ import org.sonar.api.security.UserDetails;
  */
 public class CasUserProvider extends ExternalUsersProvider {
 
-  @Override
-  public UserDetails doGetUserDetails(final Context context) {
-    // add empty UserDetails object to request, the UserDetails are filled by the CasAuthenticator
-    UserDetails user = new UserDetails();
-    context.getRequest().setAttribute(UserDetails.class.getName(), user);
-    return user;
-  }
+    @Override
+    public UserDetails doGetUserDetails(final Context context) {
+        // add empty UserDetails object to request, the UserDetails are filled by the CasAuthenticator
+        UserDetails user = new UserDetails();
+        context.getRequest().setAttribute(UserDetails.class.getName(), user);
+        return user;
+    }
 }

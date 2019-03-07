@@ -1,8 +1,6 @@
 package org.sonar.plugins.cas.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
@@ -12,11 +10,9 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.sonar.plugins.cas.logout.LogoutHandler.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
 public class JwtProcessor {
-    private static final Logger LOG = LoggerFactory.getLogger(JwtProcessor.class);
-
     private static final String JWT_ID = "jti";
     private static final String JWT_EXPIRATION_DATE = "exp";
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
@@ -41,7 +37,7 @@ public class JwtProcessor {
 
     public static SimpleJwt getJwtTokenFromResponseHeaders(Collection<String> headers) {
         String rawToken = filterJwtCookie(headers);
-        if(rawToken.isEmpty()) {
+        if (rawToken.isEmpty()) {
             return SimpleJwt.getNullObject();
         }
         String token = removeHeader(rawToken);
@@ -52,8 +48,8 @@ public class JwtProcessor {
 
     static String filterJwtCookie(Collection<String> headers) {
         return headers.stream()
-                    .filter(header -> header.startsWith(JWT_SESSION_COOKIE + "="))
-                    .collect(Collectors.joining());
+                .filter(header -> header.startsWith(JWT_SESSION_COOKIE + "="))
+                .collect(Collectors.joining());
     }
 
     private static String removeHeader(String rawToken) {
@@ -66,7 +62,7 @@ public class JwtProcessor {
      * @param jwt the full base64 encoded JWT
      * @return the JWT's payload as JSON string.
      */
-    static String decodeJwtPayload(String jwt) {
+    private static String decodeJwtPayload(String jwt) {
         String jwtPartDelimiter = ".";
         int payloadStart = jwt.indexOf(jwtPartDelimiter) + 1;
         int payloadEnd = jwt.lastIndexOf(jwtPartDelimiter);
@@ -76,7 +72,7 @@ public class JwtProcessor {
         return new String(decode, StandardCharsets.UTF_8);
     }
 
-    static SimpleJwt createJwt(String token) {
+    private static SimpleJwt createJwt(String token) {
         Map map;
         try {
             map = OBJECT_MAPPER.readValue(token, Map.class);

@@ -1,13 +1,14 @@
 package org.sonar.plugins.cas.util;
 
 import org.junit.Test;
+import org.sonar.plugins.cas.AuthTestData;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
 
 public class JwtProcessorTest {
     private static final String JWT_TOKEN = "eyJhbGciOiJIUzI1NiJ9." +
@@ -29,7 +30,7 @@ public class JwtProcessorTest {
     }
 
     @Test
-    public void getJwtTokenShouldReturnToken_twoCookies()  {
+    public void getJwtTokenShouldReturnToken_twoCookies() {
         String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Arrays.asList(jwtHeader, unrelatedHeader);
@@ -41,7 +42,7 @@ public class JwtProcessorTest {
     }
 
     @Test(expected = IllegalStateException.class)
-    public void getJwtTokenShouldReturnToken_noCookies()  {
+    public void getJwtTokenShouldReturnToken_noCookies() {
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singletonList(unrelatedHeader);
 
@@ -65,7 +66,6 @@ public class JwtProcessorTest {
                 USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singletonList(unrelatedHeader);
 
-
         JwtProcessor.mustFilterJwtCookie(headers);
     }
 
@@ -86,5 +86,18 @@ public class JwtProcessorTest {
         String rawJwtCookie = JwtProcessor.filterJwtCookie(headers);
 
         assertThat(rawJwtCookie).isEqualTo("");
+    }
+
+    @Test
+    public void getJwtTokenFromResponseHeadersShouldReturnJwtToken() {
+        String cookieHeader1 = "SomeImportanInfo=wow; Version=1; Skin=new;";
+        String jwtHeader = JWT_SESSION_COOKIE + "=" + AuthTestData.getJwtToken();
+        String cookieHeader3 = "Save$200OnBread=true;";
+
+        Collection<String> headers = Arrays.asList(cookieHeader1, jwtHeader, cookieHeader3);
+
+        SimpleJwt actual = JwtProcessor.getJwtTokenFromResponseHeaders(headers);
+
+        assertThat(actual).isEqualTo(AuthTestData.JWT_TOKEN);
     }
 }

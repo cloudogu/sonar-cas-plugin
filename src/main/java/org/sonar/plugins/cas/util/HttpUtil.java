@@ -23,7 +23,9 @@ import com.google.common.base.Strings;
 import org.apache.commons.codec.binary.Base64;
 
 import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
@@ -32,14 +34,16 @@ import java.nio.charset.StandardCharsets;
  *
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  */
-public final class RequestUtil {
+public final class HttpUtil {
 
-    private RequestUtil() {
+    private HttpUtil() {
     }
 
-    public static boolean isBrowser(HttpServletRequest request) {
-        String ua = request.getHeader("User-Agent");
-        return Strings.nullToEmpty(ua).startsWith("Mozilla");
+    public static HttpServletResponse toHttp(ServletResponse response) {
+        if (!(response instanceof HttpServletResponse)) {
+            throw new IllegalArgumentException("response is not a http servlet response");
+        }
+        return (HttpServletResponse) response;
     }
 
     public static HttpServletRequest toHttp(ServletRequest request) {
@@ -49,7 +53,7 @@ public final class RequestUtil {
         return (HttpServletRequest) request;
     }
 
-    public static Credentials getBasicAuthentication(HttpServletRequest request) throws UnsupportedEncodingException {
+    public static Credentials getBasicAuthentication(HttpServletRequest request) {
         Credentials credentials = null;
         String header = request.getHeader("Authorization");
         if (Strings.nullToEmpty(header).startsWith("Basic ")) {

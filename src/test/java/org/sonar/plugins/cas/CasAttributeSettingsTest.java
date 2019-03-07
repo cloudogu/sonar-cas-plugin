@@ -11,7 +11,8 @@ public class CasAttributeSettingsTest {
 
     @Test
     public void getGroupsShouldReturnNoGroups_nullGroup() {
-        Configuration config = new SonarTestConfiguration("groups");
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.rolesAttributes", "groups");
         CasAttributeSettings sut = new CasAttributeSettings(config);
         Map<String, Object> casAttributes = new HashMap<>();
         casAttributes.put("groups", null);
@@ -24,7 +25,8 @@ public class CasAttributeSettingsTest {
 
     @Test
     public void getGroupsShouldReturnOneGroups() {
-        Configuration config = new SonarTestConfiguration("groups");
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.rolesAttributes", "groups");
         CasAttributeSettings sut = new CasAttributeSettings(config);
         Map<String, Object> casAttributes = new HashMap<>();
         casAttributes.put("groups", "leAdmin");
@@ -36,37 +38,41 @@ public class CasAttributeSettingsTest {
 
     @Test
     public void getGroupsShouldReturnSeveralGroups() {
-        Configuration config = new SonarTestConfiguration("groups");
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.rolesAttributes", "groups");
         CasAttributeSettings sut = new CasAttributeSettings(config);
         Map<String, Object> casAttributes = new HashMap<>();
-        casAttributes.put("groups", Arrays.asList("keyUser", "buildKiller"));
+        casAttributes.put("groups", Arrays.asList("keyUser", "communityManager"));
 
         Set<String> actual = sut.getGroups(casAttributes);
 
-        assertThat(actual).containsOnly("keyUser", "buildKiller");
+        assertThat(actual).containsOnly("keyUser", "communityManager");
     }
 
-    private class SonarTestConfiguration implements Configuration {
-        private final HashMap<String, String> props;
+    @Test
+    public void getMailShouldReturnMail() {
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.eMailAttribute", "mail");
+        CasAttributeSettings sut = new CasAttributeSettings(config);
+        Map<String, Object> casAttributes = new HashMap<>();
+        casAttributes.put("mail", "hello@world");
 
-        SonarTestConfiguration(String groups) {
-            this.props = new HashMap<>();
-            props.put("sonar.cas.rolesAttributes", groups);
-        }
+        String actual = sut.getEmail(casAttributes);
 
-        @Override
-        public Optional<String> get(String key) {
-            return Optional.ofNullable(props.get(key));
-        }
-
-        @Override
-        public boolean hasKey(String key) {
-            return props.containsKey(key);
-        }
-
-        @Override
-        public String[] getStringArray(String key) {
-            return new String[0];
-        }
+        assertThat(actual).isEqualTo("hello@world");
     }
+
+    @Test
+    public void getFullNameShouldReturnFullName() {
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.fullNameAttribute", "displayName");
+        CasAttributeSettings sut = new CasAttributeSettings(config);
+        Map<String, Object> casAttributes = new HashMap<>();
+        casAttributes.put("displayName", "Ada Lovelace");
+
+        String actual = sut.getDisplayName(casAttributes);
+
+        assertThat(actual).isEqualTo("Ada Lovelace");
+    }
+
 }
