@@ -19,21 +19,21 @@
  */
 package org.sonar.plugins.cas;
 
-import static org.fest.assertions.Assertions.assertThat;
-
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.config.internal.ConfigurationBridge;
-import org.sonar.api.config.internal.MapSettings;
 
 public class CasSecurityRealmTest {
-//  @Test
-//  public void should_declare_components() {
-//    final Configuration configuration = new ConfigurationBridge(new MapSettings());
-//    final CasSecurityRealm realm = new CasSecurityRealm(configuration, null);
-//    assertThat(realm.doGetAuthenticator()).isInstanceOf(CasAuthenticator.class);
-//    assertThat(realm.getUsersProvider()).isInstanceOf(CasUserProvider.class);
-//    assertThat(realm.getName()).isEqualTo("cas");
-//  }
+    @Test
+    public void constructorShouldNotFail() {
+        Configuration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.casServerUrlPrefix", "")
+                .withAttribute("sonar.cas.sonarServerUrl", "");
+        CasAttributeSettings attributes = new CasAttributeSettings(configuration);
+        TicketValidatorFactory validationFactory = new CasTicketValidatorFactory(configuration);
+        CasRestClientFactory clientFactory = new CasRestClientFactory(configuration);
 
+        // when
+        new CasSecurityRealm(configuration, attributes, validationFactory, clientFactory);
+
+    }
 }

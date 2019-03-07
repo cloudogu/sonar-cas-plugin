@@ -19,28 +19,24 @@
  */
 package org.sonar.plugins.cas.util;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.net.ssl.*;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 
 /**
- * Disable certification validation check. This is useful in development environemnt
- * with self signed certificates. This will prevent the SSLHandshakeExeption. Do not use
+ * Disable certification validation check. This is useful in development environment
+ * with self signed certificates. This will prevent the SSLHandshakeException. Do not use
  * this in production environment because it will be a security risk, e.g. man-in-the-middle
  * attacks can not be identified.
  *
  * @author Philip Pohle, TRIOLOGY GmbH
  */
-public class IgnoreCert extends HttpServlet {
+public final class IgnoreCert {
+    private static final Logger LOG = LoggerFactory.getLogger(IgnoreCert.class);
 
-    private static final long serialVersionUID = -9002436159316961665L;
-
-    @Override
-    public void init() throws ServletException {
-        //		disableSslVerification();
+    private IgnoreCert() {
     }
 
     public static void disableSslVerification() {
@@ -51,12 +47,10 @@ public class IgnoreCert extends HttpServlet {
                     return null;
                 }
 
-                public void checkClientTrusted(final X509Certificate[] certs,
-                                               final String authType) {
+                public void checkClientTrusted(final X509Certificate[] certs, final String authType) {
                 }
 
-                public void checkServerTrusted(final X509Certificate[] certs,
-                                               final String authType) {
+                public void checkServerTrusted(final X509Certificate[] certs, final String authType) {
                 }
             }};
 
@@ -75,10 +69,8 @@ public class IgnoreCert extends HttpServlet {
 
             // Install the all-trusting host verifier
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
-        } catch (final NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        } catch (final KeyManagementException e) {
-            e.printStackTrace();
+        } catch (final Exception e) {
+            LOG.error("Error during SSL disabling", e);
         }
     }
 }

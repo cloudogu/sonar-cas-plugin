@@ -20,12 +20,11 @@
 
 package org.sonar.plugins.cas;
 
-import com.google.common.base.Preconditions;
-import com.google.common.base.Strings;
 import org.sonar.api.Plugin;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
+import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.IgnoreCert;
+import org.sonar.plugins.cas.session.SessionStoreCleaner;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +37,6 @@ import java.util.List;
  * <li>{@link CasSecurityRealm} for the username and password authentication</li>
  * </ul>
  * <p>
- * TODO apply values from the configuration, but sonarqube does not allow injection on plugin entrypoints
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
@@ -55,36 +53,26 @@ public final class CasPlugin implements Plugin {
 
     List<Object> collectExtensions() {
         List<Object> extensions = new ArrayList<>();
-        if (isRealmEnabled()) {
-            String protocol = "cas2";
 
-            Preconditions.checkState(!Strings.isNullOrEmpty(protocol),
-                    "Missing CAS protocol. Values are: cas1, cas2 or saml11.");
+        extensions.add(DevelopmentServerStartHandler.class);
+        extensions.add(CasAttributeSettings.class);
 
-            // The ignore certification validation should only be used in development (security risk)!
-            // if (configuration.mustGetBoolean(SonarCasProperties.DISABLE_CERT_VALIDATION.toString()).orElse(Boolean.FALSE)) {
-            IgnoreCert.disableSslVerification();
+        extensions.add(CasTicketValidatorFactory.class);
+        extensions.add(CasRestClientFactory.class);
+        extensions.add(CasSessionStoreFactory.class);
+        extensions.add(SessionStoreCleaner.class);
 
-            extensions.add(CasAttributeSettings.class);
-            extensions.add(CasSessionStoreFactory.class);
+        extensions.add(LoginHandler.class);
+        extensions.add(LogoutHandler.class);
+        extensions.add(CasIdentityProvider.class);
+        extensions.add(CasSecurityRealm.class);
 
+        extensions.add(ForceCasLoginFilter.class);
+        extensions.add(AuthenticationFilter.class);
+        extensions.add(CasTokenRefreshFilter.class);
 
-            extensions.add(CasIdentityProvider.class);
-            extensions.add(CasSecurityRealm.class);
-
-            extensions.add(ForceCasLoginFilter.class);
-            extensions.add(AuthenticationFilter.class);
-            extensions.add(CasTokenRefreshFilter.class);
-
-            extensions.add(CasSonarSignOutInjectorFilter.class);
-        }
+        extensions.add(CasSonarSignOutInjectorFilter.class);
 
         return extensions;
-    }
-
-    private boolean isRealmEnabled() {
-        //Optional<String> realmConf = configuration.get("sonar.security.realm");
-        //return (realmConf.isPresent() && CasSecurityRealm.KEY.equalsIgnoreCase(realmConf.get()));
-        return true;
     }
 }

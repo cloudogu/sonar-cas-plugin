@@ -19,13 +19,10 @@
  */
 package org.sonar.plugins.cas.util;
 
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 
 /**
- * This class provides Sonar CAS Plugin properties in a typed way..
+ * This class provides Sonar CAS Plugin properties in a typed way.
  *
  * @author Jan Boerner, TRIOLOGY GmbH
  */
@@ -95,9 +92,16 @@ public enum SonarCasProperties {
      * authentications. Administrators may want to mount this as its own volume in order to scale with number of unexpired
      * sessions
      */
-    SESSION_STORE_PATH("sonar.cas.sessionStorePath", SonarPropertyType.STRING);
+    SESSION_STORE_PATH("sonar.cas.sessionStorePath", SonarPropertyType.STRING),
 
-    private static final Logger LOG = LoggerFactory.getLogger(SonarCasProperties.class);
+    /**
+     * The CAS session store stores JWT tokens which have an expiration date. These are kept for black- and whitelisting
+     * JWTs from a user in order to prohibit attackers which gained access to a user's old JWT tokens.
+     * Once these JWTs are expired they need to be removed from the store in a background job. This property defines the
+     * interval in seconds between each clean up run. Do not set the interval too short (this could lead to unnecessary
+     * CPU load) or too long (this could lead to unnecessary filesystem load).
+     */
+    SESSION_STORE_CLEANUP_INTERVAL_IN_SECS("sonar.cas.sessionStore.cleanUpIntervalInSeconds", SonarPropertyType.INTEGER);
 
     String propertyKey;
 
@@ -111,6 +115,7 @@ public enum SonarCasProperties {
     /**
      * Returns a configuration value as string if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */
@@ -122,6 +127,7 @@ public enum SonarCasProperties {
 
     /**
      * Returns a configuration value as string if the key was configured. Otherwise the given default value.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured, otherwise the given default value.
      */
@@ -131,10 +137,10 @@ public enum SonarCasProperties {
         return config.get(propertyKey).orElse(defaultValue);
     }
 
-
     /**
      * Returns a configuration value as boolean if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */
@@ -144,10 +150,23 @@ public enum SonarCasProperties {
         return config.getBoolean(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
     }
 
+    /**
+     * Returns a configuration value as boolean if the key was configured. Otherwise the given default value.
+     * thrown.
+     *
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured or the default value if the key was not configured.
+     */
+    public boolean getBoolean(Configuration config, boolean defaultValue) {
+        assertPropertyType(SonarPropertyType.BOOLEAN);
+
+        return config.getBoolean(propertyKey).orElse(defaultValue);
+    }
 
     /**
      * Returns a configuration value as integer if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
      * thrown.
+     *
      * @param config the SonarQube configuration object holds all configured properties
      * @return a configuration value as if the key was configured
      */
@@ -155,6 +174,18 @@ public enum SonarCasProperties {
         assertPropertyType(SonarPropertyType.INTEGER);
 
         return config.getInt(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
+    }
+
+    /**
+     * Returns a configuration value as integer if the key was configured. Otherwise the given default value.
+     *
+     * @param config the SonarQube configuration object holds all configured properties
+     * @return a configuration value as if the key was configured or the default value if the key was not configured.
+     */
+    public int getInteger(Configuration config, int defaultValue) {
+        assertPropertyType(SonarPropertyType.INTEGER);
+
+        return config.getInt(propertyKey).orElse(defaultValue);
     }
 
     private void assertPropertyType(SonarPropertyType expectedType) {
@@ -176,7 +207,7 @@ public enum SonarCasProperties {
 
     private static class CasPropertyNotFoundException extends RuntimeException {
         CasPropertyNotFoundException(String propertyKey) {
-            super("Could not find Sonar property with key " + propertyKey);
+            super("Could not find Sonar property with key " + propertyKey + " when it was expected to be configured.");
         }
     }
 }
