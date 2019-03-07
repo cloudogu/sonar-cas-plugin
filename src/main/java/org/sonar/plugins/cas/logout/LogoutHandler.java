@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
@@ -33,9 +34,9 @@ public class LogoutHandler {
     private final Configuration configuration;
     private final CasSessionStore casSessionStore;
 
-    public LogoutHandler(Configuration configuration, CasSessionStore casSessionStore) {
+    public LogoutHandler(Configuration configuration, CasSessionStoreFactory casSessionStoreFactory) {
         this.configuration = configuration;
-        this.casSessionStore = casSessionStore;
+        this.casSessionStore = casSessionStoreFactory.getInstance();
     }
 
     public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {

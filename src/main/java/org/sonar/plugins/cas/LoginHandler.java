@@ -13,6 +13,7 @@ import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
@@ -32,7 +33,7 @@ import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CA
  * This class handles the initial authentication use case.
  */
 @ServerSide
-class LoginHandler {
+public class LoginHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LoginHandler.class);
 
     private final Configuration configuration;
@@ -45,11 +46,11 @@ class LoginHandler {
      */
     public LoginHandler(Configuration configuration,
                  CasAttributeSettings attributeSettings,
-                 CasSessionStore sessionStore,
+                 CasSessionStoreFactory sessionStoreFactory,
                  TicketValidatorFactory ticketValidatorFactory) {
         this.configuration = configuration;
         this.attributeSettings = attributeSettings;
-        this.sessionStore = sessionStore;
+        this.sessionStore = sessionStoreFactory.getInstance();
         validatorFactory = ticketValidatorFactory;
     }
 
