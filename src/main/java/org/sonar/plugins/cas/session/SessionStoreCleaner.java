@@ -34,11 +34,11 @@ public final class SessionStoreCleaner implements ServerStartHandler {
 
     @Override
     public void onServerStart(Server server) {
-        LOG.debug("CAS session store cleaner was configured to an interval of {} seconds ", cleanUpIntervalInSeconds);
+        LOG.debug("CAS session writeJwtFile cleaner was configured to an interval of {} seconds ", cleanUpIntervalInSeconds);
         TimerTask task = createTask();
 
         if (isCleanUpDisabled()) {
-            LOG.error("Found that CAS session store clean up was disabled. This should be done only in a development environment");
+            LOG.error("Found that CAS session writeJwtFile clean up was disabled. This should be done only in a development environment");
             return;
         }
 
@@ -50,7 +50,7 @@ public final class SessionStoreCleaner implements ServerStartHandler {
     }
 
     private void runTask(TimerTask task) {
-        // The CAS session store is persistent. This means there _may be_ clean-up work to tend to after a server start
+        // The CAS session writeJwtFile is persistent. This means there _may be_ clean-up work to tend to after a server start
         long firstOccurrenceImmediate = 0;
         long intervalInMillis = TimeUnit.SECONDS.toMillis(cleanUpIntervalInSeconds);
         timer.scheduleAtFixedRate(task, firstOccurrenceImmediate, intervalInMillis);
@@ -67,12 +67,12 @@ public final class SessionStoreCleaner implements ServerStartHandler {
     class CasSessionStoreCleanerTask extends TimerTask {
         @Override
         public void run() {
-            LOG.debug("CAS session store clean up started.");
+            LOG.debug("CAS session writeJwtFile clean up started.");
 
             CasSessionStore store = sessionStoreFactory.getInstance();
             int removedEntries = store.removeExpiredEntries();
 
-            LOG.debug("CAS session store clean up finished and removed {} entries.", removedEntries);
+            LOG.debug("CAS session writeJwtFile clean up finished and removed {} entries.", removedEntries);
         }
     }
 }

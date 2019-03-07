@@ -148,7 +148,7 @@ class SessionFileRemover {
         try {
             return Files.list(dir);
         } catch (IOException e) {
-            throw new RuntimeException("Could not list files in CAS file session store", e);
+            throw new RuntimeException("Could not list files in CAS file session writeJwtFile", e);
         }
     }
 
@@ -163,7 +163,7 @@ class SessionFileRemover {
             Path file = Paths.get(sessionStorePath, serviceTicketFileName);
             Files.delete(file);
         } catch (IOException e) {
-            LOG.error("Could not delete Service Ticket file from file session store", e);
+            LOG.error("Could not delete Service Ticket file from file session writeJwtFile", e);
         }
     }
 

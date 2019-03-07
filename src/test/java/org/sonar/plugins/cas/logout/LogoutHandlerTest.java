@@ -4,6 +4,7 @@ import org.junit.Test;
 import org.sonar.plugins.cas.AuthTestData;
 import org.sonar.plugins.cas.SonarTestConfiguration;
 import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.CookieUtil;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
@@ -25,13 +26,15 @@ public class LogoutHandlerTest {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sonarServerUrl", "sonar.url.com");
         CasSessionStore store = mock(CasSessionStore.class);
+        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
+        when(factory.getInstance()).thenReturn(store);
         String ticketID = "ST-2-MCVscBHPvotTXcRW7kFF-45aa256f981c";
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         String logoutRequest = AuthTestData.getLogoutTicketForId(ticketID);
         when(request.getParameter("logoutRequest")).thenReturn(logoutRequest);
         HttpServletResponse response = mock(HttpServletResponse.class);
-        LogoutHandler sut = new LogoutHandler(configuration, store);
+        LogoutHandler sut = new LogoutHandler(configuration, factory);
 
         // when
         sut.logout(request, response);
@@ -45,6 +48,8 @@ public class LogoutHandlerTest {
         // given
         SonarTestConfiguration configuration = new SonarTestConfiguration();
         CasSessionStore store = mock(CasSessionStore.class);
+        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
+        when(factory.getInstance()).thenReturn(store);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
         when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
@@ -58,7 +63,7 @@ public class LogoutHandlerTest {
         when(request.getContextPath()).thenReturn("http://sonar.url.com/");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
-        LogoutHandler sut = new LogoutHandler(configuration, store);
+        LogoutHandler sut = new LogoutHandler(configuration, factory);
 
         // when
         boolean removeCookiesAndRedirectToLogin = sut.handleInvalidJwtCookie(request, response);

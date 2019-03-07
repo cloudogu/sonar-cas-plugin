@@ -68,11 +68,12 @@ public class CasIdentityProviderTest {
         CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
+        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
+        when(factory.getInstance()).thenReturn(sessionStore);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
-        LoginHandler loginHandler = new LoginHandler(config, attributeSettings, sessionStore, validatorFactory);
-        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStore);
+        LoginHandler loginHandler = new LoginHandler(config, attributeSettings, sessionStoreFactory, validatorFactory);
         CasIdentityProvider sut = new CasIdentityProvider(config, loginHandler, null);
 
         // when
@@ -111,10 +112,12 @@ public class CasIdentityProviderTest {
         when(context.getResponse()).thenReturn(response);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
+        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
+        when(factory.getInstance()).thenReturn(sessionStore);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
-        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStore);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
         CasIdentityProvider sut = new CasIdentityProvider(config, null, logoutHandler);
 
         // when

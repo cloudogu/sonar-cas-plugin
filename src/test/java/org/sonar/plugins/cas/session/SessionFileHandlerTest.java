@@ -15,15 +15,15 @@ import java.time.Instant;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class JwtTokenFileHandlerTest {
+public class SessionFileHandlerTest {
 
     private Path sessionStore;
-    private JwtTokenFileHandler sut;
+    private SessionFileHandler sut;
 
     @Before
     public void setUp() throws Exception {
         sessionStore = Files.createTempDirectory("sessionStore");
-        sut = new JwtTokenFileHandler(sessionStore.toString());
+        sut = new SessionFileHandler(sessionStore.toString());
     }
 
     @After
@@ -34,7 +34,7 @@ public class JwtTokenFileHandlerTest {
     @Test
     public void isJwtStoredReturnsTrueForExistingFile() throws IOException {
         Files.createFile(Paths.get(sessionStore.toString() + File.separator + "1234"));
-        JwtTokenFileHandler sut = new JwtTokenFileHandler(sessionStore.toString());
+        SessionFileHandler sut = new SessionFileHandler(sessionStore.toString());
 
         boolean actual = sut.isJwtStored("1234");
 
@@ -49,28 +49,28 @@ public class JwtTokenFileHandlerTest {
     }
 
     @Test
-    public void storeShouldStoreNewJwtFile() throws IOException {
+    public void writeJwtFileShouldStoreNewJwtFile() {
         long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
         String jwtId = "AWjne4xYY4T-z3CxdIRY";
         SimpleJwt jwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
 
-        sut.store(jwtId, jwt);
+        sut.writeJwtFile(jwtId, jwt);
         boolean actuallyStored = Files.exists(sessionStore.resolve(jwtId));
 
         assertThat(actuallyStored).isTrue();
     }
 
     @Test
-    public void getShouldReturnJwt() throws IOException {
+    public void readJwtFileShouldReturnJwt() {
         // given
         long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
         String jwtId = "AWjne4xYY4T-z3CxdIRY";
         SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
-        // store a originalJwt file
-        sut.store(jwtId, originalJwt);
+        // writeJwtFile a originalJwt file
+        sut.writeJwtFile(jwtId, originalJwt);
 
         // when
-        SimpleJwt restoredJwt = sut.get(jwtId);
+        SimpleJwt restoredJwt = sut.readJwtFile(jwtId);
 
         // then
         assertThat(restoredJwt).isEqualTo(originalJwt);
@@ -78,26 +78,64 @@ public class JwtTokenFileHandlerTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void getShouldThrowException() {
-        sut.get("banana");
+    public void readJwtFileShouldThrowException() {
+        sut.readJwtFile("banana");
     }
 
     @Test
-    public void replaceShouldUpdateTheFilesContent() throws IOException {
+    public void replaceJwtFileShouldUpdateTheFilesContent() throws IOException {
         // given
         long expiryDateIn60SecondsTime = Instant.now().getEpochSecond();
         String jwtId = "AWjne4xYY4T-z3CxdIRY";
         SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
-        sut.store(jwtId, originalJwt);
+        sut.writeJwtFile(jwtId, originalJwt);
         SimpleJwt updatedJwt = originalJwt.cloneAsInvalidated();
         assertThat(updatedJwt).isNotEqualTo(originalJwt);
 
         // when
-        sut.replace(jwtId, updatedJwt);
+        sut.replaceJwtFile(jwtId, updatedJwt);
 
         // then
-        SimpleJwt restoredUpdatedJwt = sut.get(jwtId);
+        SimpleJwt restoredUpdatedJwt = sut.readJwtFile(jwtId);
         assertThat(restoredUpdatedJwt).isEqualTo(updatedJwt);
         assertThat(restoredUpdatedJwt).isNotEqualTo(originalJwt);
+    }
+
+    @Test
+    public void createServiceTicketFileShouldWriteSuccessfully() throws IOException {
+        // given
+        long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
+        String jwtId = "AWjne4xYY4T-z3CxdIRY";
+        SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
+
+        // when
+        sut.createServiceTicketFile("ST-55-HqpNCMS1MO2enGkAqwMo-a20226e06c07", originalJwt);
+
+        // then
+        String expectedFileName = "ST-55-HqpNCMS1MO2enGkAqwMo-a20226e06c07";
+        boolean actuallyStored = Files.exists(Paths.get(sessionStore + File.separator + expectedFileName));
+        assertThat(actuallyStored).isTrue();
+    }
+
+    @Test
+    public void readServiceTicketFileShouldReturnId() throws IOException {
+        // given
+        long expiryDateIn60SecondsTime = Instant.now().plusSeconds(60).getEpochSecond();
+        String jwtId = "AWjne4xYY4T-z3CxdIRY";
+        SimpleJwt originalJwt = SimpleJwt.fromIdAndExpiration(jwtId, expiryDateIn60SecondsTime);
+        String grantingTicket = "ST-55-HqpNCMS1MO2enGkAqwMo-a20226e06c07";
+        sut.createServiceTicketFile(grantingTicket, originalJwt);
+        assertThat(Files.exists(Paths.get(sessionStore + File.separator + grantingTicket))).isTrue();
+
+        // when
+        String actual = sut.readServiceTicketFile(grantingTicket);
+
+        // then
+        assertThat(actual).isEqualTo(originalJwt.getJwtId());
+    }
+
+    @Test(expected = IOException.class)
+    public void readServiceTicketFileShouldThrowException() throws IOException {
+        sut.readServiceTicketFile("banana");
     }
 }

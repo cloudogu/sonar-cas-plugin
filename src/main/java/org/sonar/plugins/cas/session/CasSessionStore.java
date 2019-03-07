@@ -9,7 +9,7 @@ import java.io.IOException;
  *
  * <h1>Security advice</h1>
  * <p>
- * Even though the cookie might be removed, the tickets and tokens within the session store must not
+ * Even though the cookie might be removed, the tickets and tokens within the session writeJwtFile must not
  * be removed because an attacker might have gained access to the user's token. Instead the token stays
  * blacklisted until it reaches its expiration date.
  * </p>
@@ -26,7 +26,7 @@ import java.io.IOException;
  * <h2>JWT invalidation versus removal</h2>
  * <p>
  * When the user logs out, implementations must keep an invalidated, persisted copy of the JWT as well as the original
- * service ticket instead of removing them from the session store right away. Usually this is done with:</p>
+ * service ticket instead of removing them from the session writeJwtFile right away. Usually this is done with:</p>
  *
  * <pre>
  * String invalidateJwt(String grantingTicketId) {
@@ -39,7 +39,7 @@ import java.io.IOException;
  * </pre>
  *
  * <p>
- * During store it back in the session store. This is necessary for blacklisting JWTs until they expired. Only when a
+ * During writeJwtFile it back in the session writeJwtFile. This is necessary for blacklisting JWTs until they expired. Only when a
  * JWT is expired it can be removed, usually with {@link #removeExpiredEntries()}.
  * </p>
  *
@@ -70,10 +70,10 @@ public interface CasSessionStore {
     void store(String ticket, SimpleJwt jwt);
 
     /**
-     * Returns <code>true</code> when the JWT is maintained by the session store.
+     * Returns <code>true</code> when the JWT is maintained by the session writeJwtFile.
      *
      * @param jwt the JWT as given by the user's cookie.
-     * @return Returns <code>true</code> when the JWT is maintained by the session store, otherwise false.
+     * @return Returns <code>true</code> when the JWT is maintained by the session writeJwtFile, otherwise false.
      */
     boolean isJwtStored(SimpleJwt jwt);
 
@@ -88,7 +88,7 @@ public interface CasSessionStore {
     SimpleJwt fetchStoredJwt(SimpleJwt jwt);
 
     /**
-     * Render an existing JWT invalid which is identified by the granting ticket and store it back in the session store.
+     * Render an existing JWT invalid which is identified by the granting ticket and writeJwtFile it back in the session writeJwtFile.
      *
      * @param serviceTicketId the CAS service ticket ID
      * @return the JWT id which is now invalid.
@@ -103,7 +103,7 @@ public interface CasSessionStore {
     int removeExpiredEntries();
 
     /**
-     * Updates the store with an update JWT which contains a newer expiration date.
+     * Updates the writeJwtFile with an update JWT which contains a newer expiration date.
      *
      * @param jwtWithLongerExpirationDate the new JWT object
      */

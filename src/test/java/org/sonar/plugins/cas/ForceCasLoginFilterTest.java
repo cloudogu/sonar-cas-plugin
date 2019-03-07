@@ -30,7 +30,7 @@ public class ForceCasLoginFilterTest {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
-        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory.getInstance());
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
         ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);
@@ -65,7 +65,7 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
-        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory.getInstance());
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
         ForceCasLoginFilter sut = new ForceCasLoginFilter(config, sessionStoreFactory, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);

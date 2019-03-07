@@ -309,8 +309,8 @@ public class SessionFileRemoverTest {
 
         try {
             for (String id : jwtIds) {
-                JwtTokenFileHandler fileHandler = new JwtTokenFileHandler(sessionStore.toString());
-                fileHandler.store(id, SimpleJwt.fromIdAndExpiration(id, expirationDate));
+                SessionFileHandler fileHandler = new SessionFileHandler(sessionStore.toString());
+                fileHandler.writeJwtFile(id, SimpleJwt.fromIdAndExpiration(id, expirationDate));
 
                 createdJwtPaths.add(sessionStore.resolve(id));
             }

@@ -19,7 +19,7 @@ public class CasSessionStoreFactory implements ServerStartHandler {
     public CasSessionStoreFactory(Configuration configuration) {
         String sessionStorePath = SonarCasProperties.SESSION_STORE_PATH.mustGetString(configuration);
 
-        LOG.debug("creating instance of CAS file session store implementation");
+        LOG.debug("creating instance of CAS file session writeJwtFile implementation");
         impl = new FileSessionStore(sessionStorePath);
     }
 
@@ -38,7 +38,7 @@ public class CasSessionStoreFactory implements ServerStartHandler {
 
     private class CasSessionStoreInitializationException extends RuntimeException {
         private CasSessionStoreInitializationException(IOException e) {
-            super("Could not prepare CAS session store for work.", e);
+            super("Could not prepare CAS session writeJwtFile for work.", e);
         }
     }
 }

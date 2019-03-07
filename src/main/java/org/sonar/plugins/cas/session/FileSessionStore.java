@@ -14,22 +14,17 @@ public final class FileSessionStore implements CasSessionStore {
     private final String sessionStorePath;
 
     /**
-     * This map contains the CAS granting ticket and the issued JWT. This map is only hit during back-channel logout.
-     */
-    private GrantingTicketFileHandler ticketToJwt;
-    /**
      * This map provides the CAS plugin with information about a JWT's validity. This collection is hit on every Sonar
      * request and must be super-fast.
      */
-    private JwtTokenFileHandler jwtIdToJwt;
+    private SessionFileHandler fileHandler;
 
     /**
      * default visibility constructor for testing
      */
     FileSessionStore(String sessionStorePath) {
         this.sessionStorePath = sessionStorePath;
-        this.ticketToJwt = new GrantingTicketFileHandler(sessionStorePath);
-        this.jwtIdToJwt = new JwtTokenFileHandler(sessionStorePath);
+        this.fileHandler = new SessionFileHandler(sessionStorePath);
     }
 
     public void prepareForWork() {
@@ -42,24 +37,24 @@ public final class FileSessionStore implements CasSessionStore {
 
     private void createSessionDirectory() throws IOException {
         Path sessionStoreDir = Paths.get(sessionStorePath);
-        LOG.info("Creating CAS session store with path {}", sessionStoreDir.toString());
+        LOG.info("Creating CAS session writeJwtFile with path {}", sessionStoreDir.toString());
 
         Files.createDirectories(sessionStoreDir);
     }
 
     public void store(String ticket, SimpleJwt jwt) {
-        LOG.debug("store ticket {} to token {}", ticket, jwt.getJwtId());
+        LOG.debug("writeJwtFile ticket {} to token {}", ticket, jwt.getJwtId());
         try {
-            ticketToJwt.store(ticket, jwt);
-            jwtIdToJwt.store(jwt.getJwtId(), jwt);
+            fileHandler.createServiceTicketFile(ticket, jwt);
+            fileHandler.writeJwtFile(jwt.getJwtId(), jwt);
         } catch (IOException e) {
-            LOG.error("Could not store JWT " + jwt.getJwtId() + "to storage path.", e);
+            LOG.error("Could not writeJwtFile JWT " + jwt.getJwtId() + "to storage path.", e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
         }
     }
 
     public boolean isJwtStored(SimpleJwt jwt) {
-        boolean stored = jwtIdToJwt.isJwtStored(jwt.getJwtId());
+        boolean stored = fileHandler.isJwtStored(jwt.getJwtId());
         LOG.debug("check if JWT {} is stored: {}", jwt.getJwtId(), stored);
 
         return stored;
@@ -70,7 +65,7 @@ public final class FileSessionStore implements CasSessionStore {
 
         SimpleJwt result;
         try {
-            result = jwtIdToJwt.get(jwt.getJwtId());
+            result = fileHandler.readJwtFile(jwt.getJwtId());
         } catch (Exception e) {
             LOG.error("Could not return JWT file " + jwt.getJwtId(), e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
@@ -87,8 +82,8 @@ public final class FileSessionStore implements CasSessionStore {
 
         SimpleJwt jwt;
         try {
-            String jwtId = ticketToJwt.get(serviceTicketId);
-            jwt = jwtIdToJwt.get(jwtId);
+            String jwtId = fileHandler.readServiceTicketFile(serviceTicketId);
+            jwt = fileHandler.readJwtFile(jwtId);
         } catch (IOException e) {
             LOG.error("Could not invalidate JWT with granting ticket " + serviceTicketId, e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
@@ -100,7 +95,7 @@ public final class FileSessionStore implements CasSessionStore {
         SimpleJwt invalidated = jwt.cloneAsInvalidated();
 
         try {
-            jwtIdToJwt.replace(jwt.getJwtId(), invalidated);
+            fileHandler.replaceJwtFile(jwt.getJwtId(), invalidated);
         } catch (IOException e) {
             LOG.error("Could not invalidate JWT file " + jwt.getJwtId(), e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
@@ -117,7 +112,7 @@ public final class FileSessionStore implements CasSessionStore {
         LOG.debug("refresh token {}", jwtId);
 
         try {
-            jwtIdToJwt.replace(jwtId, jwtWithLongerExpirationDate);
+            fileHandler.replaceJwtFile(jwtId, jwtWithLongerExpirationDate);
         } catch (IOException e) {
             LOG.error("Could not invalidate JWT file " + jwtId, e);
             throw new CasIOAuthenticationException("An authentication problem occurred. Please let your SonarQube administrator know.");
