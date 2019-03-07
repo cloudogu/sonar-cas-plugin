@@ -107,7 +107,10 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
     @Override
     public Display getDisplay() {
-        return Display.builder().build();
+        return Display.builder()
+                .setBackgroundColor("#143E51")
+                .setIconPath("/static/casplugin/cas_logo.png")
+                .build();
     }
 
     @Override
