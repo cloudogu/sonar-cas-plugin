@@ -27,8 +27,9 @@ function logoutHandler() {
         if (! elem3) { return; }
         var elem4 = elem3.getElementsByTagName('a')[1];
         if (elem4) {
-            elem4.addEventListener('click', function () {
+            elem4.addEventListener('click', function (event) {
                 window.location.href = 'CASLOGOUTURL';
+                event.stopImmediatePropagation();
                 return false;
             });
             clearInterval(logoutHandlerTimer);
