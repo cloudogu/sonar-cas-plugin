@@ -20,7 +20,10 @@
 
 package org.sonar.plugins.cas;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.Plugin;
+import org.sonar.api.SonarQubeSide;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
@@ -43,12 +46,19 @@ import java.util.List;
  */
 public final class CasPlugin implements Plugin {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CasPlugin.class);
+
     public CasPlugin() {
         // called by SonarQube during initializing
     }
 
     public void define(Context context) {
-        context.addExtensions(collectExtensions());
+        SonarQubeSide sonarQubeSide = context.getRuntime().getSonarQubeSide();
+        if (sonarQubeSide == SonarQubeSide.SERVER) {
+            context.addExtensions(collectExtensions());
+        } else {
+            LOG.info("skip all extensions, because we are on the {} side", sonarQubeSide);
+        }
     }
 
     List<Object> collectExtensions() {
