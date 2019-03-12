@@ -21,22 +21,16 @@ package org.sonar.plugins.cas.util;
 
 import org.junit.Test;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.util.Collection;
-import java.util.Locale;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Sebastian Sdorra
@@ -99,5 +93,25 @@ public class HttpUtilTest {
         HttpServletResponse actual = HttpUtil.toHttp(servletResponse);
 
         assertThat(actual).isSameAs(servletResponse);
+    }
+
+    @Test
+    public void saveRequestedURLInCookieShouldSaveWholeURLInCookie() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String originalURL = "http://sonar.url.com/somePageWhichIsNotLogin";
+        when(request.getRequestURL()).thenReturn(new StringBuffer(originalURL));
+        when(request.getContextPath()).thenReturn("/sonar");
+        // getRequestURL does NOT return query params. Kinda important for called sonar URLs
+        when(request.getQueryString()).thenReturn("project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        HttpUtil.saveRequestedURLInCookie(request, response, 300);
+
+        verify(request).getRequestURL();
+        // Cookie is a crappy class that does not allow equals or hashcode, so we test the number of invocations of
+        // getParameterMap. If it was only once, it would not have jumped into urlEncodeQueryParameters()
+        verify(request, times(2)).getQueryString();
+        verify(response).addCookie(any());
     }
 }

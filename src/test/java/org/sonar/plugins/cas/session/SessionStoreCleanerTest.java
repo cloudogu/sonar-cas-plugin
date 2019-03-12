@@ -14,7 +14,7 @@ public class SessionStoreCleanerTest {
     private SessionStoreCleaner cleaner;
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         cleaner.cancelTimer();
     }
 
@@ -32,7 +32,7 @@ public class SessionStoreCleanerTest {
     }
 
     @Test
-    @Ignore // seems to be flaky
+    @Ignore // seems to be flaky due to the timing nature but can be called manually
     public void cleanUpIntervalOfNonZeroShouldStartCleanup() {
         Configuration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStore.cleanUpIntervalInSeconds", "1000");

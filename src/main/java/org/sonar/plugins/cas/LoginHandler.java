@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.sonar.plugins.cas.ForceCasLoginFilter.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
+import static org.sonar.plugins.cas.util.CookieUtil.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
  * This class handles the initial authentication use case.
@@ -45,9 +45,9 @@ public class LoginHandler {
      * called with injection by SonarQube during server initialization
      */
     public LoginHandler(Configuration configuration,
-                 CasAttributeSettings attributeSettings,
-                 CasSessionStoreFactory sessionStoreFactory,
-                 TicketValidatorFactory ticketValidatorFactory) {
+                        CasAttributeSettings attributeSettings,
+                        CasSessionStoreFactory sessionStoreFactory,
+                        TicketValidatorFactory ticketValidatorFactory) {
         this.configuration = configuration;
         this.attributeSettings = attributeSettings;
         this.sessionStore = sessionStoreFactory.getInstance();
@@ -73,7 +73,7 @@ public class LoginHandler {
         sessionStore.store(grantingTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
-        removeRedirectCookie(context.getResponse());
+        removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
 
         LOG.debug("redirecting to {}", redirectTo);
         context.getResponse().sendRedirect(redirectTo);
@@ -120,8 +120,8 @@ public class LoginHandler {
         return fallback;
     }
 
-    private void removeRedirectCookie(HttpServletResponse response) {
-        Cookie cookie = CookieUtil.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
+    private void removeRedirectCookie(HttpServletResponse response, String contextPath) {
+        Cookie cookie = CookieUtil.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
 
         response.addCookie(cookie);
     }
