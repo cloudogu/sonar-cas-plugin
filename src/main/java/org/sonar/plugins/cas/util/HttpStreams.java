@@ -80,8 +80,7 @@ public final class HttpStreams {
         String url = request.getRequestURL().toString();
 
         if (StringUtils.isNotBlank(request.getQueryString())) {
-            String queryDelimiter = "?";
-            url += queryDelimiter + request.getQueryString();
+            url += "?" + request.getQueryString();
         }
 
         return url;
