@@ -4,9 +4,13 @@ import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.Cookie;
 
-public final class CookieUtil {
+public final class Cookies {
     public static final String JWT_SESSION_COOKIE = "JWT-SESSION";
     public static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
+
+    private Cookies() {
+        // util classes should not be instantiable
+    }
 
     /**
      * Creates a deletion cookie. A cookie is supposed to be deleted when the maximal age is set to

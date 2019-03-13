@@ -25,7 +25,6 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -35,53 +34,53 @@ import static org.mockito.Mockito.*;
 /**
  * @author Sebastian Sdorra
  */
-public class HttpUtilTest {
+public class HttpStreamsTest {
 
     @Test
-    public void testGetBasicAuthentication() throws UnsupportedEncodingException {
+    public void testGetBasicAuthentication() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("Authorization")).thenReturn("Basic d2lraTpwZWRpYQ==");
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNotNull(creds);
         assertEquals(creds.getUsername(), "wiki");
         assertEquals(creds.getPassword(), "pedia");
     }
 
     @Test
-    public void testGetBasicAuthenticationWithoutAuthorization() throws UnsupportedEncodingException {
+    public void testGetBasicAuthenticationWithoutAuthorization() {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNull(creds);
     }
 
     @Test
-    public void testGetBasicAuthenticationWithoutBasic() throws UnsupportedEncodingException {
+    public void testGetBasicAuthenticationWithoutBasic() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("Authorization")).thenReturn("Other d2lraTpwZWRpYQ==");
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNull(creds);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ToHttpResponseShouldThrowException() {
         ServletResponse servletResponseMock = mock(ServletResponse.class);
-        HttpUtil.toHttp(servletResponseMock);
+        HttpStreams.toHttp(servletResponseMock);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ToHttpRequestThrowException() {
         ServletRequest servletRequestMock = mock(ServletRequest.class);
-        HttpUtil.toHttp(servletRequestMock);
+        HttpStreams.toHttp(servletRequestMock);
     }
 
     @Test
     public void ToHttpRequestShouldReturnTypeCast() {
         ServletRequest servletRequestMock = mock(HttpServletRequest.class);
 
-        HttpServletRequest actual = HttpUtil.toHttp(servletRequestMock);
+        HttpServletRequest actual = HttpStreams.toHttp(servletRequestMock);
 
         assertThat(actual).isSameAs(servletRequestMock);
     }
@@ -90,7 +89,7 @@ public class HttpUtilTest {
     public void ToHttpResponseShouldReturnTypeCast() {
         HttpServletResponse servletResponse = mock(HttpServletResponse.class);
 
-        HttpServletResponse actual = HttpUtil.toHttp(servletResponse);
+        HttpServletResponse actual = HttpStreams.toHttp(servletResponse);
 
         assertThat(actual).isSameAs(servletResponse);
     }
@@ -106,7 +105,7 @@ public class HttpUtilTest {
 
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        HttpUtil.saveRequestedURLInCookie(request, response, 300);
+        HttpStreams.saveRequestedURLInCookie(request, response, 300);
 
         verify(request).getRequestURL();
         // Cookie is a crappy class that does not allow equals or hashcode, so we test the number of invocations of

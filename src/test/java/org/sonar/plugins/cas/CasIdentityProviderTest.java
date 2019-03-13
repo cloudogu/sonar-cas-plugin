@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class CasIdentityProviderTest {
 

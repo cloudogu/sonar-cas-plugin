@@ -7,11 +7,11 @@ import javax.servlet.http.Cookie;
 
 import static org.fest.assertions.Assertions.assertThat;
 
-public class CookieUtilTest {
+public class CookiesTest {
 
     @Test
     public void cookieBuilderShouldCreateHttpOnlyCookie() {
-        Cookie cookie = new CookieUtil.HttpOnlyCookieBuilder()
+        Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name("key")
                 .value("value")
                 .contextPath("/")
@@ -27,7 +27,7 @@ public class CookieUtilTest {
 
     @Test
     public void createDeletionCookie() {
-        Cookie cookie = CookieUtil.createDeletionCookie("key", "http://server.url/");
+        Cookie cookie = Cookies.createDeletionCookie("key", "http://server.url/");
 
         assertThat(cookie.getName()).isEqualTo("key");
         assertThat(cookie.getValue()).isEqualTo("");
@@ -38,26 +38,26 @@ public class CookieUtilTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void createDeletionCookieShouldThrowException() {
-        CookieUtil.createDeletionCookie("key", null);
+        Cookies.createDeletionCookie("key", null);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void cookieBuildShouldThrowException_nameMustNotNull() {
-        new CookieUtil.HttpOnlyCookieBuilder()
+        new Cookies.HttpOnlyCookieBuilder()
                 .name(null)
                 .build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void cookieBuildShouldThrowException_nameMustNotEmpty() {
-        new CookieUtil.HttpOnlyCookieBuilder()
+        new Cookies.HttpOnlyCookieBuilder()
                 .name("")
                 .build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void cookieBuildShouldThrowException_valueMustNotNull() {
-        new CookieUtil.HttpOnlyCookieBuilder()
+        new Cookies.HttpOnlyCookieBuilder()
                 .name("name")
                 .value(null)
                 .build();
@@ -65,7 +65,7 @@ public class CookieUtilTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void cookieBuildShouldThrowException_contextPathMustNotNull() {
-        new CookieUtil.HttpOnlyCookieBuilder()
+        new Cookies.HttpOnlyCookieBuilder()
                 .name("name")
                 .value("value")
                 .contextPath(null)
@@ -74,7 +74,7 @@ public class CookieUtilTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void cookieBuildShouldThrowException_contextPathMustNotEmpty() {
-        new CookieUtil.HttpOnlyCookieBuilder()
+        new Cookies.HttpOnlyCookieBuilder()
                 .name("name")
                 .value("value")
                 .contextPath("")
@@ -83,7 +83,7 @@ public class CookieUtilTest {
 
     @Test
     public void cookieBuildShouldBuildCookie_valueMayBeEmpty() {
-        Cookie actual = new CookieUtil.HttpOnlyCookieBuilder()
+        Cookie actual = new Cookies.HttpOnlyCookieBuilder()
                 .name("test")
                 .value("")
                 .contextPath("/")
@@ -102,7 +102,7 @@ public class CookieUtilTest {
         Cookie c2 = new Cookie("key2", "value2");
         Cookie[] cookies = {c1, c2};
 
-        Cookie actual = CookieUtil.findCookieByName(cookies, "key1");
+        Cookie actual = Cookies.findCookieByName(cookies, "key1");
 
         Assertions.assertThat(actual).isEqualTo(c1);
     }
@@ -113,7 +113,7 @@ public class CookieUtilTest {
         Cookie c2 = new Cookie("key2", "value2");
         Cookie[] cookies = {c1, c2};
 
-        Cookie actual = CookieUtil.findCookieByName(cookies, "key3");
+        Cookie actual = Cookies.findCookieByName(cookies, "key3");
 
         Assertions.assertThat(actual).isNull();
     }
@@ -122,17 +122,17 @@ public class CookieUtilTest {
     public void findCookieByNameShouldHandleNoCookiesGracefully() {
         Cookie[] cookiesCollection1 = {};
 
-        Cookie actual = CookieUtil.findCookieByName(cookiesCollection1, "key1");
+        Cookie actual = Cookies.findCookieByName(cookiesCollection1, "key1");
 
         Assertions.assertThat(actual).isNull();
 
-        actual = CookieUtil.findCookieByName(null, "key1");
+        actual = Cookies.findCookieByName(null, "key1");
 
         Assertions.assertThat(actual).isNull();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void findCookieByNameShouldThrowException() {
-        CookieUtil.findCookieByName(null, null);
+        Cookies.findCookieByName(null, null);
     }
 }

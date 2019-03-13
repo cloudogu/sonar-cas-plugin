@@ -6,7 +6,7 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
@@ -22,7 +22,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
 import java.io.StringReader;
 
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 /**
  * This class handles log-out related actions like checking for valid JWT cookies and invalidating JWT during logout.
@@ -120,10 +120,10 @@ public class LogoutHandler {
     }
 
     private void removeAuthCookies(HttpServletResponse response, String contextPath) {
-        Cookie jwtCookie = CookieUtil.createDeletionCookie(JWT_SESSION_COOKIE, contextPath);
+        Cookie jwtCookie = Cookies.createDeletionCookie(JWT_SESSION_COOKIE, contextPath);
         response.addCookie(jwtCookie);
 
-        Cookie xsrfCookie = CookieUtil.createDeletionCookie("XSRF-TOKEN", contextPath);
+        Cookie xsrfCookie = Cookies.createDeletionCookie("XSRF-TOKEN", contextPath);
         response.addCookie(xsrfCookie);
     }
 

@@ -6,7 +6,7 @@ import org.sonar.api.config.Configuration;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.FilterChain;
@@ -60,8 +60,8 @@ public class ForceCasLoginFilterTest {
     }
 
     private Cookie createJwtCookie(String jwtCookieDoughContent) {
-        return new CookieUtil.HttpOnlyCookieBuilder()
-                .name(CookieUtil.JWT_SESSION_COOKIE)
+        return new Cookies.HttpOnlyCookieBuilder()
+                .name(Cookies.JWT_SESSION_COOKIE)
                 .value(jwtCookieDoughContent)
                 .contextPath("/")
                 .maxAgeInSecs(100)

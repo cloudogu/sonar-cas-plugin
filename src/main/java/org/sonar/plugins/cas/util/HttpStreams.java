@@ -32,17 +32,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 
-import static org.sonar.plugins.cas.util.CookieUtil.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
+import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
  * Util class for request methods.
  *
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  */
-public final class HttpUtil {
-    private static final Logger LOG = LoggerFactory.getLogger(HttpUtil.class);
+public final class HttpStreams {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpStreams.class);
 
-    private HttpUtil() {
+    private HttpStreams() {
+        // util classes should not be instantiable
     }
 
     public static HttpServletResponse toHttp(ServletResponse response) {
@@ -93,10 +94,10 @@ public final class HttpUtil {
      * @param response the response is used to save a cookie containing the original URL
      */
     public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge) {
-        String originalURL = HttpUtil.getRequestUrlWithQueryParameters(request);
+        String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
         LOG.debug("found original URL {}", originalURL);
 
-        Cookie cookie = new CookieUtil.HttpOnlyCookieBuilder()
+        Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)
                 .value(originalURL)
                 .maxAgeInSecs(maxCookieAge)

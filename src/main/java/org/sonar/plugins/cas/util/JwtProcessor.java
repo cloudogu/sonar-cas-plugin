@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class JwtProcessor {
     private static final String JWT_ID = "jti";
@@ -87,7 +87,7 @@ public class JwtProcessor {
     }
 
     public static SimpleJwt getJwtTokenFromCookies(Cookie[] cookies) {
-        Cookie cookie = CookieUtil.findCookieByName(cookies, JWT_SESSION_COOKIE);
+        Cookie cookie = Cookies.findCookieByName(cookies, JWT_SESSION_COOKIE);
         if (cookie == null) {
             return SimpleJwt.getNullObject();
         }

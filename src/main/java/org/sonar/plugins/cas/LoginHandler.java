@@ -14,7 +14,7 @@ import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
@@ -27,7 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
-import static org.sonar.plugins.cas.util.CookieUtil.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
+import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
  * This class handles the initial authentication use case.
@@ -104,7 +104,7 @@ public class LoginHandler {
     }
 
     private String getOriginalUrlFromCookieOrDefault(HttpServletRequest request) {
-        Cookie cookie = CookieUtil.findCookieByName(request.getCookies(), COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
+        Cookie cookie = Cookies.findCookieByName(request.getCookies(), COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
 
         if (cookie != null) {
             String urlFromCookie = cookie.getValue();
@@ -121,7 +121,7 @@ public class LoginHandler {
     }
 
     private void removeRedirectCookie(HttpServletResponse response, String contextPath) {
-        Cookie cookie = CookieUtil.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
+        Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
 
         response.addCookie(cookie);
     }

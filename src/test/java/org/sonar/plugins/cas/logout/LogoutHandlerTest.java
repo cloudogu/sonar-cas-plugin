@@ -6,7 +6,7 @@ import org.sonar.plugins.cas.AuthTestData;
 import org.sonar.plugins.cas.SonarTestConfiguration;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.http.Cookie;
@@ -17,7 +17,7 @@ import java.io.IOException;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.JWT_TOKEN;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class LogoutHandlerTest {
 
@@ -58,7 +58,7 @@ public class LogoutHandlerTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         String jwtCookieDoughContent = getJwtToken();
-        Cookie httpOnlyCookie = new CookieUtil.HttpOnlyCookieBuilder()
+        Cookie httpOnlyCookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(JWT_SESSION_COOKIE)
                 .value(jwtCookieDoughContent)
                 .maxAgeInSecs(100)

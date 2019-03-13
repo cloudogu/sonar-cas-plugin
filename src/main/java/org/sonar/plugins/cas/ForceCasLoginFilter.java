@@ -25,7 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.util.HttpUtil;
+import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
@@ -70,8 +70,8 @@ public class ForceCasLoginFilter extends ServletFilter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest request = HttpUtil.toHttp(servletRequest);
-        HttpServletResponse response = HttpUtil.toHttp(servletResponse);
+        HttpServletRequest request = HttpStreams.toHttp(servletRequest);
+        HttpServletResponse response = HttpStreams.toHttp(servletResponse);
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.mustGetInteger(configuration);
 
@@ -79,7 +79,7 @@ public class ForceCasLoginFilter extends ServletFilter {
             LOG.debug("Found permitted request to {}", requestedURL);
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
-                HttpUtil.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
+                HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
                 logoutHandler.handleInvalidJwtCookie(request, response);
                 redirectToLogin(request, response);
             } else {
@@ -89,7 +89,7 @@ public class ForceCasLoginFilter extends ServletFilter {
             LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to login page",
                     requestedURL);
             // keep the original URL during redirectToLogin to the CAS server in order to have the URL opened as intended by the user
-            HttpUtil.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
+            HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
             redirectToLogin(request, response);
         }
     }
