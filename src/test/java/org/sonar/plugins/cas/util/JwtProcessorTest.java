@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 import static org.fest.assertions.Assertions.assertThat;
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class JwtProcessorTest {
     private static final String JWT_TOKEN = "eyJhbGciOiJIUzI1NiJ9." +

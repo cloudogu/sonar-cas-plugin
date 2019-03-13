@@ -25,19 +25,16 @@ import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.session.CasSessionStore;
-import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
-import org.sonar.plugins.cas.util.HttpUtil;
+import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
 
@@ -52,22 +49,19 @@ import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
 public class ForceCasLoginFilter extends ServletFilter {
-    static final String COOKIE_NAME_URL_AFTER_CAS_REDIRECT = "redirectAfterCasLogin";
     private static final Logger LOG = LoggerFactory.getLogger(ForceCasLoginFilter.class);
+    private static final int DEFAULT_CAS_REDIRECT_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(5);
     /**
      * Array of request URLS that should not be redirected to the login page.
      */
     private static final List<String> WHITE_LIST = Arrays.asList(
             "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
 
-    private final CasSessionStore casSessionStore;
     private final Configuration configuration;
     private LogoutHandler logoutHandler;
 
-    public ForceCasLoginFilter(Configuration configuration, CasSessionStoreFactory sessionStoreFactory,
-                               LogoutHandler logoutHandler) {
+    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler) {
         this.configuration = configuration;
-        this.casSessionStore = sessionStoreFactory.getInstance();
         this.logoutHandler = logoutHandler;
     }
 
@@ -78,37 +72,37 @@ public class ForceCasLoginFilter extends ServletFilter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest request = HttpUtil.toHttp(servletRequest);
-        HttpServletResponse response = HttpUtil.toHttp(servletResponse);
+        HttpServletRequest request = HttpStreams.toHttp(servletRequest);
+        HttpServletResponse response = HttpStreams.toHttp(servletResponse);
         String requestedURL = request.getRequestURL().toString();
+        int maxRedirectCookieAge = getMaxCookieAge(configuration);
 
         if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
-            boolean redirectToLoginPage = logoutHandler.handleInvalidJwtCookie(request, response);
 
-            if (!redirectToLoginPage) {
+            if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
+                HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
+                logoutHandler.handleInvalidJwtCookie(request, response);
+                redirectToLogin(request, response);
+            } else {
                 chain.doFilter(request, servletResponse);
             }
         } else {
             LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to login page",
                     requestedURL);
             // keep the original URL during redirectToLogin to the CAS server in order to have the URL opened as intended by the user
-            saveRequestedURLInCookie(request, response);
-
+            HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
             redirectToLogin(request, response);
         }
     }
 
-    private void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response) {
-        String originalURL = request.getRequestURL().toString();
-
-        int maxCookieAge = SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.mustGetInteger(configuration);
-        Cookie cookie = CookieUtil.createHttpOnlyCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, originalURL, maxCookieAge);
-
-        response.addCookie(cookie);
+    int getMaxCookieAge(Configuration configuration) {
+        return SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.getInteger(configuration, DEFAULT_CAS_REDIRECT_COOKIE_AGE);
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        LOG.debug("Redirecting to login page {}", request.getRequestURL(), SONAR_LOGIN_URL_PATH);
+
         response.sendRedirect(request.getContextPath() + SONAR_LOGIN_URL_PATH);
     }
 

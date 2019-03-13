@@ -21,73 +21,66 @@ package org.sonar.plugins.cas.util;
 
 import org.junit.Test;
 
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
-import java.util.Collection;
-import java.util.Locale;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.*;
 
 /**
  * @author Sebastian Sdorra
  */
-public class HttpUtilTest {
+public class HttpStreamsTest {
 
     @Test
-    public void testGetBasicAuthentication() throws UnsupportedEncodingException {
+    public void testGetBasicAuthentication() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("Authorization")).thenReturn("Basic d2lraTpwZWRpYQ==");
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNotNull(creds);
         assertEquals(creds.getUsername(), "wiki");
         assertEquals(creds.getPassword(), "pedia");
     }
 
     @Test
-    public void testGetBasicAuthenticationWithoutAuthorization() throws UnsupportedEncodingException {
+    public void testGetBasicAuthenticationWithoutAuthorization() {
         HttpServletRequest request = mock(HttpServletRequest.class);
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNull(creds);
     }
 
     @Test
-    public void testGetBasicAuthenticationWithoutBasic() throws UnsupportedEncodingException {
+    public void testGetBasicAuthenticationWithoutBasic() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getHeader("Authorization")).thenReturn("Other d2lraTpwZWRpYQ==");
 
-        Credentials creds = HttpUtil.getBasicAuthentication(request);
+        Credentials creds = HttpStreams.getBasicAuthentication(request);
         assertNull(creds);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ToHttpResponseShouldThrowException() {
         ServletResponse servletResponseMock = mock(ServletResponse.class);
-        HttpUtil.toHttp(servletResponseMock);
+        HttpStreams.toHttp(servletResponseMock);
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void ToHttpRequestThrowException() {
         ServletRequest servletRequestMock = mock(ServletRequest.class);
-        HttpUtil.toHttp(servletRequestMock);
+        HttpStreams.toHttp(servletRequestMock);
     }
 
     @Test
     public void ToHttpRequestShouldReturnTypeCast() {
         ServletRequest servletRequestMock = mock(HttpServletRequest.class);
 
-        HttpServletRequest actual = HttpUtil.toHttp(servletRequestMock);
+        HttpServletRequest actual = HttpStreams.toHttp(servletRequestMock);
 
         assertThat(actual).isSameAs(servletRequestMock);
     }
@@ -96,8 +89,28 @@ public class HttpUtilTest {
     public void ToHttpResponseShouldReturnTypeCast() {
         HttpServletResponse servletResponse = mock(HttpServletResponse.class);
 
-        HttpServletResponse actual = HttpUtil.toHttp(servletResponse);
+        HttpServletResponse actual = HttpStreams.toHttp(servletResponse);
 
         assertThat(actual).isSameAs(servletResponse);
+    }
+
+    @Test
+    public void saveRequestedURLInCookieShouldSaveWholeURLInCookie() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String originalURL = "http://sonar.url.com/somePageWhichIsNotLogin";
+        when(request.getRequestURL()).thenReturn(new StringBuffer(originalURL));
+        when(request.getContextPath()).thenReturn("/sonar");
+        // getRequestURL does NOT return query params. Kinda important for called sonar URLs
+        when(request.getQueryString()).thenReturn("project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        HttpStreams.saveRequestedURLInCookie(request, response, 300);
+
+        verify(request).getRequestURL();
+        // Cookie is a crappy class that does not allow equals or hashcode, so we test the number of invocations of
+        // getParameterMap. If it was only once, it would not have jumped into urlEncodeQueryParameters()
+        verify(request, times(2)).getQueryString();
+        verify(response).addCookie(any());
     }
 }
