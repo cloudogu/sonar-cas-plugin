@@ -20,7 +20,7 @@ import java.util.Map;
 
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class CasIdentityProviderTest {
 
@@ -38,11 +38,11 @@ public class CasIdentityProviderTest {
                 .withAttribute("sonar.cas.fullNameAttribute", "displayName");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
         when(request.getMethod()).thenReturn("GET");
         when(request.getParameter("ticket")).thenReturn("ST-1-123456789");
         when(request.getParameter("service")).thenReturn("serviceUrl");
-        when(request.getContextPath()).thenReturn("http://sonar.url.com");
+        when(request.getContextPath()).thenReturn("/sonar");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(response.getHeaders("Set-Cookie")).thenReturn(Collections.singletonList(JWT_SESSION_COOKIE + "=" + getJwtToken()));
@@ -50,6 +50,7 @@ public class CasIdentityProviderTest {
         BaseIdentityProvider.Context context = mock(BaseIdentityProvider.Context.class);
         when(context.getRequest()).thenReturn(request);
         when(context.getResponse()).thenReturn(response);
+        when(context.getServerBaseURL()).thenReturn("http://sonar.url.com");
 
         Map<String, Object> casAttributes = new HashMap<>();
         casAttributes.put("mail", "ab@cd.ef");
@@ -81,7 +82,7 @@ public class CasIdentityProviderTest {
 
         // then
         verify(context).authenticate(any());
-        String expectedRedirUrl = "http://sonar.url.com";
+        String expectedRedirUrl = "/sonar";
         verify(response).sendRedirect(expectedRedirUrl);
     }
 
@@ -99,10 +100,10 @@ public class CasIdentityProviderTest {
                 .withAttribute("sonar.cas.fullNameAttribute", "displayName");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
         when(request.getMethod()).thenReturn("POST");
         when(request.getParameter("logoutRequest")).thenReturn(AuthTestData.getLogoutTicket());
-        when(request.getContextPath()).thenReturn("http://sonar.url.com");
+        when(request.getContextPath()).thenReturn("/sonar");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
         when(response.getHeaders("Set-Cookie")).thenReturn(Collections.singletonList(JWT_SESSION_COOKIE + "=" + getJwtToken()));

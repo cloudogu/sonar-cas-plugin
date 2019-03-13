@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 
-import static org.sonar.plugins.cas.util.HttpUtil.toHttp;
+import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
 
 /**
  * This class injects the CAS logout URL into SonarQube's original logout button in order to call CAS backchannel

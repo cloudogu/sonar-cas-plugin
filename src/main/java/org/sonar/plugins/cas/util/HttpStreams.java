@@ -21,22 +21,29 @@ package org.sonar.plugins.cas.util;
 
 import com.google.common.base.Strings;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
+
+import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
 
 /**
  * Util class for request methods.
  *
  * @author Sebastian Sdorra, TRIOLOGY GmbH
  */
-public final class HttpUtil {
+public final class HttpStreams {
+    private static final Logger LOG = LoggerFactory.getLogger(HttpStreams.class);
 
-    private HttpUtil() {
+    private HttpStreams() {
+        // util classes should not be instantiable
     }
 
     public static HttpServletResponse toHttp(ServletResponse response) {
@@ -53,7 +60,7 @@ public final class HttpUtil {
         return (HttpServletRequest) request;
     }
 
-    public static Credentials getBasicAuthentication(HttpServletRequest request) {
+    static Credentials getBasicAuthentication(HttpServletRequest request) {
         Credentials credentials = null;
         String header = request.getHeader("Authorization");
         if (Strings.nullToEmpty(header).startsWith("Basic ")) {
@@ -67,5 +74,36 @@ public final class HttpUtil {
             }
         }
         return credentials;
+    }
+
+    private static String getRequestUrlWithQueryParameters(HttpServletRequest request) {
+        String url = request.getRequestURL().toString();
+
+        if (StringUtils.isNotBlank(request.getQueryString())) {
+            url += "?" + request.getQueryString();
+        }
+
+        return url;
+    }
+
+    /**
+     * Keep the original URL during redirectToLogin to the CAS server in order to have the URL opened as intended by the
+     * user.
+     * @param request the request is used to get the original URL and query parameters
+     * @param response the response is used to save a cookie containing the original URL
+     */
+    public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge) {
+        String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
+        LOG.debug("found original URL {}", originalURL);
+
+        Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
+                .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)
+                .value(originalURL)
+                .maxAgeInSecs(maxCookieAge)
+                .contextPath(request.getContextPath())
+                .build();
+
+        LOG.debug("set cookie with context path {}", request.getContextPath());
+        response.addCookie(cookie);
     }
 }

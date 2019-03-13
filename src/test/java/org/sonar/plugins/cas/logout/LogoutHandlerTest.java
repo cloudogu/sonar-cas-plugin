@@ -1,11 +1,12 @@
 package org.sonar.plugins.cas.logout;
 
 import org.junit.Test;
+import org.mockito.verification.VerificationMode;
 import org.sonar.plugins.cas.AuthTestData;
 import org.sonar.plugins.cas.SonarTestConfiguration;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.CookieUtil;
+import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
 import javax.servlet.http.Cookie;
@@ -13,18 +14,17 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.JWT_TOKEN;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class LogoutHandlerTest {
 
     @Test
     public void logoutShouldInvalidateTicketInStore() throws IOException {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
-                .withAttribute("sonar.cas.sonarServerUrl", "sonar.url.com");
+                .withAttribute("sonar.cas.sonarServerUrl", "http://sonar.url.com");
         CasSessionStore store = mock(CasSessionStore.class);
         CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
         when(factory.getInstance()).thenReturn(store);
@@ -41,12 +41,14 @@ public class LogoutHandlerTest {
 
         // then
         verify(store).invalidateJwt(ticketID);
+        verify(response).sendRedirect("http://sonar.url.com/sessions/init/cas");
     }
 
     @Test
-    public void handleInvalidJwtCookie() throws IOException {
+    public void handleInvalidJwtCookie() {
         // given
-        SonarTestConfiguration configuration = new SonarTestConfiguration();
+        SonarTestConfiguration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "300");
         CasSessionStore store = mock(CasSessionStore.class);
         CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
         when(factory.getInstance()).thenReturn(store);
@@ -56,23 +58,27 @@ public class LogoutHandlerTest {
 
         HttpServletRequest request = mock(HttpServletRequest.class);
         String jwtCookieDoughContent = getJwtToken();
-        Cookie httpOnlyCookie = CookieUtil.createHttpOnlyCookie(JWT_SESSION_COOKIE, jwtCookieDoughContent, 100);
+        Cookie httpOnlyCookie = new Cookies.HttpOnlyCookieBuilder()
+                .name(JWT_SESSION_COOKIE)
+                .value(jwtCookieDoughContent)
+                .maxAgeInSecs(100)
+                .contextPath("/sonar")
+                .build();
         Cookie[] cookies = {httpOnlyCookie};
         when(request.getCookies()).thenReturn(cookies);
         when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
-        when(request.getContextPath()).thenReturn("http://sonar.url.com/");
+        when(request.getContextPath()).thenReturn("/sonar");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
         LogoutHandler sut = new LogoutHandler(configuration, factory);
 
         // when
-        boolean removeCookiesAndRedirectToLogin = sut.handleInvalidJwtCookie(request, response);
+        sut.handleInvalidJwtCookie(request, response);
 
         // then
         verify(store).isJwtStored(JWT_TOKEN);
         verify(store).fetchStoredJwt(JWT_TOKEN);
-        verify(response, times(2)).addCookie(any());
-        verify(response).sendRedirect("http://sonar.url.com//sessions/new");
-        assertThat(removeCookiesAndRedirectToLogin).isTrue();
+        VerificationMode addedCookies = times(2); //add deletion cookie for JWT and XSRF
+        verify(response, addedCookies).addCookie(any());
     }
 }

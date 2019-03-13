@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.HttpUtil;
+import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
-import static org.sonar.plugins.cas.util.CookieUtil.JWT_SESSION_COOKIE;
+import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 /**
  * This class updates the JWT with a newer expiration date in the session store when SonarQube sends a newer JWT.
@@ -35,8 +35,8 @@ public class CasTokenRefreshFilter extends ServletFilter {
     public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
             throws IOException, ServletException {
 
-        HttpServletRequest request = HttpUtil.toHttp(servletRequest);
-        HttpServletResponse response = HttpUtil.toHttp(servletResponse);
+        HttpServletRequest request = HttpStreams.toHttp(servletRequest);
+        HttpServletResponse response = HttpStreams.toHttp(servletResponse);
 
         SimpleJwt requestJwt = JwtProcessor.getJwtTokenFromCookies(request.getCookies());
         SimpleJwt responseJwt = getJwtFromResponse(response);
