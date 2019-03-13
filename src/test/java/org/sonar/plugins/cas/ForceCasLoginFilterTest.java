@@ -1,5 +1,6 @@
 package org.sonar.plugins.cas;
 
+import org.fest.assertions.Assertions;
 import org.junit.Test;
 import org.mockito.verification.VerificationMode;
 import org.sonar.api.config.Configuration;
@@ -107,5 +108,32 @@ public class ForceCasLoginFilterTest {
         verify(response, times(1)).addCookie(any()); // keep the original URL in a cookie
         verify(store, noInteraction).invalidateJwt(anyString());
         verify(response).sendRedirect(any());
+    }
+
+    @Test
+    public void getMaxCookieAgeShouldReturnConfiguredValue() {
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.sessionStorePath", "/tmp")
+                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
+        CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+
+        int actual = sut.getMaxCookieAge(config);
+
+        Assertions.assertThat(actual).isEqualTo(100);
+    }
+
+    @Test
+    public void getMaxCookieAgeShouldReturnDefaultValue() {
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.sessionStorePath", "/tmp"); // no max age was set
+        CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
+        LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+
+        int actualSeconds = sut.getMaxCookieAge(config);
+
+        Assertions.assertThat(actualSeconds).isEqualTo(300);
     }
 }
