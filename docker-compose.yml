@@ -2,7 +2,7 @@ version: '3'
 services:
 
   sonar:
-    image: sonarqube:6.7.4
+    image: sonarqube:7.9.1-community
     ports:
       - "9000:9000"
       - "9092:9092"
