@@ -2,7 +2,8 @@
 
 ## What you need
 
-- Java JDK >= 8
+- Java JDK >= 11
+  - Getestet mit `11.0.1-zulu`-Distribution
 - Maven
 - docker
 - docker-compose
@@ -26,7 +27,7 @@ cas.authn.accept.users=admin::secretPassword
 
 # Sonar CAS plugin installation (local development)
 
-1. Map your local IP address to DNS names for proper Sonar ⇄ QubeCAS interaction
+1. Map your local IP address to DNS names for proper SonarQube ⇄ CAS interaction
    - add a line to your `/etc/hosts` file like this:
    - `192.168.1.31 sonar.hitchhiker.com cas.hitchhiker.com`
    - check if the host names are reachable:
