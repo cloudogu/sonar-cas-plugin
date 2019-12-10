@@ -7,6 +7,7 @@ import org.sonar.plugins.cas.SonarTestConfiguration;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayInputStream;
@@ -84,6 +85,16 @@ public class CasSonarSignOutInjectorFilterTest {
 
     private ServletOutputStream createOutputStream() {
         return new ServletOutputStream() {
+            @Override
+            public boolean isReady() {
+                return true;
+            }
+
+            @Override
+            public void setWriteListener(WriteListener writeListener) {
+
+            }
+
             @Override
             public void write(int b) {
             }
