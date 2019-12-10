@@ -62,13 +62,13 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
     public void doFilter(final ServletRequest request, final ServletResponse response,
                          final FilterChain filterChain) throws IOException, ServletException {
+        // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
         filterChain.doFilter(request, response);
 
         HttpServletRequest httpRequest = toHttp(request);
 
         if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
             LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
-            filterChain.doFilter(request, response);
             return;
         }
 
@@ -77,7 +77,6 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
 
         if (stream == null) {
             LOG.error("Could not find file {} in classpath. Exiting filtering", javascriptFile);
-            filterChain.doFilter(request, response);
             return;
         }
 
