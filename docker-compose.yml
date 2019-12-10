@@ -13,6 +13,8 @@ services:
       - ./sonar-home/data:/opt/sonarqube/data
       - ./sonar-home/plugins:/opt/sonarqube/extensions/plugins
       - ./sonar-home/conf:/opt/sonarqube/conf
+      - ./sonar-home/temp:/opt/sonarqube/temp
+      - ./sonar-home/logs:/opt/sonarqube/logs
     extra_hosts:
       - "cas.hitchhiker.com:${SONAR_CAS_LOCAL_IP}"
 
@@ -29,8 +31,9 @@ services:
       - ./docker/pom.xml:/cas-overlay/pom.xml
     extra_hosts:
       - "sonar.hitchhiker.com:${SONAR_SONAR_LOCAL_IP}"
+      - "cas.hitchhiker.com:${SONAR_CAS_LOCAL_IP}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/cas"]
+      test: ["CMD", "curl", "-f", "https://cas.hitchhiker.com:8445/cas"]
       interval: 1m30s
       timeout: 30s
       retries: 5

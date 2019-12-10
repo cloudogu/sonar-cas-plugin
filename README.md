@@ -44,7 +44,7 @@ cas.authn.accept.users=admin::secretPassword
 
 ```
 mvn clean install
-cp target/sonar-cas-plugin-1.0.0-SNAPSHOT.jar sonar-home/plugins
+cp target/sonar-cas-plugin-<version>.jar sonar-home/plugins
 ```
 
 # Start SonarQube and CAS with docker-compose
@@ -57,12 +57,33 @@ Start both servers at once in the backup like this:
 docker-compose up -d
 ```
 
-For CAS plugin development you need to restart SonarQube in order to make the activate code changes. 
+And hit the configured URLs: 
+
+- [CAS](http://cas.hitchhiker.com:9000/cas)
+- [SonarQube](http://sonar.hitchhiker.com:9000/sonar)
+  - currently it must be configured to have a context path
+  - configure `sonar.config` with this value `sonar.web.context=/sonar`
+
+
+## File Permissions if `sonar_home`
+
+If SonarQube acts up on your filesystem permission just change the permissions with this command: 
 
 ```
+sudo chown 999:999 -R data temp plugins logs
+``` 
+
+# Restart SonarQube during development
+
+For CAS plugin development you need to restart SonarQube in order to make the activate code changes, like this:
+
+```
+cp target/sonar-cas-plugin-<version>.jar sonar-home/plugins
 docker-compose restart sonar
 ```
- 
+
+# Reading logs
+
 You can view the respective log output with these commands:
 ```
 docker-compose logs -f sonar
