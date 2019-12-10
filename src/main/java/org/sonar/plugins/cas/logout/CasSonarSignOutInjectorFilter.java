@@ -52,14 +52,18 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     // same time.
     private String cachedJsInjection;
 
-    /** called with injection by SonarQube during server initialization */
+    /**
+     * called with injection by SonarQube during server initialization
+     */
     public CasSonarSignOutInjectorFilter(Configuration configuration) {
         this.config = configuration;
         this.cachedJsInjection = "";
         this.resourceClassloader = CasSonarSignOutInjectorFilter.class.getClassLoader();
     }
 
-    /** for testing */
+    /**
+     * for testing
+     */
     CasSonarSignOutInjectorFilter(Configuration configuration, ClassLoader resourceClassloader) {
         this.config = configuration;
         this.cachedJsInjection = "";
@@ -77,22 +81,27 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     }
 
     public void doFilter(final ServletRequest request, final ServletResponse response,
-                         final FilterChain filterChain) throws IOException, ServletException {
-        // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
-        filterChain.doFilter(request, response);
+                         final FilterChain filterChain) {
 
-        HttpServletRequest httpRequest = toHttp(request);
-        if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
-            LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
-            return;
+        try {
+            // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
+            filterChain.doFilter(request, response);
+
+            HttpServletRequest httpRequest = toHttp(request);
+            if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
+                LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
+                return;
+            }
+
+            if (StringUtils.isEmpty(this.cachedJsInjection)) {
+                readJsInjectionIntoCache();
+            }
+
+            String requestedUrl = httpRequest.getRequestURL().toString();
+            appendJavascriptInjectionToHtmlStream(requestedUrl, response);
+        } catch (Exception e) {
+            LOG.error("doFilter failed", e);
         }
-
-        if(StringUtils.isEmpty(this.cachedJsInjection)) {
-            readJsInjectionIntoCache();
-        }
-
-        String requestedUrl = httpRequest.getRequestURL().toString();
-        appendJavascriptInjectionToHtmlStream(requestedUrl, response);
     }
 
     private void readJsInjectionIntoCache() throws IOException {
@@ -100,7 +109,7 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         InputStream jsInjectionStream = this.resourceClassloader.getResourceAsStream(javascriptFile);
 
         if (jsInjectionStream == null) {
-            throw new RuntimeException(String.format("Could not find file %s in classpath. Exiting filtering", javascriptFile));
+            throw new IOException(String.format("Could not find file %s in classpath. Exiting filtering", javascriptFile));
         }
 
         this.cachedJsInjection = readInputStream(jsInjectionStream);

@@ -37,27 +37,30 @@ public final class JwtFiles {
         }
 
         try (InputStream reader = Files.newInputStream(filePath)) {
-            SimpleJwt unmarshaled = unmarshal(reader);
-            if (unmarshaled.getJwtId() == null) {
+            SimpleJwt unmarshalled = unmarshal(reader);
+            if (unmarshalled.getJwtId() == null) {
                 String msg = "Cannot unmarshal path " + filePath + " to an instance of " +
                         SimpleJwt.class.getSimpleName() + ". The file does not seem to contain valid JWT data.";
                 throw new JwtFileConversionException(msg);
             }
-            return unmarshaled;
+            return unmarshalled;
         } catch (Exception e) {
             String msg = "Cannot unmarshal path " + filePath + " to an instance of " + SimpleJwt.class.getName();
             throw new JwtFileConversionException(msg, e);
         }
     }
 
-    protected static SimpleJwt unmarshal(InputStream input) throws IOException, SAXException, ParserConfigurationException {
-        Element root = XMLParsing.getRootElementFromXML(input);
-
-        String jwtId = root.getElementsByTagName("jwtId").item(0).getTextContent();
-        long expiration = Long.parseLong(root.getElementsByTagName("expiration").item(0).getTextContent());
-        boolean invalid = Boolean.parseBoolean(root.getElementsByTagName("invalid").item(0).getTextContent());
-
-        return new SimpleJwt(jwtId, expiration, invalid);
+    protected static SimpleJwt unmarshal(InputStream input) {
+        try {
+            Element root = XMLParsing.getRootElementFromXML(input);
+            String jwtId = root.getElementsByTagName("jwtId").item(0).getTextContent();
+            long expiration = Long.parseLong(root.getElementsByTagName("expiration").item(0).getTextContent());
+            boolean invalid = Boolean.parseBoolean(root.getElementsByTagName("invalid").item(0).getTextContent());
+            return new SimpleJwt(jwtId, expiration, invalid);
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            String msg = "Cannot unmarshal input to an instance of " + SimpleJwt.class.getName();
+            throw new JwtFileConversionException(msg, e);
+        }
     }
 
     /**

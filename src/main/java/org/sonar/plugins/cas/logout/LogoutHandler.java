@@ -8,6 +8,7 @@ import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.*;
 import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
@@ -16,6 +17,7 @@ import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +39,7 @@ public class LogoutHandler {
         this.casSessionStore = casSessionStoreFactory.getInstance();
     }
 
-    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException, ParserConfigurationException, SAXException {
         String logoutAttributes = request.getParameter("logoutRequest");
 
         try (InputStream inputStream = new ByteArrayInputStream(logoutAttributes.getBytes())) {
@@ -52,9 +54,6 @@ public class LogoutHandler {
             LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, unmarshalled.sessionId);
 
             response.sendRedirect(getSonarServiceUrl());
-        } catch (Exception e) {
-            String msg = "Cannot unmarshal logoutRequest";
-            throw new IOException(msg, e);
         }
     }
 
