@@ -53,9 +53,9 @@ public final class JwtFiles {
     protected static SimpleJwt unmarshal(InputStream input) {
         try {
             Element root = XMLParsing.getRootElementFromXML(input);
-            String jwtId = root.getElementsByTagName("jwtId").item(0).getTextContent();
-            long expiration = Long.parseLong(root.getElementsByTagName("expiration").item(0).getTextContent());
-            boolean invalid = Boolean.parseBoolean(root.getElementsByTagName("invalid").item(0).getTextContent());
+            String jwtId = XMLParsing.getContentForTagName(root, "jwtId");
+            long expiration = Long.parseLong(XMLParsing.getContentForTagName(root, "expiration"));
+            boolean invalid = Boolean.parseBoolean(XMLParsing.getContentForTagName(root, "invalid"));
             return new SimpleJwt(jwtId, expiration, invalid);
         } catch (ParserConfigurationException | IOException | SAXException e) {
             String msg = "Cannot unmarshal input to an instance of " + SimpleJwt.class.getName();

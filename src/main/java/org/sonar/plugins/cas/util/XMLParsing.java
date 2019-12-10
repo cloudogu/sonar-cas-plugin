@@ -27,4 +27,8 @@ public class XMLParsing {
         document.getDocumentElement().normalize();
         return document.getDocumentElement();
     }
+
+    public static String getContentForTagName(Element element, String tagName) {
+        return element.getElementsByTagName(tagName).item(0).getTextContent();
+    }
 }

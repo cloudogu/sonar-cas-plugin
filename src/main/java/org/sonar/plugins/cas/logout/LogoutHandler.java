@@ -45,7 +45,7 @@ public class LogoutHandler {
         try (InputStream inputStream = new ByteArrayInputStream(logoutAttributes.getBytes())) {
             Element root = XMLParsing.getRootElementFromXML(inputStream);
 
-            String sessionId = root.getElementsByTagName("samlp:SessionIndex").item(0).getTextContent();
+            String sessionId = XMLParsing.getContentForTagName(root,"samlp:SessionIndex");
 
             LogoutRequest unmarshalled = new LogoutRequest();
             unmarshalled.sessionId = sessionId;
