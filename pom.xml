@@ -61,7 +61,9 @@
     </ciManagement-->
 
     <properties>
-        <sonar.version>7.9</sonar.version>
+        <!-- for unknown reasons the Sonar plugin API watches the product version while the server version does not -->
+        <sonar.pluginapi.version>7.9.1</sonar.pluginapi.version>
+        <sonar.server.version>7.1</sonar.server.version>
         <cas.version>3.5.0</cas.version>
         <jjwt.version>0.9.1</jjwt.version>
 
@@ -80,7 +82,15 @@
         <dependency>
             <groupId>org.sonarsource.sonarqube</groupId>
             <artifactId>sonar-plugin-api</artifactId>
-            <version>${sonar.version}</version>
+            <version>${sonar.pluginapi.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- sonar-server for debugging-->
+        <dependency>
+            <groupId>org.sonarsource.sonarqube</groupId>
+            <artifactId>sonar-server</artifactId>
+            <version>${sonar.server.version}</version>
             <scope>provided</scope>
         </dependency>
 
@@ -188,17 +198,6 @@
             <version>1.2</version>
             <scope>test</scope>
         </dependency>
-
-        <!-- debugging -->
-
-        <dependency>
-            <groupId>org.sonarsource.sonarqube</groupId>
-            <artifactId>sonar-server</artifactId>
-            <version>7.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-
     </dependencies>
 
     <build>
