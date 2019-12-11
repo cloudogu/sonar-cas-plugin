@@ -95,6 +95,7 @@ public final class HttpStreams {
     public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge) {
         String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
         LOG.debug("found original URL {}", originalURL);
+        LOG.debug("using context path {}", request.getContextPath());
 
         Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)

@@ -6,21 +6,21 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.Cookies;
-import org.sonar.plugins.cas.util.JwtProcessor;
-import org.sonar.plugins.cas.util.SimpleJwt;
-import org.sonar.plugins.cas.util.SonarCasProperties;
+import org.sonar.plugins.cas.util.*;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringReader;
+import java.io.InputStream;
 
 import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
@@ -39,19 +39,27 @@ public class LogoutHandler {
         this.casSessionStore = casSessionStoreFactory.getInstance();
     }
 
-    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException, ParserConfigurationException, SAXException {
         String logoutAttributes = request.getParameter("logoutRequest");
 
-        LogoutRequest logoutRequest = JAXB.unmarshal(new StringReader(logoutAttributes), LogoutRequest.class);
-        String jwtId = casSessionStore.invalidateJwt(logoutRequest.sessionId);
+        try (InputStream inputStream = new ByteArrayInputStream(logoutAttributes.getBytes())) {
+            Element root = XMLParsing.getRootElementFromXML(inputStream);
 
-        LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, logoutRequest.sessionId);
+            String sessionId = XMLParsing.getContentForTagName(root,"samlp:SessionIndex");
 
-        response.sendRedirect(getSonarServiceUrl());
+            LogoutRequest unmarshalled = new LogoutRequest();
+            unmarshalled.sessionId = sessionId;
+
+            String jwtId = casSessionStore.invalidateJwt(unmarshalled.sessionId);
+            LOG.debug("Invalidate JWT {} with Service Ticket {}", jwtId, unmarshalled.sessionId);
+
+            response.sendRedirect(getSonarServiceUrl());
+        }
     }
 
     /**
      * Checks for a blacklisted JWT cookie and the requested URL
+     *
      * @param request the request to check for user cookies
      * @return true if the user contains a blacklisted JWT cookie AND requests a page other than the login-page
      */

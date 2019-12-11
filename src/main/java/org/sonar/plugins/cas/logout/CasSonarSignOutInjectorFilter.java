@@ -19,18 +19,19 @@
  */
 package org.sonar.plugins.cas.logout;
 
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
@@ -44,10 +45,29 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(CasSonarSignOutInjectorFilter.class);
     private static final String CASLOGOUTURL_PLACEHOLDER = "CASLOGOUTURL";
     private final Configuration config;
+    ClassLoader resourceClassloader;
+    // cachedJsInjection stores logout javascript being injected in HTML resources. This cache only invalidates by
+    // Sonar restart. As this injection relies on values from the sonar-cas properties SonarQube must be restarted as
+    // well. Usually this is done by restarting the whole container which would then invalidate this cache at the
+    // same time.
+    private String cachedJsInjection;
 
-    /** called with injection by SonarQube during server initialization */
+    /**
+     * called with injection by SonarQube during server initialization
+     */
     public CasSonarSignOutInjectorFilter(Configuration configuration) {
         this.config = configuration;
+        this.cachedJsInjection = "";
+        this.resourceClassloader = CasSonarSignOutInjectorFilter.class.getClassLoader();
+    }
+
+    /**
+     * for testing
+     */
+    CasSonarSignOutInjectorFilter(Configuration configuration, ClassLoader resourceClassloader) {
+        this.config = configuration;
+        this.cachedJsInjection = "";
+        this.resourceClassloader = resourceClassloader;
     }
 
     @Override
@@ -61,40 +81,60 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     }
 
     public void doFilter(final ServletRequest request, final ServletResponse response,
-                         final FilterChain filterChain) throws IOException, ServletException {
-        filterChain.doFilter(request, response);
+                         final FilterChain filterChain) {
 
-        HttpServletRequest httpRequest = toHttp(request);
-
-        if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
-            LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
+        try {
+            // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
             filterChain.doFilter(request, response);
-            return;
-        }
 
+            HttpServletRequest httpRequest = toHttp(request);
+            if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
+                LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
+                return;
+            }
+
+            if (StringUtils.isEmpty(this.cachedJsInjection)) {
+                readJsInjectionIntoCache();
+            }
+
+            String requestedUrl = httpRequest.getRequestURL().toString();
+            appendJavascriptInjectionToHtmlStream(requestedUrl, response);
+        } catch (Exception e) {
+            LOG.error("doFilter failed", e);
+        }
+    }
+
+    void readJsInjectionIntoCache() throws IOException {
         String javascriptFile = "casLogoutUrl.js";
-        InputStream stream = CasSonarSignOutInjectorFilter.class.getClassLoader().getResourceAsStream(javascriptFile);
+        InputStream jsInjectionStream = this.resourceClassloader.getResourceAsStream(javascriptFile);
 
-        if (stream == null) {
-            LOG.error("Could not find file {} in classpath. Exiting filtering", javascriptFile);
-            filterChain.doFilter(request, response);
-            return;
+        if (jsInjectionStream == null) {
+            throw new FileNotFoundException(String.format("Could not find file %s in classpath of %s. Exiting filtering",
+                    javascriptFile, this.resourceClassloader.getClass()));
         }
 
-        LOG.debug("Inject CAS logout javascript");
+        this.cachedJsInjection = readInputStream(jsInjectionStream);
+    }
+
+    String readInputStream(InputStream jsInjectionStream) throws IOException {
         StringBuilder builder = new StringBuilder();
         String line;
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))) {
+        try (jsInjectionStream; BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(jsInjectionStream, StandardCharsets.UTF_8))) {
             while ((line = bufferedReader.readLine()) != null) {
+                // the builder appends the line without newlines. Since this is our javascript this is not a problem.
                 builder.append(line);
             }
-        } finally {
-            stream.close();
         }
+        return builder.toString();
+    }
+
+    private void appendJavascriptInjectionToHtmlStream(String requestURL, ServletResponse response) throws IOException {
+        LOG.debug("Inject CAS logout javascript into {}", requestURL);
 
         response.getOutputStream().println("<script type='text/javascript'>");
         String casLogoutUrl = getCasLogoutUrl();
-        String javaScriptToInject = builder.toString().replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
+        String javaScriptToInject = this.cachedJsInjection.replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
+
         response.getOutputStream().println(javaScriptToInject);
         response.getOutputStream().println("window.onload = logoutMenuHandler;");
         response.getOutputStream().println("</script>");

@@ -1,16 +1,23 @@
 package org.sonar.plugins.cas.util;
 
-import javax.xml.bind.JAXB;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
+import javax.xml.XMLConstants;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
+import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public final class JwtFiles {
-    private static final Charset CONTENT_CHARSET = StandardCharsets.US_ASCII;
 
     private JwtFiles() {
     }
@@ -29,8 +36,8 @@ public final class JwtFiles {
             throw new IllegalArgumentException("FilePath must not be null.");
         }
 
-        try (BufferedReader reader = Files.newBufferedReader(filePath, CONTENT_CHARSET)) {
-            SimpleJwt unmarshalled = JAXB.unmarshal(reader, SimpleJwt.class);
+        try (InputStream reader = Files.newInputStream(filePath)) {
+            SimpleJwt unmarshalled = unmarshal(reader);
             if (unmarshalled.getJwtId() == null) {
                 String msg = "Cannot unmarshal path " + filePath + " to an instance of " +
                         SimpleJwt.class.getSimpleName() + ". The file does not seem to contain valid JWT data.";
@@ -39,6 +46,19 @@ public final class JwtFiles {
             return unmarshalled;
         } catch (Exception e) {
             String msg = "Cannot unmarshal path " + filePath + " to an instance of " + SimpleJwt.class.getName();
+            throw new JwtFileConversionException(msg, e);
+        }
+    }
+
+    protected static SimpleJwt unmarshal(InputStream input) {
+        try {
+            Element root = XMLParsing.getRootElementFromXML(input);
+            String jwtId = XMLParsing.getContentForTagName(root, "jwtId");
+            long expiration = Long.parseLong(XMLParsing.getContentForTagName(root, "expiration"));
+            boolean invalid = Boolean.parseBoolean(XMLParsing.getContentForTagName(root, "invalid"));
+            return new SimpleJwt(jwtId, expiration, invalid);
+        } catch (ParserConfigurationException | IOException | SAXException e) {
+            String msg = "Cannot unmarshal input to an instance of " + SimpleJwt.class.getName();
             throw new JwtFileConversionException(msg, e);
         }
     }
@@ -61,18 +81,36 @@ public final class JwtFiles {
             throw new IllegalArgumentException("JWT must not be null.");
         }
 
-        try (BufferedWriter writer = createWriterForNewFile(filePath)) {
-            JAXB.marshal(jwt, writer);
-            writer.flush();
+        try {
+            TransformerFactory transformerFactory = TransformerFactory.newInstance();
+            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);
+            Transformer transformer = transformerFactory.newTransformer();
+
+            DocumentBuilder docBuilder = XMLParsing.createSecureBuilder();
+
+            Document doc = docBuilder.newDocument();
+            Element rootElement = doc.createElement("SimpleJwt");
+            doc.appendChild(rootElement);
+
+            Element id = doc.createElement("jwtId");
+            id.appendChild(doc.createTextNode(jwt.getJwtId()));
+            rootElement.appendChild(id);
+
+            Element expiration = doc.createElement("expiration");
+            expiration.appendChild(doc.createTextNode(Long.toString(jwt.getExpiration().getEpochSecond())));
+            rootElement.appendChild(expiration);
+
+            Element invalid = doc.createElement("invalid");
+            invalid.appendChild(doc.createTextNode(Boolean.toString(jwt.isInvalid())));
+            rootElement.appendChild(invalid);
+
+            DOMSource source = new DOMSource(doc);
+            StreamResult result = new StreamResult(new File(filePath.toString()));
+            transformer.transform(source, result);
         } catch (Exception e) {
             String msg = "Cannot marshal object " + jwt + " into file " + filePath;
             throw new JwtFileConversionException(msg, e);
         }
-    }
-
-    private static BufferedWriter createWriterForNewFile(Path pathToNewFile) throws IOException {
-        Path newFile = Files.createFile(pathToNewFile);
-        return Files.newBufferedWriter(newFile, CONTENT_CHARSET);
     }
 
     private static class JwtFileConversionException extends RuntimeException {
