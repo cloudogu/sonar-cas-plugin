@@ -1,8 +1,13 @@
 package org.sonar.plugins.cas.util;
 
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
 import javax.xml.bind.JAXB;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.io.StringReader;
 import java.time.Instant;
 
@@ -41,24 +46,6 @@ public class SimpleJwtTest {
         assertThat(invalidatedJwt.getJwtId()).isEqualTo(jwt.getJwtId());
         assertThat(invalidatedJwt.getExpiration()).isEqualTo(jwt.getExpiration());
         assertThat(invalidatedJwt.isInvalid()).isTrue();
-    }
-
-    @Test
-    public void unmarshallShouldReturnValidJwt() {
-        String id = "AWjne4xYY4T-z3CxdIRY";
-        long now = Instant.now().getEpochSecond();
-        boolean invalid = false;
-        String jwtRaw = "" +
-                "<jwt>\n" +
-                "    <jwtId>" + id + "</jwtId>\n" +
-                "    <expiration>" + now + "</expiration>\n" +
-                "    <invalid>" + invalid + "</invalid>\n" +
-                "</jwt>";
-
-        SimpleJwt actual = JAXB.unmarshal(new StringReader(jwtRaw), SimpleJwt.class);
-
-        SimpleJwt jwt = SimpleJwt.fromIdAndExpiration(id, now);
-        assertThat(actual).isEqualTo(jwt);
     }
 
     @Test

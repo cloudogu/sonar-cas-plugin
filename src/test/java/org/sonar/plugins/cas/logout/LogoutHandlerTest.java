@@ -8,10 +8,12 @@ import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.SimpleJwt;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
 import static org.mockito.Mockito.*;
@@ -22,7 +24,7 @@ import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 public class LogoutHandlerTest {
 
     @Test
-    public void logoutShouldInvalidateTicketInStore() throws IOException {
+    public void logoutShouldInvalidateTicketInStore() throws IOException, ParserConfigurationException, SAXException {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sonarServerUrl", "http://sonar.url.com");
         CasSessionStore store = mock(CasSessionStore.class);

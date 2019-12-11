@@ -4,12 +4,18 @@ import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 
 import static org.fest.assertions.Assertions.assertThat;
+
 
 public class JwtFilesTest {
 
@@ -58,5 +64,22 @@ public class JwtFilesTest {
         Path expectedFile = sessionStore.resolve("1234");
         boolean exists = Files.exists(expectedFile);
         assertThat(exists).isTrue();
+    }
+
+    @Test
+    public void unmarshalShouldReturnValidJwt() throws ParserConfigurationException, SAXException, IOException {
+        String id = "AWjne4xYY4T-z3CxdIRY";
+        long now = Instant.now().getEpochSecond();
+        boolean invalid = false;
+        String jwtRaw = "" +
+                "<jwt>\n" +
+                "    <jwtId>" + id + "</jwtId>\n" +
+                "    <expiration>" + now + "</expiration>\n" +
+                "    <invalid>" + invalid + "</invalid>\n" +
+                "</jwt>";
+        InputStream input = new ByteArrayInputStream(jwtRaw.getBytes());
+        SimpleJwt actual = JwtFiles.unmarshal(input);
+        SimpleJwt jwt = SimpleJwt.fromIdAndExpiration(id, now);
+        assertThat(actual).isEqualTo(jwt);
     }
 }
