@@ -167,3 +167,21 @@ The FileSessionStore stores two files per login:
   - stores the JWT ID
 
 Once a JWT is expired both JWT file and service ticket file are eligible for removal.
+
+## Error Handling
+
+SonarQube's flexible plugin architecture has a drawback when it comes to error handling. All errors from plugins seem to be ignored. In consequence this means that all exceptions must not bubble to the top of the starting process (a usual process for Java applications).
+
+Exception bubbling may be used inside dependent plugin classes with the restriction that instead all top level functionality **MUST CATCH** all exceptions and log them with ERROR log level instead, just like this:
+
+```java
+public class YourNewFilter { 
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain filterChain) {
+        try {
+            // do somthing
+        } catch (Exception e) {
+            LOG.error("YourNewFilter doFilter failed", e);
+        }
+    }
+}
+``` 
