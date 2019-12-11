@@ -26,12 +26,12 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.FilterConfig;
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 
 import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
@@ -104,12 +104,13 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         }
     }
 
-    private void readJsInjectionIntoCache() throws IOException {
+    void readJsInjectionIntoCache() throws IOException {
         String javascriptFile = "casLogoutUrl.js";
         InputStream jsInjectionStream = this.resourceClassloader.getResourceAsStream(javascriptFile);
 
         if (jsInjectionStream == null) {
-            throw new IOException(String.format("Could not find file %s in classpath. Exiting filtering", javascriptFile));
+            throw new FileNotFoundException(String.format("Could not find file %s in classpath of %s. Exiting filtering",
+                    javascriptFile, this.resourceClassloader.getClass()));
         }
 
         this.cachedJsInjection = readInputStream(jsInjectionStream);
