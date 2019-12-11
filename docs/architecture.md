@@ -136,6 +136,8 @@ plugin must be registered in its `collectExtensions()` method. This way, the com
 dependency injection. Unless they are manually instantiated each component must either have a default constructor or a
 constructor consisting of registered components.
 
+In terms of `ServletFilter` components, each filter must call the given `FilterChain` not more than once. Otherwise content may be written more than once which may lead to a plethora of weird CSS/script behaviour or visible content.
+
 ### CasIdentityProvider for browser-based requests
 
 The `CasIdentityProvider` takes care of logging-in or logging-out. Logging-in is by far the more complex process of both
