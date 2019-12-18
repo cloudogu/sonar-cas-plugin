@@ -19,6 +19,8 @@
  */
 package org.sonar.plugins.cas.logout;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.io.Resources;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +34,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import java.io.*;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
@@ -51,6 +54,9 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     // well. Usually this is done by restarting the whole container which would then invalidate this cache at the
     // same time.
     private String cachedJsInjection;
+
+    @VisibleForTesting
+    static final String LOGOUT_SCRIPT = "casLogoutUrl.js";
 
     /**
      * called with injection by SonarQube during server initialization
@@ -104,29 +110,16 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
         }
     }
 
+    @SuppressWarnings("UnstableApiUsage")
     void readJsInjectionIntoCache() throws IOException {
-        String javascriptFile = "casLogoutUrl.js";
-        InputStream jsInjectionStream = this.resourceClassloader.getResourceAsStream(javascriptFile);
-
-        if (jsInjectionStream == null) {
+        URL resource = this.resourceClassloader.getResource(LOGOUT_SCRIPT);
+        if (resource == null) {
             throw new FileNotFoundException(String.format("Could not find file %s in classpath of %s. Exiting filtering",
-                    javascriptFile, this.resourceClassloader.getClass()));
+                    LOGOUT_SCRIPT, this.resourceClassloader.getClass()));
         }
-
-        this.cachedJsInjection = readInputStream(jsInjectionStream);
+        this.cachedJsInjection = Resources.toString(resource, StandardCharsets.UTF_8);
     }
 
-    String readInputStream(InputStream jsInjectionStream) throws IOException {
-        StringBuilder builder = new StringBuilder();
-        String line;
-        try (jsInjectionStream; BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(jsInjectionStream, StandardCharsets.UTF_8))) {
-            while ((line = bufferedReader.readLine()) != null) {
-                // the builder appends the line without newlines. Since this is our javascript this is not a problem.
-                builder.append(line);
-            }
-        }
-        return builder.toString();
-    }
 
     private void appendJavascriptInjectionToHtmlStream(String requestURL, ServletResponse response) throws IOException {
         LOG.debug("Inject CAS logout javascript into {}", requestURL);

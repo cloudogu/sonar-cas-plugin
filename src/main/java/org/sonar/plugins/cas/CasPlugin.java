@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.Plugin;
 import org.sonar.api.SonarQubeSide;
+import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
@@ -44,6 +45,7 @@ import java.util.List;
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
+@ServerSide
 public final class CasPlugin implements Plugin {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasPlugin.class);

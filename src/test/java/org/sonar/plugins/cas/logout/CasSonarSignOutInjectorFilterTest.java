@@ -1,6 +1,5 @@
 package org.sonar.plugins.cas.logout;
 
-import org.fest.assertions.Assertions;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
 import org.sonar.plugins.cas.SonarTestConfiguration;
@@ -10,11 +9,9 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
 
 import static org.mockito.Mockito.*;
+import static org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter.LOGOUT_SCRIPT;
 
 public class CasSonarSignOutInjectorFilterTest {
 
@@ -34,8 +31,7 @@ public class CasSonarSignOutInjectorFilterTest {
         FilterChain mockFilterChain = mock(FilterChain.class);
 
         ClassLoader mockClassloader = mock(ClassLoader.class);
-        InputStream injectionStream = createJavascriptAsStream();
-        when(mockClassloader.getResourceAsStream("casLogoutUrl.js")).thenReturn(injectionStream);
+        when(mockClassloader.getResource(LOGOUT_SCRIPT)).then(ic -> CasSonarSignOutInjectorFilter.class.getClassLoader().getResource(LOGOUT_SCRIPT));
         CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, mockClassloader);
 
         // when: two request are processed there must be only one caching call
@@ -43,7 +39,7 @@ public class CasSonarSignOutInjectorFilterTest {
         sut.doFilter(mockRequest, mockResponse, mockFilterChain);
 
         // then
-        verify(mockClassloader, times(1)).getResourceAsStream("casLogoutUrl.js");
+        verify(mockClassloader, times(1)).getResource(LOGOUT_SCRIPT);
     }
 
     @Test
@@ -61,26 +57,13 @@ public class CasSonarSignOutInjectorFilterTest {
         when(mockResponse.getOutputStream()).thenReturn(createOutputStream());
         FilterChain mockFilterChain = mock(FilterChain.class);
 
-        ClassLoader mockClassloader = mock(ClassLoader.class);
-        InputStream injectionStream = createJavascriptAsStream();
-        when(mockClassloader.getResourceAsStream("casLogoutUrl.js")).thenReturn(injectionStream);
-        CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, mockClassloader);
+        CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, CasSonarSignOutInjectorFilter.class.getClassLoader());
 
         // when: two request are processed there must be only one caching call
         sut.doFilter(mockRequest, mockResponse, mockFilterChain);
 
         // then
         verify(mockFilterChain, times(1)).doFilter(any(), any());
-    }
-
-    @Test
-    public void readInputStreamShouldReturnTwoLines() throws IOException {
-        CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(null);
-        InputStream stream = createJavascriptAsStream();
-
-        String actual = sut.readInputStream(stream);
-
-        Assertions.assertThat(actual).isEqualTo("var line1;var line2;");
     }
 
     private ServletOutputStream createOutputStream() {
@@ -99,9 +82,5 @@ public class CasSonarSignOutInjectorFilterTest {
             public void write(int b) {
             }
         };
-    }
-
-    private InputStream createJavascriptAsStream() {
-        return new ByteArrayInputStream("var line1;\nvar line2;\n".getBytes());
     }
 }
