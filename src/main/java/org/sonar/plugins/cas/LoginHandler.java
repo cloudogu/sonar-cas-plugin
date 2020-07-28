@@ -98,7 +98,9 @@ public class LoginHandler {
         }
 
         Set<String> groups = attributeSettings.getGroups(attributes);
-        builder = builder.setGroups(groups);
+        if (!groups.isEmpty()) {
+            builder = builder.setGroups(groups);
+        }
 
         return builder.build();
     }
@@ -121,6 +123,9 @@ public class LoginHandler {
     }
 
     private void removeRedirectCookie(HttpServletResponse response, String contextPath) {
+        if (StringUtils.isBlank(contextPath)) {
+            contextPath = "/";
+        }
         Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
 
         response.addCookie(cookie);

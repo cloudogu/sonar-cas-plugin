@@ -113,4 +113,25 @@ public class HttpStreamsTest {
         verify(request, times(2)).getQueryString();
         verify(response).addCookie(any());
     }
+
+
+    @Test
+    public void saveRequestedURLInCookieEmptyContext() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String originalURL = "http://sonar.url.com/somePageWhichIsNotLogin";
+        when(request.getRequestURL()).thenReturn(new StringBuffer(originalURL));
+        when(request.getContextPath()).thenReturn("");
+        // getRequestURL does NOT return query params. Kinda important for called sonar URLs
+        when(request.getQueryString()).thenReturn("project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
+
+        HttpServletResponse response = mock(HttpServletResponse.class);
+
+        HttpStreams.saveRequestedURLInCookie(request, response, 300);
+
+        verify(request).getRequestURL();
+        // Cookie is a crappy class that does not allow equals or hashcode, so we test the number of invocations of
+        // getParameterMap. If it was only once, it would not have jumped into urlEncodeQueryParameters()
+        verify(request, times(2)).getQueryString();
+        verify(response).addCookie(any());
+    }
 }
