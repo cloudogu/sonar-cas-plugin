@@ -1,4 +1,4 @@
-## Entwicklung des SonarQube-CAS-Plugins
+# Entwicklung des SonarQube-CAS-Plugins
 
 ## CAS-Server-Installation (lokale Entwicklung)
 

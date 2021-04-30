@@ -1,4 +1,4 @@
-# Architektur und Interna
+# Architektur
 
 ## Grundlegende Entitäten
 
