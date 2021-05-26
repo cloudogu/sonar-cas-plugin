@@ -138,6 +138,6 @@ public class LoginHandler {
 
     private String getSonarServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
-        return sonarUrl + "/sessions/init/cas"; // cas corresponds to the value from getKey()
+        return sonarUrl + "/sessions/init/sonarqube"; // cas corresponds to the value from getKey()
     }
 }

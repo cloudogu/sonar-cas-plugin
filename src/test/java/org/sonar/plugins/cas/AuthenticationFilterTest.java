@@ -27,6 +27,6 @@ public class AuthenticationFilterTest {
 
         sut.doFilter(request, response, filterChain);
 
-        verify(response).sendRedirect("https://cas.server.net/cas/login?service=https://sonar.server.net/sessions/init/cas");
+        verify(response).sendRedirect("https://cas.server.net/cas/login?service=https://sonar.server.net/sessions/init/sonarqube");
     }
 }

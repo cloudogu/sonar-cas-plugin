@@ -97,7 +97,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
 
     @Override
     public String getKey() {
-        return "cas";
+        return "sonarqube";
     }
 
     @Override
