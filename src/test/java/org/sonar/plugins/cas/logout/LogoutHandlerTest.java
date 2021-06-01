@@ -43,7 +43,7 @@ public class LogoutHandlerTest {
 //
 //        // then
 //        verify(store).invalidateJwt(ticketID);
-//        verify(response).sendRedirect("http://sonar.url.com/sessions/init/cas");
+//        verify(response).sendRedirect("http://sonar.url.com/sessions/init/sonarqube");
     }
 
     @Test

@@ -31,19 +31,19 @@ use cases:
 
 ### Local Log-in and Single Sign-on (SSO)
 
-Due to the nature of CAS a signing in on the CAS is easy as 1-2-3. This includes SSO with services registered with
+Due to the nature of CAS, signing in on the CAS is easy as 1-2-3. This includes SSO with services registered with
 CAS.
 
 1. User wants to get resource
    - enters URL in Browser: https://sonar.server.com/
 1. ForceCasLoginFilter recognizes log-in use-case
    - redirect user to CAS log-in page
-   - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/cas
+   - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube
 1. User logs into CAS with credentials
 1. CAS redirects user to back to SonarQube
    - adds service ticket parameter
 1. CasIdentityProvider validates service ticket directly with CAS
-   - this validation is independent from the browser
+   - this validation is independent of the browser
    - Sonar and CAS communicate on a direct channel
 1. CAS replies with validity and user attributes
    - CasIdentityProvider authenticates against SonarQube
@@ -54,7 +54,7 @@ CAS.
 
 ### Usual resource request
 
-Once the user is signed-in every request must be checked with the blacklist.
+Once the user is signed-in, every request must be checked with the blacklist.
 
 1. User wants to get resource
    - Browser contains valid and unexpired JWT cookie
@@ -185,3 +185,22 @@ public class YourNewFilter {
     }
 }
 ``` 
+
+## Architecture changes with SonarQube 8.x
+
+With the version jump from SonarQube 7.x to 8.x, the Sonar CAS plugin must respond to SonarQube changes in order to remain functional. This section explains these changes against the background of SonarQube's way of working.
+
+Starting with version 8.x, SonarQube changed the way of processing user authentication:
+
+For REST requests via Basic Auth, SonarQube only accepts its own non-extensible identity providers. Without changes to the Sonar CAS plugin, such queries may lead to authentication errors, mainly due to potential duplicate email addresses or login identifiers. SonarQube ignores its own CAS IdentityProvider and uses the realm `sonarqube` internally instead. Database queries against SonarQube's `user` table show this. For browser queries, however, SonarQube uses the CAS IdentityProvider as usual.
+
+Because of the lack of extensibility on the part of SonarQube, the solution to this problem is based on two basic realizations:
+
+1. Sonar-CAS-Plugin must internally use the Identity Provider `sonarqube` instead of `cas`.
+2. Sonar-CAS plugin now listens for login URLs pointing to identity provider `sonarqube`.
+
+For many versions SonarQube already recognizes the authentication realm based on the realm identifier in the login URL `http://sonar.server.com/sessions/init/${realm}` and selects a matching identity provider based on that. Instead of the `cas` realm (`.../sessions/init/cas`), the Sonar CAS plugin now listens for URLs for the `sonarqube` realm (`.../sessions/init/sonarqube`) and handles web requests here as before (see section "Local Login and Single Sign-on (SSO)").
+
+By identifying the Sonar CAS plugin as `sonarqube`, validation errors for duplicate email addresses or logins are now bypassed. This re-enables REST requests via Basic Authentication.
+
+Authentication via local user or token are not affected and can be used as usual. See also SonarSource's recommendation on [local users for Sonar scanners](https://docs.sonarqube.org/latest/instance-administration/delegated-auth/).

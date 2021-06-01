@@ -21,7 +21,7 @@ import javax.servlet.http.HttpServletRequest;
  * <li>the {@link ForceCasLoginFilter} redirects the user to /sessions/new</li>
  * <li>the {@link AuthenticationFilter} redirects the user to the CAS Server</li>
  * <li>the user authenticates to the CAS Server</li>
- * <li>the CAS Server redirects back to /sessions/init/cas</li>
+ * <li>the CAS Server redirects back to /sessions/init/sonarqube</li>
  *
  * <li>the {@link CasIdentityProvider} is called by sonarqube (InitFilter) and creates the user from the assertions and
  * redirects the user to the root of sonarqube.

@@ -7,8 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+### Changed
+- this release of Sonar-CAS-Plugin only supports SonarQube v8.9 or later (#30)
+
 ### Fixed
-- switch name of security realm cas to sonarqube so authentication via rest api become possible again (#30)
+- switch name of security realm `cas` to `sonarqube` to ensure authentication via REST API with SonarQube 8.9 (#30)
 
 ## [v2.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v2.0.1) - 2019-12-19
 ### Changed
