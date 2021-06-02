@@ -201,6 +201,6 @@ Wegen der mangelnden Erweiterbarkeit seitens SonarQube beruht die Lösung dieses
 
 SonarQube erkennt den Authentifizierungsbereich anhand des Realm-Identifizierers in der Login-URL `http://sonar.server.com/sessions/init/${realm}` und wählt anhand dessen einen passenden Identity Provider aus. Anstelle vom `cas`-Realm (`.../sessions/init/cas`) horcht das Sonar-CAS-Plugin nun auf URLs für das `sonarqube`-Realm (`.../sessions/init/sonarqube`) und behandelt hier die Web-Anfragen wie zuvor (siehe Abschnitt "Lokale Anmeldung und Single Sign-on (SSO)").
 
-Durch die Identifikation des Sonar-CAS-Plugin als `sonarqube` werden nun Validierungsfehler für doppelte Emailadressen oder Logins umgangen. Dies ermöglicht wieder REST-Anfragen per Basic Authentication.
+Durch die Identifikation des Sonar-CAS-Plugin als `sonarqube` werden nun Validierungsfehler für doppelte Emailadressen oder Logins umgangen. Dies ermöglicht wieder REST-Anfragen per Basic Authentication. In SonarQubes Benutzerübersicht äußert sich dieses Verhalten, dass Benutzerkonten die CAS-Identity-Provider-Markierung fehlt, obwohl diese durch Sonar-CAS-Plugin eingeführt wurden. 
 
 Authentifizierung per lokalem Benutzer oder Token sind hiervon nicht betroffen und können wie gewohnt eingesetzt werden. Siehe hierzu auch die Empfehlung von SonarSource zu [lokalen Benutzern für Sonar-Scanner](https://docs.sonarqube.org/latest/instance-administration/delegated-auth/).

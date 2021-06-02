@@ -201,6 +201,6 @@ Because of the lack of extensibility on the part of SonarQube, the solution to t
 
 For many versions SonarQube already recognizes the authentication realm based on the realm identifier in the login URL `http://sonar.server.com/sessions/init/${realm}` and selects a matching identity provider based on that. Instead of the `cas` realm (`.../sessions/init/cas`), the Sonar CAS plugin now listens for URLs for the `sonarqube` realm (`.../sessions/init/sonarqube`) and handles web requests here as before (see section "Local Login and Single Sign-on (SSO)").
 
-By identifying the Sonar CAS plugin as `sonarqube`, validation errors for duplicate email addresses or logins are now bypassed. This re-enables REST requests via Basic Authentication.
+By identifying the Sonar CAS plugin as `sonarqube`, validation errors for duplicate email addresses or logins are now bypassed. This re-enables REST requests via Basic Authentication. Consequently, user accounts will miss the CAS identity provider mark in SonarQube's user overview even though they were replicated by Sonar-CAS-Plugin.  
 
 Authentication via local user or token are not affected and can be used as usual. See also SonarSource's recommendation on [local users for Sonar scanners](https://docs.sonarqube.org/latest/instance-administration/delegated-auth/).
