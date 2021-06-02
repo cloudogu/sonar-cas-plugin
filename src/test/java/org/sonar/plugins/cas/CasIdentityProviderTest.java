@@ -125,7 +125,7 @@ public class CasIdentityProviderTest {
         sut.init(context);
 
         // then
-        String expectedRedirUrl = "sonar.url.com/sessions/init/cas";
+        String expectedRedirUrl = "sonar.url.com/sessions/init/sonarqube";
         verify(response).sendRedirect(expectedRedirUrl);
     }
 }

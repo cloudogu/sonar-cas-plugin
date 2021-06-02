@@ -98,7 +98,9 @@ public class LoginHandler {
         }
 
         Set<String> groups = attributeSettings.getGroups(attributes);
-        builder = builder.setGroups(groups);
+        if (!groups.isEmpty()) {
+            builder = builder.setGroups(groups);
+        }
 
         return builder.build();
     }
@@ -121,6 +123,9 @@ public class LoginHandler {
     }
 
     private void removeRedirectCookie(HttpServletResponse response, String contextPath) {
+        if (StringUtils.isBlank(contextPath)) {
+            contextPath = "/";
+        }
         Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
 
         response.addCookie(cookie);
@@ -133,6 +138,7 @@ public class LoginHandler {
 
     private String getSonarServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
-        return sonarUrl + "/sessions/init/cas"; // cas corresponds to the value from getKey()
+        // SonarQube recognizes the Identity Provider by the identifier in the URL. `sonarqube` corresponds to the value from getKey()
+        return sonarUrl + "/sessions/init/sonarqube";
     }
 }

@@ -5,7 +5,7 @@
 
     <groupId>com.cloudogu.sonar</groupId>
     <artifactId>sonar-cas-plugin</artifactId>
-    <version>2.0.1</version>
+    <version>3.0.0</version>
     <packaging>sonar-plugin</packaging>
 
     <description>CAS Support for SonarQube</description>
@@ -62,7 +62,7 @@
 
     <properties>
         <!-- for unknown reasons the Sonar plugin API watches the product version while the server version does not -->
-        <sonar.pluginapi.version>7.9.1</sonar.pluginapi.version>
+        <sonar.pluginapi.version>8.9.0.43852</sonar.pluginapi.version>
         <sonar.server.version>7.1</sonar.server.version>
         <cas.version>3.5.0</cas.version>
         <jjwt.version>0.9.1</jjwt.version>

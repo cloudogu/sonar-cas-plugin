@@ -94,17 +94,24 @@ public final class HttpStreams {
      */
     public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge) {
         String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
+        String contextPath = request.getContextPath();
+
+        if(StringUtils.isBlank(contextPath)){
+            contextPath = "/";
+        }
+
         LOG.debug("found original URL {}", originalURL);
-        LOG.debug("using context path {}", request.getContextPath());
+        LOG.debug("using context path {}", contextPath);
+
 
         Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)
                 .value(originalURL)
                 .maxAgeInSecs(maxCookieAge)
-                .contextPath(request.getContextPath())
+                .contextPath(contextPath)
                 .build();
 
-        LOG.debug("set cookie with context path {}", request.getContextPath());
+        LOG.debug("set cookie with context path {}", contextPath);
         response.addCookie(cookie);
     }
 }
