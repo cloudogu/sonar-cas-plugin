@@ -54,8 +54,8 @@ public class ForceCasLoginFilter extends ServletFilter {
     /**
      * Array of request URLS that should not be redirected to the login page.
      */
-    private static final List<String> WHITE_LIST = Arrays.asList(
-            "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
+    private static final List<String> ALLOW_LIST = Arrays.asList(
+            "/js/", "/images/", "/favicon.ico", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
 
     private final Configuration configuration;
     private LogoutHandler logoutHandler;
@@ -77,7 +77,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
 
-        if (isInWhiteList(request.getServletPath()) || isAuthenticated(request)) {
+        if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
@@ -101,7 +101,7 @@ public class ForceCasLoginFilter extends ServletFilter {
     }
 
     private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        LOG.debug("Redirecting to login page {}", request.getRequestURL(), SONAR_LOGIN_URL_PATH);
+        LOG.debug("Redirecting to login page {} -> {}", request.getRequestURL(), SONAR_LOGIN_URL_PATH);
 
         response.sendRedirect(request.getContextPath() + SONAR_LOGIN_URL_PATH);
     }
@@ -109,7 +109,8 @@ public class ForceCasLoginFilter extends ServletFilter {
     private boolean isAuthenticated(HttpServletRequest request) {
         // https://github.com/SonarSource/sonarqube/blob/9973bacbfa4a945e509bf1b574d7e5aae4ba155a/server/sonar-server/src/main/java/org/sonar/server/authentication/UserSessionInitializer.java#L138
         String login = StringUtils.defaultString((String) request.getAttribute("LOGIN"));
-        return !"-".equals(login);
+        LOG.debug("login value: {}", login);
+        return !"-".equals(login) && !"".equals(login);
     }
 
     /**
@@ -118,12 +119,12 @@ public class ForceCasLoginFilter extends ServletFilter {
      * @param entry Entry to look for in white list.
      * @return true if found, false otherwise.
      */
-    private boolean isInWhiteList(final String entry) {
+    private boolean isInAllowList(final String entry) {
         if (null == entry) {
             return false;
         }
 
-        for (final String item : WHITE_LIST) {
+        for (final String item : ALLOW_LIST) {
             if (entry.contains(item)) {
                 return true;
             }
