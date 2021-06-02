@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+[v3.0.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.0) - 2021-06-02
+
+Breaking change ahead.
+
 ### Changed
 - this release of Sonar-CAS-Plugin only supports SonarQube v8.9 or later (#30)
   - user accounts which were replicated with CAS show now up without the CAS identity provider mark in the User overview
