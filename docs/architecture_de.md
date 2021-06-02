@@ -192,7 +192,7 @@ Mit dem Versionssprung von SonarQube 7.x auf 8.x muss das Sonar-CAS-Plugin auf N
 
 SonarQube hat mit Version 8.x die Ermittlung der Benutzer abgeändert:
 
-Bei REST-Anfragen per Basic Auth übernimmt SonarQube ausschließlich eigene, nicht erweiterbare Identity Provider. Ohne Änderungen am Sonar-CAS-Plugin führen solche Abfragen u. U. zu Authentifizierungsfehlern, die hauptsächlich auf potenzielle Dopplungen in der Emailadresse oder im Loginbezeichner beruhen. SonarQube ignoriert dabei den eigenen CAS-IdentityProvider und benutzt stattdessen intern das Realm `sonarqube`. Dies zeigen Datenbankabfragen gegenüber SonarQubes `user`-Tabelle. Für Browser-Anfragen benutzt SonarQube allerdings wie gewohnt den CAS-IdentityProvider.
+Bei REST-Anfragen mit Basic Auth übernimmt SonarQube ausschließlich eigene, nicht erweiterbare Identity Provider. Ohne Änderungen am Sonar-CAS-Plugin führen solche Abfragen u. U. zu Authentifizierungsfehlern, die hauptsächlich auf potenzielle Dopplungen in der Emailadresse oder im Loginbezeichner beruhen. SonarQube ignoriert dabei den IdentityProvider des CAS-Plugins und benutzt stattdessen intern das Realm `sonarqube`. Dies zeigen Datenbankabfragen gegenüber SonarQubes `user`-Tabelle. Für Browser-Anfragen benutzt SonarQube allerdings wie gewohnt den CAS-IdentityProvider.
 
 Wegen der mangelnden Erweiterbarkeit seitens SonarQube beruht die Lösung dieses Problems auf zwei grundlegenden Erkenntnissen:
 

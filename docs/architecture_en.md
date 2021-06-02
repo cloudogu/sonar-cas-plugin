@@ -192,7 +192,7 @@ With the version jump from SonarQube 7.x to 8.x, the Sonar CAS plugin must respo
 
 Starting with version 8.x, SonarQube changed the way of processing user authentication:
 
-For REST requests via Basic Auth, SonarQube only accepts its own non-extensible identity providers. Without changes to the Sonar CAS plugin, such queries may lead to authentication errors, mainly due to potential duplicate email addresses or login identifiers. SonarQube ignores its own CAS IdentityProvider and uses the realm `sonarqube` internally instead. Database queries against SonarQube's `user` table show this. For browser queries, however, SonarQube uses the CAS IdentityProvider as usual.
+For REST requests via Basic Auth, SonarQube only accepts its own non-extensible identity providers. Without changes to the Sonar CAS plugin, such queries may lead to authentication errors, mainly due to potential duplicate email addresses or login identifiers. SonarQube ignores the IdentityProvider from the CAS plugin and uses the realm `sonarqube` internally instead. Database queries against SonarQube's `user` table show this. For browser queries, however, SonarQube uses the CAS IdentityProvider as usual.
 
 Because of the lack of extensibility on the part of SonarQube, the solution to this problem is based on two basic realizations:
 
