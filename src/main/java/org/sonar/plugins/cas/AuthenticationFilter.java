@@ -53,7 +53,7 @@ public class AuthenticationFilter extends ServletFilter {
 
     private String getSonarServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
-        return sonarUrl + "/sessions/init/cas";
+        return sonarUrl + "/sessions/init/sonarqube";
     }
 
     @Override

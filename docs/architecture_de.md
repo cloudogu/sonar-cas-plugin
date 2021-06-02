@@ -37,7 +37,7 @@ Aufgrund der Natur des CAS ist eine Anmeldung am CAS so einfach wie 1-2-3. Dies 
     - gibt URL im Browser ein: https://sonar.server.com/
 1. ForceCasLoginFilter erkennt den Anmelde-Nutzungsfall
     - leitet den Benutzer auf die CAS-Login-Seite um
-    - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/cas
+    - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube
 1. Benutzer meldet sich mit Anmeldedaten bei CAS an
 1. CAS leitet den Benutzer zurück zu SonarQube um
     - fügt Service-Ticket-Parameter hinzu
@@ -127,7 +127,7 @@ Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicher
 ## Entscheidende Komponenten
 
 Die Authentifizierung innerhalb von SonarQube ist ein komplexer Prozess, der verschiedene Klassen benötigt, um zu funktionieren. In diesem Abschnitt werden nur die
-wichtigsten Komponenten grob beschrieben, so dass man eine Vorstellung davon bekommt, wie es funktioniert.
+wichtigsten Komponenten grob beschrieben, sodass man eine Vorstellung davon bekommt, wie es funktioniert.
 
 ### Allgemeiner Mechanismus von `CasPlugin`
 
@@ -185,3 +185,22 @@ public class IhrNeuerFilter {
     }
 }
 ``` 
+
+## Architekturänderungen mit SonarQube 8.x
+
+Mit dem Versionssprung von SonarQube 7.x auf 8.x muss das Sonar-CAS-Plugin auf Neuerungen von SonarQube reagieren, um weiterhin funktionstüchtig zu bleiben. Dieser Abschnitt erläutert diese Änderungen vor dem Hintergrund von SonarQubes Arbeitsweise.
+
+SonarQube hat mit Version 8.x die Ermittlung der Benutzer abgeändert:
+
+Bei REST-Anfragen mit Basic Auth übernimmt SonarQube ausschließlich eigene, nicht erweiterbare Identity Provider. Ohne Änderungen am Sonar-CAS-Plugin führen solche Abfragen u. U. zu Authentifizierungsfehlern, die hauptsächlich auf potenzielle Dopplungen in der Emailadresse oder im Loginbezeichner beruhen. SonarQube ignoriert dabei den IdentityProvider des CAS-Plugins und benutzt stattdessen intern das Realm `sonarqube`. Dies zeigen Datenbankabfragen gegenüber SonarQubes `user`-Tabelle. Für Browser-Anfragen benutzt SonarQube allerdings wie gewohnt den CAS-IdentityProvider.
+
+Wegen der mangelnden Erweiterbarkeit seitens SonarQube beruht die Lösung dieses Problems auf zwei grundlegenden Erkenntnissen:
+
+1. Sonar-CAS-Plugin muss intern der Identity Provider `sonarqube` anstelle von `cas` verwendet werden.
+2. Sonar-CAS-Plugin horcht nun auf Login-URLs, die auf den Identity Provider `sonarqube` deuten
+
+SonarQube erkennt den Authentifizierungsbereich anhand des Realm-Identifizierers in der Login-URL `http://sonar.server.com/sessions/init/${realm}` und wählt anhand dessen einen passenden Identity Provider aus. Anstelle vom `cas`-Realm (`.../sessions/init/cas`) horcht das Sonar-CAS-Plugin nun auf URLs für das `sonarqube`-Realm (`.../sessions/init/sonarqube`) und behandelt hier die Web-Anfragen wie zuvor (siehe Abschnitt "Lokale Anmeldung und Single Sign-on (SSO)").
+
+Durch die Identifikation des Sonar-CAS-Plugin als `sonarqube` werden nun Validierungsfehler für doppelte Emailadressen oder Logins umgangen. Dies ermöglicht wieder REST-Anfragen per Basic Authentication. In der Benutzerübersicht von SonarQube führt die Änderung des Realms dazu, dass die vom CAS-Plugin replizierten Benutzer nicht mehr mit `CAS` markiert werden. 
+
+Authentifizierung per lokalem Benutzer oder Token sind hiervon nicht betroffen und können wie gewohnt eingesetzt werden. Siehe hierzu auch die Empfehlung von SonarSource zu [lokalen Benutzern für Sonar-Scanner](https://docs.sonarqube.org/latest/instance-administration/delegated-auth/).
