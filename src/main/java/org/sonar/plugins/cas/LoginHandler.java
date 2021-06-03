@@ -144,6 +144,6 @@ public class LoginHandler {
     }
 
     private String getGroupReplicationMode() {
-        return SonarCasProperties.GROUP_REPLICATE.getString(configuration, "");
+        return SonarCasProperties.GROUP_REPLICATE.getString(configuration, GROUP_REPLICATION_CAS);
     }
 }

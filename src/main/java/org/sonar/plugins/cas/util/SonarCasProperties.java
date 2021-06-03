@@ -54,7 +54,7 @@ public enum SonarCasProperties {
      * local groups with the group provided by CAS upon UI log-in. The user's local groups will be untouched with other
      * values.</p>
      *
-     * Defaults to the empty string.
+     * Defaults to "CAS".
      */
     GROUP_REPLICATE("sonar.cas.groupReplication", SonarPropertyType.STRING),
     /**
