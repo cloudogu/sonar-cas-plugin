@@ -34,10 +34,10 @@ Anwendungsfälle:
 Aufgrund der Natur des CAS ist eine Anmeldung am CAS so einfach wie 1-2-3. Dies beinhaltet SSO mit Diensten, die bei CAS registriert sind.
 
 1. Benutzer möchte Ressource abrufen
-    - gibt URL im Browser ein: https://sonar.server.com/
+    - gibt URL im Browser ein: `https://sonar.server.com/`
 1. ForceCasLoginFilter erkennt den Anmelde-Nutzungsfall
     - leitet den Benutzer auf die CAS-Login-Seite um
-    - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube
+    - `https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube`
 1. Benutzer meldet sich mit Anmeldedaten bei CAS an
 1. CAS leitet den Benutzer zurück zu SonarQube um
     - fügt Service-Ticket-Parameter hinzu
