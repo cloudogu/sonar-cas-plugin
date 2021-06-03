@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+[v3.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.1) - 2021-06-03
+
 ### Fixed
 - Fixes defective redirect behaviour for repeated unauthenticated requests (#32)
   - this fix also allows unauthenticated requests for static resources
