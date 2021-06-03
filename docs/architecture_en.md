@@ -35,10 +35,10 @@ Due to the nature of CAS, signing in on the CAS is easy as 1-2-3. This includes 
 CAS.
 
 1. User wants to get resource
-   - enters URL in Browser: https://sonar.server.com/
+   - enters URL in Browser: `https://sonar.server.com/`
 1. ForceCasLoginFilter recognizes log-in use-case
    - redirect user to CAS log-in page
-   - https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube
+   - `https://cas.server.com/cas/login?service=http://sonar.server.com/sessions/init/sonarqube`
 1. User logs into CAS with credentials
 1. CAS redirects user to back to SonarQube
    - adds service ticket parameter
