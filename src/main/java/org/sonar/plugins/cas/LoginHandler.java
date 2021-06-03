@@ -100,6 +100,8 @@ public class LoginHandler {
 
         Set<String> groups = attributeSettings.getGroups(attributes);
         if (GROUP_REPLICATION_CAS.equals(getGroupReplicationMode())) {
+            // currently SonarQube only sets groups which already exists in the local group database.
+            // Thus, new CAS groups will never be added unless manually added in SonarQube.
             builder = builder.setGroups(groups);
         }
 
