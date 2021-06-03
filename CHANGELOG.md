@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+Breaking change ahead.
+
+### Fixed
+- Fixes defective CAS group replication when the group list was empty (#34)
+  - The group replication behaviour now defaults to CAS group replication.
+  - The `sonar-property` key `sonar.cas.groupReplication` must be set to `sonarqube` if local SonarQube groups are preferred.
+
 [v3.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.1) - 2021-06-03
 
 ### Fixed
