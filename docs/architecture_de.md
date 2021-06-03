@@ -140,8 +140,7 @@ In Bezug auf `ServletFilter`-Komponenten darf jeder Filter die angegebene `Filte
 
 ### CasIdentityProvider für browserbasierte Anfragen
 
-Der `CasIdentityProvider` kümmert sich um das Ein- und Ausloggen. Das Einloggen ist der bei weitem komplexere Prozess von beiden
-der oben beschrieben ist.
+Der `CasIdentityProvider` kümmert sich um das Ein- und Ausloggen. Das Einloggen ist der bei weitem komplexere Prozess von beiden der oben beschrieben ist.
 
 ### CasAuthenticator für REST-basierte Anfragen
 
@@ -151,6 +150,8 @@ Der `CasAuthenticator` kümmert sich um HTTP-API-Aufrufe in Richtung SonarQube.
 
 Der `ForceCasLoginFilter` prüft bei jeder Anfrage, ob die Anfrage erlaubt ist, indem er den Session Store mit dem
 JWT aus der Anfrage des Benutzers.
+
+Anfragen auf statischen Ressourcen werden erlaubt, da diese u. U. asynchron vor einer Authentifizierung ausgeführt werden können. Innerhalb des Authentifizierungsprozesses werden Benutzende anhand des Feldes "LOGIN" erkannt. Ein leeres Feld oder ein Login mit dem Wert `-` bedeutet, dass noch keine Authentifizierung stattgefunden hat.
 
 ### FileSessionStore
 

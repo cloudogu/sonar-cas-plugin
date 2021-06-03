@@ -152,6 +152,8 @@ The `CasAuthenticator` takes care of HTTP-API calls toward SonarQube.
 The `ForceCasLoginFilter` checks for every request if the request is permitted by checking the session store with the
 JWT from the user's request.
 
+Requests on static resources are allowed, since these may be executed asynchronously before authentication. Within the authentication process, users are recognized by the "LOGIN" field. An empty field or a login with the value `-` means that no authentication has taken place yet.
+
 ### FileSessionStore
 
 The `FileSessionStore` is an implementation of a session store. The session store maintains a white-/blacklist of all
