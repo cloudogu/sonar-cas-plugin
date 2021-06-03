@@ -35,6 +35,7 @@ import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIR
 @ServerSide
 public class LoginHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LoginHandler.class);
+    private static final String GROUP_REPLICATION_CAS = "CAS";
 
     private final Configuration configuration;
     private final CasAttributeSettings attributeSettings;
@@ -98,7 +99,7 @@ public class LoginHandler {
         }
 
         Set<String> groups = attributeSettings.getGroups(attributes);
-        if (!groups.isEmpty()) {
+        if (GROUP_REPLICATION_CAS.equals(getGroupReplicationMode())) {
             builder = builder.setGroups(groups);
         }
 
@@ -140,5 +141,9 @@ public class LoginHandler {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
         // SonarQube recognizes the Identity Provider by the identifier in the URL. `sonarqube` corresponds to the value from getKey()
         return sonarUrl + "/sessions/init/sonarqube";
+    }
+
+    private String getGroupReplicationMode() {
+        return SonarCasProperties.GROUP_REPLICATE.getString(configuration, "");
     }
 }

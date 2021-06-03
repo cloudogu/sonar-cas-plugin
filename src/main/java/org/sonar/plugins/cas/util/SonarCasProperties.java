@@ -48,6 +48,16 @@ public enum SonarCasProperties {
      */
     CAS_SERVER_URL_PREFIX("sonar.cas.casServerUrlPrefix", SonarPropertyType.STRING),
     /**
+     * Specifies how SonarQube groups should be replicated.
+
+     * <p>A value of <code>CAS</code> always overwrites the user's
+     * local groups with the group provided by CAS upon UI log-in. The user's local groups will be untouched with other
+     * values.</p>
+     *
+     * Defaults to the empty string.
+     */
+    GROUP_REPLICATE("sonar.cas.groupReplication", SonarPropertyType.STRING),
+    /**
      * Sonar server root URL, without ending slash.
      */
     SONAR_SERVER_URL("sonar.cas.sonarServerUrl", SonarPropertyType.STRING),
