@@ -17,7 +17,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 
@@ -44,7 +43,7 @@ public class ForceCasLoginFilterTest {
         Cookie httpOnlyCookie = createJwtCookie(jwtCookieDoughContent);
         Cookie[] cookies = {httpOnlyCookie};
         when(request.getCookies()).thenReturn(cookies);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
         when(request.getContextPath()).thenReturn("/sonar");
 
         HttpServletResponse response = mock(HttpServletResponse.class);
@@ -52,12 +51,11 @@ public class ForceCasLoginFilterTest {
 
         sut.doFilter(request, response, filterChain);
 
-        VerificationMode noInteraction = times(0);
-        verify(filterChain).doFilter(request, response);
-        verify(response, noInteraction).sendRedirect(any());
-        verify(response, noInteraction).addCookie(any());
-        verify(store, noInteraction).invalidateJwt(anyString());
-        verify(response, never()).sendRedirect(any());
+        VerificationMode singleInteraction = times(1);
+        verifyZeroInteractions(filterChain);
+        verify(response, singleInteraction).sendRedirect(any());
+        verify(response, singleInteraction).addCookie(any());
+        verify(store, never()).invalidateJwt(anyString());
     }
 
     private Cookie createJwtCookie(String jwtCookieDoughContent) {
