@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]
 
+### Fixed
+- Fixes defective CAS group replication when the group list was empty (#34)
+
 [v3.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.1) - 2021-06-03
 
 ### Fixed
