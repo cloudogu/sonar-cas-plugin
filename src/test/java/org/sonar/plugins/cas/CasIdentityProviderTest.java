@@ -69,8 +69,6 @@ public class CasIdentityProviderTest {
         CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
-        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
-        when(factory.getInstance()).thenReturn(sessionStore);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
