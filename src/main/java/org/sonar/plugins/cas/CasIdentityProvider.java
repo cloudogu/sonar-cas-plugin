@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CasIdentityProvider implements BaseIdentityProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
+    private static final String PROXY_TICKET_URL_SUFFIX = "/sessions/cas/proxy";
 
     private final Configuration configuration;
     private final LoginHandler loginHandler;
@@ -83,6 +84,25 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         String requestMethod = request.getMethod();
 
         return "GET".equals(requestMethod) && StringUtils.isNotBlank(ticket);
+    }
+
+    boolean isProxyLogin(HttpServletRequest request) {
+        if (! request.getRequestURL().toString().contains(PROXY_TICKET_URL_SUFFIX)) {
+            return false;
+        }
+
+        String requestMethod = request.getMethod();
+        if (! "GET".equals(requestMethod)) {
+            String msg = String.format("Could not check for login by proxy ticket because request method %s is not supported", requestMethod);
+            throw new IllegalStateException(msg);
+        }
+
+        String ticket = request.getParameter("ticket");
+        if (! StringUtils.isNotBlank(ticket)) {
+            throw new IllegalStateException("Could not check for login by proxy ticket because ticket is empty");
+        }
+
+        return true;
     }
 
     /**

@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
@@ -125,5 +126,82 @@ public class CasIdentityProviderTest {
         // then
         String expectedRedirUrl = "sonar.url.com/sessions/init/sonarqube";
         verify(response).sendRedirect(expectedRedirUrl);
+    }
+
+    @Test
+    public void isProxyLoginShouldReturnTrue() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getParameter("ticket")).thenReturn("ST-0123456789");
+
+        CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
+
+        // when
+        boolean actual = sut.isProxyLogin(request);
+
+        // then
+        assertThat(actual).isTrue();
+        verify(request, times(1)).getRequestURL();
+        verify(request, times(1)).getMethod();
+        verify(request, times(1)).getParameter("ticket");
+    }
+    @Test
+    public void isProxyLoginShouldReturnFalse() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/some/other/url"));
+
+        CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
+
+        // when
+        boolean actual = sut.isProxyLogin(request);
+
+        // then
+        assertThat(actual).isFalse();
+        verify(request, times(1)).getRequestURL();
+        verify(request, times(0)).getMethod();
+        verify(request, times(0)).getParameter("ticket");
+    }
+
+    @Test
+    public void isProxyLoginShouldThrowExceptionOnUnexpectedMethod() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
+        when(request.getMethod()).thenReturn("POST");
+
+        CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
+
+        // when
+        try {
+            sut.isProxyLogin(request);
+        } catch(IllegalStateException e) {
+        // then
+        assertThat(e.getMessage()).contains("request method POST is not supported");
+        }
+
+        verify(request, times(1)).getRequestURL();
+        verify(request, times(1)).getMethod();
+    }
+
+    @Test
+    public void isProxyLoginShouldThrowExceptionOnEmptyTicketID() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
+        when(request.getMethod()).thenReturn("GET");
+        when(request.getParameter("ticket")).thenReturn(null);
+
+        CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
+
+        // when
+        try {
+            sut.isProxyLogin(request);
+        } catch(IllegalStateException e) {
+        // then
+        assertThat(e.getMessage()).contains("ticket is empty");
+        }
+
+        verify(request, times(1)).getRequestURL();
+        verify(request, times(1)).getMethod();
+        verify(request, times(1)).getParameter("ticket");
     }
 }
