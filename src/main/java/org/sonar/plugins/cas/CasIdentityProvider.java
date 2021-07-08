@@ -65,7 +65,10 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         try {
             HttpServletRequest request = context.getRequest();
 
-            if (isLogin(request)) {
+            if (isProxyLogin(request)) {
+                LOG.debug("Found proxy ticket login case");
+                loginHandler.handleProxyLogin(context);
+            } else if (isLogin(request)) {
                 LOG.debug("Found internal login case");
                 loginHandler.handleLogin(context);
             } else if (isLogout(request)) {
@@ -87,18 +90,18 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     }
 
     boolean isProxyLogin(HttpServletRequest request) {
-        if (! request.getRequestURL().toString().contains(PROXY_TICKET_URL_SUFFIX)) {
+        if (!request.getRequestURL().toString().contains(PROXY_TICKET_URL_SUFFIX)) {
             return false;
         }
 
         String requestMethod = request.getMethod();
-        if (! "GET".equals(requestMethod)) {
+        if (!"GET".equals(requestMethod)) {
             String msg = String.format("Could not check for login by proxy ticket because request method %s is not supported", requestMethod);
             throw new IllegalStateException(msg);
         }
 
         String ticket = request.getParameter("ticket");
-        if (! StringUtils.isNotBlank(ticket)) {
+        if (!StringUtils.isNotBlank(ticket)) {
             throw new IllegalStateException("Could not check for login by proxy ticket because ticket is empty");
         }
 
