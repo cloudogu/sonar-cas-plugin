@@ -44,7 +44,20 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
         } else if ("cas3".equalsIgnoreCase(protocol)) {
             validator = createCas20ServiceTicketValidator();
         } else {
-            throw new IllegalStateException("unknown cas protocol ".concat(protocol));
+            throw new IllegalStateException("Could not create service ticket validator: unsupported CAS protocol ".concat(protocol));
+        }
+        return validator;
+    }
+
+    public TicketValidator createForProxy() {
+        String protocol = getCasProtocol();
+        TicketValidator validator;
+        if ("cas2".equalsIgnoreCase(protocol)) {
+            validator = createCas20ProxyTicketValidator();
+        } else if ("cas3".equalsIgnoreCase(protocol)) {
+            validator = createCas30ProxyTicketValidator();
+        } else {
+            throw new IllegalStateException("Could not create proxy ticket validator: unsupported CAS protocol ".concat(protocol));
         }
         return validator;
     }
@@ -76,5 +89,13 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
 
     private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
         return new Cas30ServiceTicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas20ProxyTicketValidator createCas20ProxyTicketValidator() {
+        return new Cas20ProxyTicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas30ProxyTicketValidator createCas30ProxyTicketValidator() {
+        return new Cas30ProxyTicketValidator(getCasServerUrlPrefix());
     }
 }

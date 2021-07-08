@@ -115,6 +115,20 @@ An einem bestimmten Punkt sind sich beide ähnlich, da letztlich der Rückkanal-
 1. CasIdentityProvider invalidiert das JWT des Benutzers
     - das ungültig gemachte JWT aktualisiert das ursprüngliche JWT im Sitzungsspeicher
 
+#### Anmelden mit Proxy Ticket
+
+#fixme Prozessbeschreibung hier!
+
+API für die Einbuchung über Proxy Tickets:
+
+POST `/${contextPath}/sessions/cas/proxy` PT=ST-12345678
+
+Unterstützte Protokolle:
+- CAS 2.0
+- CAS 3.0
+
+Andere Protokolle werden bzgl. Proxy Ticketing nicht unterstützt.
+
 ### Aufräumen
 
 Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicherten JWT- und Service-Ticket-Dateien (siehe den Abschnitt FileSessionStore weiter unten für weitere Informationen)

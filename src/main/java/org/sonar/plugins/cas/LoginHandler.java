@@ -60,7 +60,7 @@ public class LoginHandler {
 
         String serviceTicket = getTicketParameter(context.getRequest());
         TicketValidator validator = validatorFactory.create();
-        Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
+        Assertion assertion = validator.validate(serviceTicket, getSonarServiceUrl());
 
         UserIdentity userIdentity = createUserIdentity(assertion);
 
@@ -70,8 +70,33 @@ public class LoginHandler {
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
-        LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
-        sessionStore.store(grantingTicket, jwt);
+        LOG.debug("Storing service ticket {} with JWT {}", serviceTicket, jwt.getJwtId());
+        sessionStore.store(serviceTicket, jwt);
+
+        String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
+        removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
+
+        LOG.debug("redirecting to {}", redirectTo);
+        context.getResponse().sendRedirect(redirectTo);
+    }
+
+    void handleProxyLogin(BaseIdentityProvider.Context context) throws IOException, TicketValidationException {
+        LOG.debug("Starting to handle proxy login. Trying to validate proxy ticket with CAS");
+
+        String proxyTicket = getTicketParameter(context.getRequest());
+        TicketValidator validator = validatorFactory.createForProxy();
+        Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
+
+        UserIdentity userIdentity = createUserIdentity(assertion);
+
+        LOG.debug("Received assertion. Authenticating with user {}", userIdentity.getName());
+        context.authenticate(userIdentity);
+
+        Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
+        SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
+
+        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, jwt.getJwtId());
+        sessionStore.store(proxyTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
         removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
