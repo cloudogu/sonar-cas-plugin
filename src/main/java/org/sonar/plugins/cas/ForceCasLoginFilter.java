@@ -20,12 +20,19 @@
 package org.sonar.plugins.cas;
 
 import org.apache.commons.lang.StringUtils;
+import org.jasig.cas.client.validation.Assertion;
+import org.jasig.cas.client.validation.TicketValidationException;
+import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.authentication.BaseIdentityProvider;
+import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.util.HttpStreams;
+import org.sonar.plugins.cas.util.JwtProcessor;
+import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
@@ -33,10 +40,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
+import static org.sonar.plugins.cas.ProxyTicketTokenFilter.PROXY_TICKET_URL_SUFFIX;
 
 /**
  * This filter checks if the current user is authenticated. If not, the client is redirected to the /session/new
@@ -59,10 +68,12 @@ public class ForceCasLoginFilter extends ServletFilter {
 
     private final Configuration configuration;
     private LogoutHandler logoutHandler;
+    private LoginHandler loginHandler;
 
-    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler) {
+    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler, LoginHandler loginHandler) {
         this.configuration = configuration;
         this.logoutHandler = logoutHandler;
+        this.loginHandler = loginHandler;
     }
 
     public void init(FilterConfig filterConfig) {
@@ -77,14 +88,23 @@ public class ForceCasLoginFilter extends ServletFilter {
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
 
-        if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
+        if (loginHandler.isProxyLogin(request.getServletPath(), request.getMethod())) {
+            LOG.debug("Found proxy ticket login: URL {}, method {}", requestedURL, request.getMethod());
+            try {
+                loginHandler.handleProxyLogin(request, response);
+            } catch (TicketValidationException e) {
+                throw new RuntimeException("Could not validate proxy ticket login for URL " + requestedURL, e);
+            }
+        } else if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
+                LOG.debug("Redirecting logged-out user to log-in page");
                 HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
                 logoutHandler.handleInvalidJwtCookie(request, response);
                 redirectToLogin(request, response);
             } else {
+                LOG.debug("Continue request processing...");
                 chain.doFilter(request, servletResponse);
             }
         } else {
@@ -116,16 +136,16 @@ public class ForceCasLoginFilter extends ServletFilter {
     /**
      * Looks for the given value if it or parts of it are containing in the white list.
      *
-     * @param entry Entry to look for in white list.
+     * @param servletPath Entry to look for in white list.
      * @return true if found, false otherwise.
      */
-    private boolean isInAllowList(final String entry) {
-        if (null == entry) {
+    private boolean isInAllowList(final String servletPath) {
+        if (null == servletPath) {
             return false;
         }
 
         for (final String item : ALLOW_LIST) {
-            if (entry.contains(item)) {
+            if (servletPath.contains(item)) {
                 return true;
             }
         }

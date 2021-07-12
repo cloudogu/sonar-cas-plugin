@@ -64,11 +64,8 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     public void init(Context context) {
         try {
             HttpServletRequest request = context.getRequest();
-
-            if (isProxyLogin(request)) {
-                LOG.debug("Found proxy ticket login case");
-                loginHandler.handleProxyLogin(context);
-            } else if (isLogin(request)) {
+            LOG.debug("Initialize CAS identity handling for URL " + request.getRequestURL());
+            if (isLogin(request)) {
                 LOG.debug("Found internal login case");
                 loginHandler.handleLogin(context);
             } else if (isLogout(request)) {
@@ -95,7 +92,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         }
 
         String requestMethod = request.getMethod();
-        if (!"GET".equals(requestMethod)) {
+        if (!"POST".equals(requestMethod)) {
             String msg = String.format("Could not check for login by proxy ticket because request method %s is not supported", requestMethod);
             throw new IllegalStateException(msg);
         }

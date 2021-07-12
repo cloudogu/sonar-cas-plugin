@@ -132,7 +132,7 @@ public class CasIdentityProviderTest {
     public void isProxyLoginShouldReturnTrue() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
-        when(request.getMethod()).thenReturn("GET");
+        when(request.getMethod()).thenReturn("POST");
         when(request.getParameter("ticket")).thenReturn("ST-0123456789");
 
         CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
@@ -167,7 +167,7 @@ public class CasIdentityProviderTest {
     public void isProxyLoginShouldThrowExceptionOnUnexpectedMethod() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
-        when(request.getMethod()).thenReturn("POST");
+        when(request.getMethod()).thenReturn("GET");
 
         CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
 
@@ -176,7 +176,7 @@ public class CasIdentityProviderTest {
             sut.isProxyLogin(request);
         } catch(IllegalStateException e) {
         // then
-        assertThat(e.getMessage()).contains("request method POST is not supported");
+        assertThat(e.getMessage()).contains("request method GET is not supported");
         }
 
         verify(request, times(1)).getRequestURL();
@@ -187,7 +187,7 @@ public class CasIdentityProviderTest {
     public void isProxyLoginShouldThrowExceptionOnEmptyTicketID() {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/sessions/cas/proxy?ticket=ST-0123456789"));
-        when(request.getMethod()).thenReturn("GET");
+        when(request.getMethod()).thenReturn("POST");
         when(request.getParameter("ticket")).thenReturn(null);
 
         CasIdentityProvider sut = new CasIdentityProvider(null, null, null);
