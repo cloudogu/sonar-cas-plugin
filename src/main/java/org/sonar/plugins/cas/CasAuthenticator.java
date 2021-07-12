@@ -74,7 +74,7 @@ public class CasAuthenticator extends Authenticator {
 
     @Override
     public boolean doAuthenticate(Context context) {
-        LOG.debug("CasAuthenticator.doAuthenticate()");
+        LOG.debug("CasAuthenticator.doAuthenticate(): {}", context.getRequest().getContextPath());
         try {
             String ticket = casRestClient.createServiceTicket(context.getUsername(), context.getPassword());
 

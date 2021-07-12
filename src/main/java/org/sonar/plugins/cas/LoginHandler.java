@@ -36,7 +36,6 @@ import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIR
 public class LoginHandler {
     private static final Logger LOG = LoggerFactory.getLogger(LoginHandler.class);
     private static final String GROUP_REPLICATION_CAS = "CAS";
-    private static final String PROXY_TICKET_URL_SUFFIX = "/sonar/customSessions/cas/proxy";
 
     private final Configuration configuration;
     private final CasAttributeSettings attributeSettings;
@@ -73,33 +72,6 @@ public class LoginHandler {
 
         LOG.debug("Storing service ticket {} with JWT {}", serviceTicket, jwt.getJwtId());
         sessionStore.store(serviceTicket, jwt);
-
-        String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
-        removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
-
-        LOG.debug("redirecting to {}", redirectTo);
-        context.getResponse().sendRedirect(redirectTo);
-    }
-
-    void handleProxyLogin(HttpServletRequest request, HttpServletResponse response) throws IOException, TicketValidationException {
-        LOG.debug("Starting to handle proxy ticket authentication.");
-
-        String proxyTicket = getTicketParameter(context.getRequest());
-        LOG.debug("Trying to validate proxy ticket {} with CAS", proxyTicket);
-        TicketValidator validator = validatorFactory.createForProxy();
-
-        Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
-        LOG.debug("Is proxy ticket valid? {}", assertion.isValid());
-
-        UserIdentity userIdentity = createUserIdentity(assertion);
-        LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
-        context.authenticate(userIdentity);
-
-        Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
-        SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
-
-        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, jwt.getJwtId());
-        sessionStore.store(proxyTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
         removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
@@ -168,26 +140,9 @@ public class LoginHandler {
      * @param request the request to be authenticated
      * @return the value of the parameter "ticket" if set, otherwise the empty string
      */
-    String getTicketParameter(HttpServletRequest request) {
+    public static String getTicketParameter(HttpServletRequest request) {
         String ticket = request.getParameter("ticket");
         return StringUtils.defaultIfEmpty(ticket, "");
-    }
-
-    boolean isProxyLogin(final String servletPath, String httpMethod) {
-        if (null == servletPath) {
-            return false;
-        }
-
-        if (!servletPath.contains(PROXY_TICKET_URL_SUFFIX)) {
-            return false;
-        }
-
-        if (!"POST".equals(httpMethod)) {
-            String msg = String.format("Received unexpected method for URL %s: %s", servletPath, httpMethod);
-            throw new IllegalStateException(msg);
-        }
-
-        return true;
     }
 
     private String getSonarServiceUrl() {

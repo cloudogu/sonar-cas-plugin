@@ -86,25 +86,6 @@ public class CasIdentityProvider implements BaseIdentityProvider {
         return "GET".equals(requestMethod) && StringUtils.isNotBlank(ticket);
     }
 
-    boolean isProxyLogin(HttpServletRequest request) {
-        if (!request.getRequestURL().toString().contains(PROXY_TICKET_URL_SUFFIX)) {
-            return false;
-        }
-
-        String requestMethod = request.getMethod();
-        if (!"POST".equals(requestMethod)) {
-            String msg = String.format("Could not check for login by proxy ticket because request method %s is not supported", requestMethod);
-            throw new IllegalStateException(msg);
-        }
-
-        String ticket = request.getParameter("ticket");
-        if (!StringUtils.isNotBlank(ticket)) {
-            throw new IllegalStateException("Could not check for login by proxy ticket because ticket is empty");
-        }
-
-        return true;
-    }
-
     /**
      * Local log-out and Single Log-out is done by a back-channel logout.
      */

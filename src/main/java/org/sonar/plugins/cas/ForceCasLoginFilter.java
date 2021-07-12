@@ -19,17 +19,20 @@
  */
 package org.sonar.plugins.cas;
 
+import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
+import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
 import org.jasig.cas.client.validation.TicketValidationException;
 import org.jasig.cas.client.validation.TicketValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
+import org.sonar.plugins.cas.session.CasSessionStore;
+import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
@@ -39,13 +42,10 @@ import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
-import static org.sonar.plugins.cas.ProxyTicketTokenFilter.PROXY_TICKET_URL_SUFFIX;
 
 /**
  * This filter checks if the current user is authenticated. If not, the client is redirected to the /session/new
@@ -60,20 +60,31 @@ import static org.sonar.plugins.cas.ProxyTicketTokenFilter.PROXY_TICKET_URL_SUFF
 public class ForceCasLoginFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(ForceCasLoginFilter.class);
     private static final int DEFAULT_CAS_REDIRECT_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(5);
+    private static final String GROUP_REPLICATION_CAS = "CAS";
     /**
      * Array of request URLS that should not be redirected to the login page.
      */
     private static final List<String> ALLOW_LIST = Arrays.asList(
             "/js/", "/images/", "/favicon.ico", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
+    private static final String PROXY_TICKET_URL_SUFFIX = "/sessions/cas/proxy";
 
     private final Configuration configuration;
-    private LogoutHandler logoutHandler;
-    private LoginHandler loginHandler;
+    private final LogoutHandler logoutHandler;
+    private final TicketValidatorFactory validatorFactory;
+    private final CasAttributeSettings attributeSettings;
+    private final CasSessionStore sessionStore;
 
-    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler, LoginHandler loginHandler) {
+    /**
+     * called with injection by SonarQube during server initialization
+     */
+    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler, CasAttributeSettings attributeSettings,
+                               CasSessionStoreFactory sessionStoreFactory, TicketValidatorFactory ticketValidatorFactory) {
         this.configuration = configuration;
         this.logoutHandler = logoutHandler;
-        this.loginHandler = loginHandler;
+        this.attributeSettings = attributeSettings;
+        this.sessionStore = sessionStoreFactory.getInstance();
+        this.validatorFactory = ticketValidatorFactory;
+
     }
 
     public void init(FilterConfig filterConfig) {
@@ -87,11 +98,12 @@ public class ForceCasLoginFilter extends ServletFilter {
         HttpServletResponse response = HttpStreams.toHttp(servletResponse);
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
+        LOG.debug("ForceCasLoginFilter.doFilter(): {} ", requestedURL);
 
-        if (loginHandler.isProxyLogin(request.getServletPath(), request.getMethod())) {
-            LOG.debug("Found proxy ticket login: URL {}, method {}", requestedURL, request.getMethod());
+        if (isProxyLogin(request.getServletPath(), request.getMethod())) {
+            LOG.debug("Found proxy ticket login with method {}", request.getMethod());
             try {
-                loginHandler.handleProxyLogin(request, response);
+                handleProxyLogin(request, response);
             } catch (TicketValidationException e) {
                 throw new RuntimeException("Could not validate proxy ticket login for URL " + requestedURL, e);
             }
@@ -150,6 +162,97 @@ public class ForceCasLoginFilter extends ServletFilter {
             }
         }
         return false;
+    }
+
+    boolean isProxyLogin(final String servletPath, String httpMethod) {
+        if (null == servletPath) {
+            return false;
+        }
+
+        if (!servletPath.contains(PROXY_TICKET_URL_SUFFIX)) {
+            return false;
+        }
+
+        if (!"GET".equals(httpMethod)) {
+            String msg = String.format("Received unexpected method for URL %s: %s", servletPath, httpMethod);
+            throw new IllegalStateException(msg);
+        }
+
+        return true;
+    }
+
+    void handleProxyLogin(HttpServletRequest request, HttpServletResponse response) throws TicketValidationException {
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, String[]> kv : request.getParameterMap().entrySet()) {
+            sb.append(kv.getKey())
+                    .append("->");
+            for (String val : kv.getValue()) {
+                sb.append(val);
+            }
+            sb.append("\n");
+        }
+        LOG.debug("Starting to handle proxy ticket authentication. attrs: {}", sb.toString());
+
+        String proxyTicket = LoginHandler.getTicketParameter(request);
+        LOG.debug("Trying to validate proxy ticket {} with CAS", proxyTicket);
+        TicketValidator validator = validatorFactory.createForProxy();
+
+        Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
+        LOG.debug("Is proxy ticket valid? {}", assertion.isValid());
+
+        UserIdentity userIdentity = createUserIdentity(assertion);
+        LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
+
+        Collection<String> headers = response.getHeaders("Set-Cookie");
+        SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
+
+        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, jwt.getJwtId());
+        sessionStore.store(proxyTicket, jwt);
+
+        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), jwt);
+        try {
+            response.getWriter().println(jsonResponse);
+        } catch (IOException e) {
+            throw new RuntimeException("Error while writing proxy response for user " + userIdentity.getProviderLogin(), e);
+        }
+    }
+
+    private String getSonarServiceUrl() {
+        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
+        // SonarQube recognizes the Identity Provider by the identifier in the URL. `sonarqube` corresponds to the value from getKey()
+        return sonarUrl + "/sessions/cas/proxy";
+    }
+
+    private UserIdentity createUserIdentity(Assertion assertion) {
+        AttributePrincipal principal = assertion.getPrincipal();
+        Map<String, Object> attributes = principal.getAttributes();
+
+        UserIdentity.Builder builder = UserIdentity.builder()
+                .setLogin(principal.getName())
+                .setProviderLogin(principal.getName());
+
+        String displayName = attributeSettings.getDisplayName(attributes);
+        if (!Strings.isNullOrEmpty(displayName)) {
+            builder = builder.setName(displayName);
+        }
+
+        String email = attributeSettings.getEmail(attributes);
+        if (!Strings.isNullOrEmpty(email)) {
+            builder = builder.setEmail(email);
+        }
+
+        Set<String> groups = attributeSettings.getGroups(attributes);
+        if (GROUP_REPLICATION_CAS.equals(getGroupReplicationMode())) {
+            // currently SonarQube only sets groups which already exists in the local group database.
+            // Thus, new CAS groups will never be added unless manually added in SonarQube.
+            builder = builder.setGroups(groups);
+        }
+
+        return builder.build();
+    }
+
+    private String getGroupReplicationMode() {
+        return SonarCasProperties.GROUP_REPLICATE.getString(configuration, GROUP_REPLICATION_CAS);
     }
 
     public void destroy() {

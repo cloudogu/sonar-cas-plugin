@@ -7,6 +7,7 @@ import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
@@ -30,7 +31,8 @@ public class LogNoOpFilter extends ServletFilter {
 
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        LOG.debug("LogNoOpFilter: URL {}", request.toString());
+        HttpServletRequest req = (HttpServletRequest) request;
+        LOG.debug("LogNoOpFilter: URL: {}, Method: {}, Cookies: {}", req.getRequestURL().toString(), req.getMethod(), req.getCookies());
         chain.doFilter(request, response);
     }
 
