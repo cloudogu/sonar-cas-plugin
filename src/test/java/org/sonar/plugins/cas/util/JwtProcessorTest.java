@@ -3,6 +3,7 @@ package org.sonar.plugins.cas.util;
 import org.junit.Test;
 import org.sonar.plugins.cas.AuthTestData;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -99,5 +100,13 @@ public class JwtProcessorTest {
         SimpleJwt actual = JwtProcessor.getJwtTokenFromResponseHeaders(headers);
 
         assertThat(actual).isEqualTo(AuthTestData.JWT_TOKEN);
+    }
+
+    @Test
+    public void encodeJwtPayload() {
+        SimpleJwt input = new SimpleJwt("AWjhJmqstpMb_bcdEyYA", 1550224817L, false, "admin");
+        String actual = JwtProcessor.encodeJwtPayload(input);
+
+        assertThat(actual).isEqualTo(JWT_TOKEN);
     }
 }

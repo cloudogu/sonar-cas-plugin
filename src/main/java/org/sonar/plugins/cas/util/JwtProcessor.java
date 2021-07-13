@@ -72,6 +72,10 @@ public class JwtProcessor {
         return new String(decode, StandardCharsets.UTF_8);
     }
 
+    static String encodeJwtPayload(SimpleJwt jwt) {
+        return "";
+    }
+
     private static SimpleJwt createJwt(String token) {
         Map map;
         try {
