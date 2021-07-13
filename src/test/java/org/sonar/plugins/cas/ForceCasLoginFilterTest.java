@@ -31,7 +31,7 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "300");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler, null, null, null);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
@@ -75,7 +75,7 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler,null, null, null);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
@@ -115,7 +115,7 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler,null, null, null);
 
         int actual = sut.getMaxCookieAge(config);
 
@@ -128,7 +128,7 @@ public class ForceCasLoginFilterTest {
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp"); // no max age was set
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler,null, null, null);
 
         int actualSeconds = sut.getMaxCookieAge(config);
 

@@ -20,6 +20,7 @@
 package org.sonar.plugins.cas;
 
 import com.google.common.base.Strings;
+import org.apache.catalina.filters.ExpiresFilter;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
@@ -35,7 +36,6 @@ import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.HttpStreams;
-import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
@@ -211,13 +211,13 @@ public class ForceCasLoginFilter extends ServletFilter {
             throw new RuntimeException("Forbidden: Proxy ticket was invalid");
         }
 
-        Collection<String> headers = response.getHeaders("Set-Cookie");
-        SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
+        SimpleJwt proxyJwt = SimpleJwt.buildProxyJwt().withGeneratedId().withExpirationFromNow(24*60*60).build();
 
-        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, jwt.getJwtId());
-        sessionStore.store(proxyTicket, jwt);
+        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, proxyJwt.getJwtId());
+        sessionStore.store(proxyTicket, proxyJwt);
 
-        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), jwt);
+        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), proxyJwt);
+
         try {
             response.getWriter().println(jsonResponse);
         } catch (IOException e) {

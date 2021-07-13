@@ -54,6 +54,10 @@ public final class SimpleJwt {
         return nullObject;
     }
 
+    public static SimpleJwtBuilder buildProxyJwt() {
+        return new SimpleJwtBuilder();
+    }
+
     public String getJwtId() {
         return jwtId;
     }
