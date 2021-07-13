@@ -20,6 +20,8 @@
 package org.sonar.plugins.cas;
 
 import com.google.common.collect.ImmutableSet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
@@ -35,6 +37,7 @@ import java.util.*;
 @ServerSide
 public class CasAttributeSettings {
 
+    private static final Logger LOG = LoggerFactory.getLogger(CasAttributeSettings.class);
     private final Configuration config;
 
     /**
@@ -84,11 +87,15 @@ public class CasAttributeSettings {
     }
 
     private String getMailAttribute() {
-        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
+        String mailAttr = SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
+        LOG.debug("Using Sonar CAS Property email attribute: {}", mailAttr);
+        return mailAttr;
     }
 
     String getDisplayName(Map<String, Object> attributes) {
-        return getStringAttribute(attributes, getFullNameAttribute());
+        String fullNameAttr = getStringAttribute(attributes, getFullNameAttribute());
+        LOG.debug("Using Sonar CAS Property display name attribute: {}", fullNameAttr);
+        return fullNameAttr;
     }
 
     private String getFullNameAttribute() {

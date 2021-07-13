@@ -22,7 +22,10 @@ package org.sonar.plugins.cas;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.jasig.cas.client.validation.*;
+import org.jasig.cas.client.validation.Assertion;
+import org.jasig.cas.client.validation.Cas20ProxyTicketValidator;
+import org.jasig.cas.client.validation.ProxyList;
+import org.jasig.cas.client.validation.TicketValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
@@ -196,15 +199,19 @@ public class ForceCasLoginFilter extends ServletFilter {
         Cas20ProxyTicketValidator validator = ((Cas20ProxyTicketValidator) validatorFactory.createForProxy());
         validator.setAcceptAnyProxy(false);
 
-        List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/*$"});
+        List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/.*$"});
         ProxyList proxyList = new ProxyList(proxyChains);
         validator.setAllowedProxyChains(proxyList);
 
         Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
-        LOG.debug("Is proxy ticket valid? {}", assertion.isValid());
-
         UserIdentity userIdentity = createUserIdentity(assertion);
         LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
+
+        if (assertion.isValid()) {
+            LOG.debug("Proxy ticket is not valid for user {}", userIdentity.getName());
+            throw new RuntimeException("Forbidden: Proxy ticket was invalid");
+        }
+
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
@@ -230,21 +237,29 @@ public class ForceCasLoginFilter extends ServletFilter {
         AttributePrincipal principal = assertion.getPrincipal();
         Map<String, Object> attributes = principal.getAttributes();
 
+        LOG.debug("Building User identity: Found principal: {}", principal.getName());
         UserIdentity.Builder builder = UserIdentity.builder()
                 .setLogin(principal.getName())
                 .setProviderLogin(principal.getName());
 
+        LOG.debug("CAS Attributes: {}", attributes);
+        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
+            LOG.debug("CAS Attributes: {} => {}", entry.getKey(), entry.getValue());
+        }
         String displayName = attributeSettings.getDisplayName(attributes);
+        LOG.debug("Building User identity: Display name: {}", displayName);
         if (!Strings.isNullOrEmpty(displayName)) {
             builder = builder.setName(displayName);
         }
 
         String email = attributeSettings.getEmail(attributes);
+        LOG.debug("Building User identity: Email: {}", email);
         if (!Strings.isNullOrEmpty(email)) {
             builder = builder.setEmail(email);
         }
 
         Set<String> groups = attributeSettings.getGroups(attributes);
+        LOG.debug("Building User identity: Groups: {}", groups);
         if (GROUP_REPLICATION_CAS.equals(getGroupReplicationMode())) {
             // currently SonarQube only sets groups which already exists in the local group database.
             // Thus, new CAS groups will never be added unless manually added in SonarQube.
