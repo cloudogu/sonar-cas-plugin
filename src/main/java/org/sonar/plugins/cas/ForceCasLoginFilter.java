@@ -206,7 +206,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         UserIdentity userIdentity = createUserIdentity(assertion);
         LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
 
-        if (assertion.isValid()) {
+        if (!assertion.isValid()) {
             LOG.debug("Proxy ticket is not valid for user {}", userIdentity.getName());
             throw new RuntimeException("Forbidden: Proxy ticket was invalid");
         }
@@ -228,7 +228,7 @@ public class ForceCasLoginFilter extends ServletFilter {
     private String getSonarServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
         // SonarQube recognizes the Identity Provider by the identifier in the URL. `sonarqube` corresponds to the value from getKey()
-        return sonarUrl + "/sessions/cas/proxy";
+        return sonarUrl + PROXY_TICKET_URL_SUFFIX;
     }
 
     private UserIdentity createUserIdentity(Assertion assertion) {
