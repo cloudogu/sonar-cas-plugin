@@ -85,7 +85,6 @@ public class ForceCasLoginFilter extends ServletFilter {
         this.attributeSettings = attributeSettings;
         this.sessionStore = sessionStoreFactory.getInstance();
         this.validatorFactory = ticketValidatorFactory;
-
     }
 
     public void init(FilterConfig filterConfig) {
@@ -196,7 +195,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         String proxyTicket = LoginHandler.getTicketParameter(request);
         LOG.debug("Trying to validate proxy ticket {} with CAS", proxyTicket);
-        Cas20ProxyTicketValidator validator = ((Cas20ProxyTicketValidator) validatorFactory.createForProxy());
+        Cas20ProxyTicketValidator validator = validatorFactory.createForProxy();
         validator.setAcceptAnyProxy(false);
 
         List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/.*$"});
@@ -211,7 +210,6 @@ public class ForceCasLoginFilter extends ServletFilter {
             LOG.debug("Proxy ticket is not valid for user {}", userIdentity.getName());
             throw new RuntimeException("Forbidden: Proxy ticket was invalid");
         }
-
 
         Collection<String> headers = response.getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);

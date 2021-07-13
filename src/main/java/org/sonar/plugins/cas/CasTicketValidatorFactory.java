@@ -49,9 +49,9 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
         return validator;
     }
 
-    public TicketValidator createForProxy() {
+    public Cas20ProxyTicketValidator createForProxy() {
         String protocol = getCasProtocol();
-        TicketValidator validator;
+        Cas20ProxyTicketValidator validator;
         if ("cas2".equalsIgnoreCase(protocol)) {
             validator = createCas20ProxyTicketValidator();
         } else if ("cas3".equalsIgnoreCase(protocol)) {
