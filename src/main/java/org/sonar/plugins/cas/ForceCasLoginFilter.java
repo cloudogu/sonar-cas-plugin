@@ -22,9 +22,7 @@ package org.sonar.plugins.cas;
 import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.jasig.cas.client.validation.Assertion;
-import org.jasig.cas.client.validation.TicketValidationException;
-import org.jasig.cas.client.validation.TicketValidator;
+import org.jasig.cas.client.validation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
@@ -189,13 +187,18 @@ public class ForceCasLoginFilter extends ServletFilter {
             for (String val : kv.getValue()) {
                 sb.append(val);
             }
-            sb.append("\n");
+            sb.append("\\n");
         }
         LOG.debug("Starting to handle proxy ticket authentication. attrs: {}", sb.toString());
 
         String proxyTicket = LoginHandler.getTicketParameter(request);
         LOG.debug("Trying to validate proxy ticket {} with CAS", proxyTicket);
-        TicketValidator validator = validatorFactory.createForProxy();
+        Cas20ProxyTicketValidator validator = ((Cas20ProxyTicketValidator) validatorFactory.createForProxy());
+        validator.setAcceptAnyProxy(false);
+
+        List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/*$"});
+        ProxyList proxyList = new ProxyList(proxyChains);
+        validator.setAllowedProxyChains(proxyList);
 
         Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
         LOG.debug("Is proxy ticket valid? {}", assertion.isValid());

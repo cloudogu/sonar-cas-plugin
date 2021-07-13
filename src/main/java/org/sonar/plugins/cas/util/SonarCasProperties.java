@@ -111,7 +111,9 @@ public enum SonarCasProperties {
      * interval in seconds between each clean up run. Do not set the interval too short (this could lead to unnecessary
      * CPU load) or too long (this could lead to unnecessary filesystem load).
      */
-    SESSION_STORE_CLEANUP_INTERVAL_IN_SECS("sonar.cas.sessionStore.cleanUpIntervalInSeconds", SonarPropertyType.INTEGER);
+    SESSION_STORE_CLEANUP_INTERVAL_IN_SECS("sonar.cas.sessionStore.cleanUpIntervalInSeconds", SonarPropertyType.INTEGER),
+
+    CAS_PROXY_TICKETING_SERVICES_REGEXPS("sonar.cas.proxyTicketing.services", SonarPropertyType.STRING);
 
     String propertyKey;
 
