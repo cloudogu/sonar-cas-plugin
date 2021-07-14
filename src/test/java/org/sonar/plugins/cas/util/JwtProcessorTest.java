@@ -3,7 +3,6 @@ package org.sonar.plugins.cas.util;
 import org.junit.Test;
 import org.sonar.plugins.cas.AuthTestData;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -12,16 +11,20 @@ import static org.fest.assertions.Assertions.assertThat;
 import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 
 public class JwtProcessorTest {
-    private static final String JWT_TOKEN = "eyJhbGciOiJIUzI1NiJ9." +
-            "eyJqdGkiOiJBV2poSm1xc3RwTWJfYmNkRXlZQSIsInN1YiI6ImFkbWluIiwiaWF0Ijox" +
+    private static final String SONARQUBE_JWT_TOKEN = "eyJhbGciOiJIUzI1NiJ9" +
+            ".eyJqdGkiOiJBV2poSm1xc3RwTWJfYmNkRXlZQSIsInN1YiI6ImFkbWluIiwiaWF0Ijox" +
             "NTQ5OTY1NjE3LCJleHAiOjE1NTAyMjQ4MTcsImxhc3RSZWZyZXNoVGltZSI6MTU0OTk2" +
-            "NTYxNzcyMiwieHNyZlRva2VuIjoiaHZpcGRyMzBkamdic2lwY2E0ZmZhMmdwYm4ifQ." +
-            "QTCPErWDrzDcZBUuGje1vjbjJbp11rsBZ6z5ZBIaoR0";
+            "NTYxNzcyMiwieHNyZlRva2VuIjoiaHZpcGRyMzBkamdic2lwY2E0ZmZhMmdwYm4ifQ" +
+            ".QTCPErWDrzDcZBUuGje1vjbjJbp11rsBZ6z5ZBIaoR0";
+    private static final String PROXYTICKET_JWT_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9" +
+            ".eyJzdWIiOiJhZG1pbiIsImV4cCI6MTYyNTczNTQxMSwianRpIjoiMmQxMjZkMDktMmFmNi00NTI4LWJh" +
+            "YmQtZmJjMGI3NmY4OWQ5In0" +
+            ".K90vJ0sapAPX6LywhdC68Y7RaArJ_iqxukJQ9Yc5Py8";
     private static final String USUAL_COOKIE_ATTRIBUTES = "Max-Age=259200; Expires=Fri, 15-Feb-2019 10:10:57 GMT; Path=/; HttpOnly";
 
     @Test
     public void getJwtTokenShouldReturnToken() {
-        String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
+        String jwtHeader = "JWT-SESSION=" + SONARQUBE_JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Collections.singleton(jwtHeader);
 
         SimpleJwt actualToken = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
@@ -32,7 +35,7 @@ public class JwtProcessorTest {
 
     @Test
     public void getJwtTokenShouldReturnToken_twoCookies() {
-        String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
+        String jwtHeader = "JWT-SESSION=" + SONARQUBE_JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Arrays.asList(jwtHeader, unrelatedHeader);
 
@@ -52,7 +55,7 @@ public class JwtProcessorTest {
 
     @Test
     public void mustFilterJwtTokenShouldReturnJwtCookie() {
-        String jwtHeader = "JWT-SESSION=" + JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
+        String jwtHeader = "JWT-SESSION=" + SONARQUBE_JWT_TOKEN + "; " + USUAL_COOKIE_ATTRIBUTES;
         String unrelatedHeader = "TOTALLY=unrelated" + USUAL_COOKIE_ATTRIBUTES;
         Collection<String> headers = Arrays.asList(jwtHeader, unrelatedHeader);
 
@@ -103,10 +106,31 @@ public class JwtProcessorTest {
     }
 
     @Test
-    public void encodeJwtPayload() {
-        SimpleJwt input = new SimpleJwt("AWjhJmqstpMb_bcdEyYA", 1550224817L, false, "admin");
-        String actual = JwtProcessor.encodeJwtPayload(input);
+    public void encodeProxyTicketJwtShouldReturnJwtString() {
+        long expDate_2021_07_08_09_10_11 = 1625735411L;
+        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
+        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
 
-        assertThat(actual).isEqualTo(JWT_TOKEN);
+        String actual = JwtProcessor.encodeProxyTicketJwt(input, "ST-0123456789");
+
+        assertThat(actual).isEqualTo(PROXYTICKET_JWT_TOKEN);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void encodeProxyTicketJwtShouldThrowExceptionOnEmptyTicketString() {
+        long expDate_2021_07_08_09_10_11 = 1625735411L;
+        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
+        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
+
+        JwtProcessor.encodeProxyTicketJwt(input, "");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void encodeProxyTicketJwtShouldThrowExceptionOnNullTicket() {
+        long expDate_2021_07_08_09_10_11 = 1625735411L;
+        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
+        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
+
+        JwtProcessor.encodeProxyTicketJwt(input, null);
     }
 }

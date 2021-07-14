@@ -20,7 +20,6 @@
 package org.sonar.plugins.cas;
 
 import com.google.common.base.Strings;
-import org.apache.catalina.filters.ExpiresFilter;
 import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
@@ -36,8 +35,10 @@ import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.HttpStreams;
+import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
+import org.sonar.server.exceptions.ForbiddenException;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -102,11 +103,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
         if (isProxyLogin(request.getServletPath(), request.getMethod())) {
             LOG.debug("Found proxy ticket login with method {}", request.getMethod());
-            try {
-                handleProxyLogin(request, response);
-            } catch (TicketValidationException e) {
-                throw new RuntimeException("Could not validate proxy ticket login for URL " + requestedURL, e);
-            }
+            handleProxyLogin(request, response);
         } else if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
 
@@ -181,7 +178,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         return true;
     }
 
-    void handleProxyLogin(HttpServletRequest request, HttpServletResponse response) throws TicketValidationException {
+    void handleProxyLogin(HttpServletRequest request, HttpServletResponse response) {
         StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, String[]> kv : request.getParameterMap().entrySet()) {
             sb.append(kv.getKey())
@@ -202,21 +199,32 @@ public class ForceCasLoginFilter extends ServletFilter {
         ProxyList proxyList = new ProxyList(proxyChains);
         validator.setAllowedProxyChains(proxyList);
 
-        Assertion assertion = validator.validate(proxyTicket, getSonarServiceUrl());
+        Assertion assertion;
+        try {
+            assertion = validator.validate(proxyTicket, getSonarProxyServiceUrl());
+        } catch (TicketValidationException e) {
+            LOG.warn("Login attempt with CAS proxy ticket {} did not validate: {}", proxyTicket, e.toString());
+            throw new RuntimeException("Forbidden: Could not validate CAS proxy ticket " + proxyTicket);
+        }
         UserIdentity userIdentity = createUserIdentity(assertion);
         LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
 
         if (!assertion.isValid()) {
             LOG.debug("Proxy ticket is not valid for user {}", userIdentity.getName());
-            throw new RuntimeException("Forbidden: Proxy ticket was invalid");
+            throw new RuntimeException("Forbidden: Proxy ticket " + proxyTicket + " was invalid");
         }
 
-        SimpleJwt proxyJwt = SimpleJwt.buildProxyJwt().withGeneratedId().withExpirationFromNow(24*60*60).build();
+        int expirationInSecondsFromNow = 60;
+        SimpleJwt proxyJwt = SimpleJwt.buildProxyJwt()
+                .withGeneratedId()
+                .withExpirationFromNow(expirationInSecondsFromNow)
+                .build();
 
         LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, proxyJwt.getJwtId());
         sessionStore.store(proxyTicket, proxyJwt);
 
-        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), proxyJwt);
+        String proxyJwtString = JwtProcessor.encodeProxyTicketJwt(proxyJwt, proxyTicket);
+        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), proxyJwtString);
 
         try {
             response.getWriter().println(jsonResponse);
@@ -225,9 +233,8 @@ public class ForceCasLoginFilter extends ServletFilter {
         }
     }
 
-    private String getSonarServiceUrl() {
+    private String getSonarProxyServiceUrl() {
         String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
-        // SonarQube recognizes the Identity Provider by the identifier in the URL. `sonarqube` corresponds to the value from getKey()
         return sonarUrl + PROXY_TICKET_URL_SUFFIX;
     }
 

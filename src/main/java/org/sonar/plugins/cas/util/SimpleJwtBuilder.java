@@ -4,7 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 public class SimpleJwtBuilder {
-    private final Instant nowish;
+    private final Instant now;
     private String id;
     private long expirationEpochSeconds;
 
@@ -15,10 +15,10 @@ public class SimpleJwtBuilder {
     /**
      * for testability
      *
-     * @param now
+     * @param now a testable point in time
      */
     SimpleJwtBuilder(Instant now) {
-        this.nowish = now;
+        this.now = now;
     }
 
     public SimpleJwtBuilder withGeneratedId() {
@@ -27,7 +27,7 @@ public class SimpleJwtBuilder {
     }
 
     public SimpleJwtBuilder withExpirationFromNow(long expirationInSeconds) {
-        this.expirationEpochSeconds = nowish.plusSeconds(expirationInSeconds).getEpochSecond();
+        this.expirationEpochSeconds = now.plusSeconds(expirationInSeconds).getEpochSecond();
         return this;
     }
 
