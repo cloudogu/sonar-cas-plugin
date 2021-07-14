@@ -29,10 +29,9 @@ public class ForceCasLoginFilterTest {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "300");
-        CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler, attributeSettings, sessionStoreFactory, null);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
@@ -74,10 +73,9 @@ public class ForceCasLoginFilterTest {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
-        CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler, attributeSettings, sessionStoreFactory, null);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
 
         CasSessionStore store = mock(CasSessionStore.class);
         when(store.isJwtStored(JWT_TOKEN)).thenReturn(true);
@@ -115,10 +113,9 @@ public class ForceCasLoginFilterTest {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
                 .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
-        CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler, attributeSettings, sessionStoreFactory, null);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
 
         int actual = sut.getMaxCookieAge(config);
 
@@ -129,10 +126,9 @@ public class ForceCasLoginFilterTest {
     public void getMaxCookieAgeShouldReturnDefaultValue() {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp"); // no max age was set
-        CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
-        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler, attributeSettings, sessionStoreFactory, null);
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
 
         int actualSeconds = sut.getMaxCookieAge(config);
 

@@ -1,17 +1,12 @@
 package org.sonar.plugins.cas.util;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.apache.commons.lang.StringUtils;
 
 import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.time.ZoneId;
 import java.util.Base64;
 import java.util.Collection;
-import java.util.Date;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -77,18 +72,6 @@ public class JwtProcessor {
         return new String(decode, StandardCharsets.UTF_8);
     }
 
-    public static String encodeProxyTicketJwt(SimpleJwt jwt, String proxyTicket) {
-        if (StringUtils.isEmpty(proxyTicket)) {
-            throw new IllegalArgumentException("Cannot encode jwt: proxy ticket must not be null or empty");
-        }
-
-        return JWT.create()
-                .withJWTId(jwt.getJwtId())
-                .withSubject(jwt.getSubject())
-                .withExpiresAt(Date.from(jwt.getExpiration()))
-                .sign(Algorithm.HMAC256(proxyTicket));
-    }
-
     private static SimpleJwt createJwt(String token) {
         Map map;
         try {
@@ -98,7 +81,7 @@ public class JwtProcessor {
         }
         String jwtId = map.get(JWT_ID).toString();
         String expirationDateRaw = map.get(JWT_EXPIRATION_DATE).toString();
-        long expirationDate = Long.valueOf(expirationDateRaw);
+        long expirationDate = Long.parseLong(expirationDateRaw);
 
         return SimpleJwt.fromIdAndExpiration(jwtId, expirationDate);
     }

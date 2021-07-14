@@ -19,32 +19,21 @@
  */
 package org.sonar.plugins.cas;
 
-import com.google.common.base.Strings;
 import org.apache.commons.lang.StringUtils;
-import org.jasig.cas.client.authentication.AttributePrincipal;
-import org.jasig.cas.client.validation.Assertion;
-import org.jasig.cas.client.validation.Cas20ProxyTicketValidator;
-import org.jasig.cas.client.validation.ProxyList;
-import org.jasig.cas.client.validation.TicketValidationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.server.authentication.UserIdentity;
 import org.sonar.api.web.ServletFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
-import org.sonar.plugins.cas.session.CasSessionStore;
-import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.HttpStreams;
-import org.sonar.plugins.cas.util.JwtProcessor;
-import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
-import org.sonar.server.exceptions.ForbiddenException;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
@@ -68,24 +57,16 @@ public class ForceCasLoginFilter extends ServletFilter {
      */
     private static final List<String> ALLOW_LIST = Arrays.asList(
             "/js/", "/images/", "/favicon.ico", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
-    private static final String PROXY_TICKET_URL_SUFFIX = "/sessions/cas/proxy";
 
     private final Configuration configuration;
     private final LogoutHandler logoutHandler;
-    private final TicketValidatorFactory validatorFactory;
-    private final CasAttributeSettings attributeSettings;
-    private final CasSessionStore sessionStore;
 
     /**
      * called with injection by SonarQube during server initialization
      */
-    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler, CasAttributeSettings attributeSettings,
-                               CasSessionStoreFactory sessionStoreFactory, TicketValidatorFactory ticketValidatorFactory) {
+    public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler) {
         this.configuration = configuration;
         this.logoutHandler = logoutHandler;
-        this.attributeSettings = attributeSettings;
-        this.sessionStore = sessionStoreFactory.getInstance();
-        this.validatorFactory = ticketValidatorFactory;
     }
 
     public void init(FilterConfig filterConfig) {
@@ -101,10 +82,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
         LOG.debug("ForceCasLoginFilter.doFilter(): {} ", requestedURL);
 
-        if (isProxyLogin(request.getServletPath(), request.getMethod())) {
-            LOG.debug("Found proxy ticket login with method {}", request.getMethod());
-            handleProxyLogin(request, response);
-        } else if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
+        if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
@@ -159,120 +137,6 @@ public class ForceCasLoginFilter extends ServletFilter {
             }
         }
         return false;
-    }
-
-    boolean isProxyLogin(final String servletPath, String httpMethod) {
-        if (null == servletPath) {
-            return false;
-        }
-
-        if (!servletPath.contains(PROXY_TICKET_URL_SUFFIX)) {
-            return false;
-        }
-
-        if (!"GET".equals(httpMethod)) {
-            String msg = String.format("Received unexpected method for URL %s: %s", servletPath, httpMethod);
-            throw new IllegalStateException(msg);
-        }
-
-        return true;
-    }
-
-    void handleProxyLogin(HttpServletRequest request, HttpServletResponse response) {
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, String[]> kv : request.getParameterMap().entrySet()) {
-            sb.append(kv.getKey())
-                    .append("->");
-            for (String val : kv.getValue()) {
-                sb.append(val);
-            }
-            sb.append("\\n");
-        }
-        LOG.debug("Starting to handle proxy ticket authentication. attrs: {}", sb.toString());
-
-        String proxyTicket = LoginHandler.getTicketParameter(request);
-        LOG.debug("Trying to validate proxy ticket {} with CAS", proxyTicket);
-        Cas20ProxyTicketValidator validator = validatorFactory.createForProxy();
-        validator.setAcceptAnyProxy(false);
-
-        List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/.*$"});
-        ProxyList proxyList = new ProxyList(proxyChains);
-        validator.setAllowedProxyChains(proxyList);
-
-        Assertion assertion;
-        try {
-            assertion = validator.validate(proxyTicket, getSonarProxyServiceUrl());
-        } catch (TicketValidationException e) {
-            LOG.warn("Login attempt with CAS proxy ticket {} did not validate: {}", proxyTicket, e.toString());
-            throw new RuntimeException("Forbidden: Could not validate CAS proxy ticket " + proxyTicket);
-        }
-        UserIdentity userIdentity = createUserIdentity(assertion);
-        LOG.debug("Received assertion. Authenticating with user {}, login {}", userIdentity.getName(), userIdentity.getProviderLogin());
-
-        if (!assertion.isValid()) {
-            LOG.debug("Proxy ticket is not valid for user {}", userIdentity.getName());
-            throw new RuntimeException("Forbidden: Proxy ticket " + proxyTicket + " was invalid");
-        }
-
-        int expirationInSecondsFromNow = 60;
-        SimpleJwt proxyJwt = SimpleJwt.buildProxyJwt()
-                .withGeneratedId()
-                .withExpirationFromNow(expirationInSecondsFromNow)
-                .withSubject(userIdentity.getName())
-                .build();
-
-        LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, proxyJwt.getJwtId());
-        sessionStore.store(proxyTicket, proxyJwt);
-
-        String proxyJwtString = JwtProcessor.encodeProxyTicketJwt(proxyJwt, proxyTicket);
-        String jsonResponse = String.format("{ 'username': '%s', 'token': '%s'}", userIdentity.getProviderLogin(), proxyJwtString);
-
-        try {
-            response.getWriter().println(jsonResponse);
-        } catch (IOException e) {
-            throw new RuntimeException("Error while writing proxy response for user " + userIdentity.getProviderLogin(), e);
-        }
-    }
-
-    private String getSonarProxyServiceUrl() {
-        String sonarUrl = SonarCasProperties.SONAR_SERVER_URL.mustGetString(configuration);
-        return sonarUrl + PROXY_TICKET_URL_SUFFIX;
-    }
-
-    private UserIdentity createUserIdentity(Assertion assertion) {
-        AttributePrincipal principal = assertion.getPrincipal();
-        Map<String, Object> attributes = principal.getAttributes();
-
-        LOG.debug("Building User identity: Found principal: {}", principal.getName());
-        UserIdentity.Builder builder = UserIdentity.builder()
-                .setLogin(principal.getName())
-                .setProviderLogin(principal.getName());
-
-        LOG.debug("CAS Attributes: {}", attributes);
-        for (Map.Entry<String, Object> entry : attributes.entrySet()) {
-            LOG.debug("CAS Attributes: {} => {}", entry.getKey(), entry.getValue());
-        }
-        String displayName = attributeSettings.getDisplayName(attributes);
-        LOG.debug("Building User identity: Display name: {}", displayName);
-        if (!Strings.isNullOrEmpty(displayName)) {
-            builder = builder.setName(displayName);
-        }
-
-        String email = attributeSettings.getEmail(attributes);
-        LOG.debug("Building User identity: Email: {}", email);
-        if (!Strings.isNullOrEmpty(email)) {
-            builder = builder.setEmail(email);
-        }
-
-        Set<String> groups = attributeSettings.getGroups(attributes);
-        LOG.debug("Building User identity: Groups: {}", groups);
-        if (GROUP_REPLICATION_CAS.equals(getGroupReplicationMode())) {
-            // currently SonarQube only sets groups which already exists in the local group database.
-            // Thus, new CAS groups will never be added unless manually added in SonarQube.
-            builder = builder.setGroups(groups);
-        }
-
-        return builder.build();
     }
 
     private String getGroupReplicationMode() {

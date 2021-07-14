@@ -104,33 +104,4 @@ public class JwtProcessorTest {
 
         assertThat(actual).isEqualTo(AuthTestData.JWT_TOKEN);
     }
-
-    @Test
-    public void encodeProxyTicketJwtShouldReturnJwtString() {
-        long expDate_2021_07_08_09_10_11 = 1625735411L;
-        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
-        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
-
-        String actual = JwtProcessor.encodeProxyTicketJwt(input, "ST-0123456789");
-
-        assertThat(actual).isEqualTo(PROXYTICKET_JWT_TOKEN);
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void encodeProxyTicketJwtShouldThrowExceptionOnEmptyTicketString() {
-        long expDate_2021_07_08_09_10_11 = 1625735411L;
-        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
-        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
-
-        JwtProcessor.encodeProxyTicketJwt(input, "");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void encodeProxyTicketJwtShouldThrowExceptionOnNullTicket() {
-        long expDate_2021_07_08_09_10_11 = 1625735411L;
-        String jwtId = "2d126d09-2af6-4528-babd-fbc0b76f89d9";
-        SimpleJwt input = new SimpleJwt(jwtId, expDate_2021_07_08_09_10_11, false, "admin");
-
-        JwtProcessor.encodeProxyTicketJwt(input, null);
-    }
 }

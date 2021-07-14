@@ -51,26 +51,13 @@ public final class SimpleJwt {
     }
 
     SimpleJwt(String jwtId, long expiration, boolean invalid) {
-        this(jwtId, expiration, invalid, "");
-    }
-
-    public SimpleJwt(String jwtId, long expiration, boolean invalid, String sub) {
         this.jwtId = jwtId;
         this.expiration = expiration;
         this.invalid = invalid;
-
-        this.sub = sub;
-        if (sub == null) {
-            sub = "";
-        }
     }
 
     public static SimpleJwt getNullObject() {
         return nullObject;
-    }
-
-    public static SimpleJwtBuilder buildProxyJwt() {
-        return new SimpleJwtBuilder();
     }
 
     public String getJwtId() {
@@ -87,10 +74,6 @@ public final class SimpleJwt {
 
     public boolean isInvalid() {
         return invalid;
-    }
-
-    public String getSubject() {
-        return sub;
     }
 
     /**
