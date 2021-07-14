@@ -218,6 +218,7 @@ public class ForceCasLoginFilter extends ServletFilter {
         SimpleJwt proxyJwt = SimpleJwt.buildProxyJwt()
                 .withGeneratedId()
                 .withExpirationFromNow(expirationInSecondsFromNow)
+                .withSubject(userIdentity.getName())
                 .build();
 
         LOG.debug("Storing proxy ticket {} with JWT {}", proxyTicket, proxyJwt.getJwtId());

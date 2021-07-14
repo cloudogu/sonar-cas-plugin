@@ -7,6 +7,8 @@ public class SimpleJwtBuilder {
     private final Instant now;
     private String id;
     private long expirationEpochSeconds;
+    private String subject;
+    private boolean invalid = false;
 
     public SimpleJwtBuilder() {
         this(Instant.now());
@@ -31,7 +33,21 @@ public class SimpleJwtBuilder {
         return this;
     }
 
+    public SimpleJwtBuilder withSubject(String subject) {
+        this.subject = subject;
+        return this;
+    }
+
+    public SimpleJwtBuilder withInvalid(boolean invalid) {
+        this.invalid = invalid;
+        return this;
+    }
+
     public SimpleJwt build() {
-        return SimpleJwt.fromIdAndExpiration(this.id, this.expirationEpochSeconds);
+        return new SimpleJwt(
+                this.id,
+                this.expirationEpochSeconds,
+                this.invalid,
+                this.subject);
     }
 }
