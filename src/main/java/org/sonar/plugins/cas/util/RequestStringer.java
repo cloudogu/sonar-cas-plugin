@@ -26,12 +26,16 @@ public final class RequestStringer {
         }
 
         sb.append("Cookies:\n");
-        for (Cookie cookie : cookies) {
-            sb.append(cookie.getName()).append(":\t")
-                    .append("Max age:\t").append(cookie.getMaxAge()).append("\n")
-                    .append("Path:\t").append(cookie.getPath()).append("\n")
-                    .append("Secure:\t").append(cookie.getSecure()).append("\n")
-                    .append("Value:\t").append(cookie.getValue()).append("\n");
+        if (cookies == null || cookies.length == 0) {
+            sb.append("no cookies found");
+        } else {
+            for (Cookie cookie : cookies) {
+                sb.append(cookie.getName()).append(":\t")
+                        .append("Max age:\t").append(cookie.getMaxAge()).append("\n")
+                        .append("Path:\t").append(cookie.getPath()).append("\n")
+                        .append("Secure:\t").append(cookie.getSecure()).append("\n")
+                        .append("Value:\t").append(cookie.getValue()).append("\n");
+            }
         }
 
         sb.append("Parameters:\n");
