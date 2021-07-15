@@ -32,6 +32,7 @@ import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
+import org.sonar.plugins.cas.util.RequestStringer;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -76,27 +77,54 @@ public class CasAuthenticator extends Authenticator {
     public boolean doAuthenticate(Context context) {
         LOG.debug("CasAuthenticator.doAuthenticate(): {}", context.getRequest().getContextPath());
 
-        try {
-            String ticket = casRestClient.createServiceTicket(context.getUsername(), context.getPassword());
+        LOG.debug(RequestStringer.string(context.getRequest()));
+        String username = context.getUsername();
+        String password = context.getPassword();
 
-            TicketValidator validator = ticketValidatorFactory.create();
-            String serviceUrl = getServiceUrl();
-            Assertion assertion = validator.validate(ticket, serviceUrl);
+        if (username.equals("ProxyTicket")) {
+            try {
+                String proxyTicket = password;
+                TicketValidator validator = ticketValidatorFactory.createForProxy();
+                String serviceUrl = getServiceUrl();
+                Assertion assertion = validator.validate(proxyTicket, serviceUrl);
 
-            if (assertion != null) {
-                LOG.info("successful authentication via CAS REST API");
-                // add assertions to request attribute, in order to process groups with the CasGroupsProvider
-                context.getRequest().setAttribute(Assertion.class.getName(), assertion);
+                //TODO isValid verwursten
+                if (assertion != null) {
+                    LOG.info("successful proxy ticket authentication via CAS REST API");
+                    // add assertions to request attribute, in order to process groups with the CasGroupsProvider
+                    context.getRequest().setAttribute(Assertion.class.getName(), assertion);
 
-                populateUserDetails(context.getRequest(), assertion);
-                return true;
+                    populateUserDetails(context.getRequest(), assertion);
+                    return true;
+                }
+
+                LOG.warn("Proxy ticket validator returned no assertion");
+            } catch (TicketValidationException ex) {
+                LOG.warn("Proxy ticket validation failed", ex);
             }
+        } else {
+            try {
+                String ticket = casRestClient.createServiceTicket(username, password);
 
-            LOG.warn("ticket validator returned no assertion");
-        } catch (CasAuthenticationException ex) {
-            LOG.warn("authentication failed", ex);
-        } catch (TicketValidationException ex) {
-            LOG.warn("ticket validation failed", ex);
+                TicketValidator validator = ticketValidatorFactory.create();
+                String serviceUrl = getServiceUrl();
+                Assertion assertion = validator.validate(ticket, serviceUrl);
+
+                if (assertion != null) {
+                    LOG.info("successful authentication via CAS REST API");
+                    // add assertions to request attribute, in order to process groups with the CasGroupsProvider
+                    context.getRequest().setAttribute(Assertion.class.getName(), assertion);
+
+                    populateUserDetails(context.getRequest(), assertion);
+                    return true;
+                }
+
+                LOG.warn("ticket validator returned no assertion");
+            } catch (CasAuthenticationException ex) {
+                LOG.warn("authentication failed", ex);
+            } catch (TicketValidationException ex) {
+                LOG.warn("ticket validation failed", ex);
+            }
         }
         return false;
     }
