@@ -5,6 +5,8 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Locale;
 
 /**
@@ -49,13 +51,19 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
         return validator;
     }
 
-    public Cas20ProxyTicketValidator createForProxy() {
+    public Cas30ProxyTicketValidator createForProxy() {
         String protocol = getCasProtocol();
-        Cas20ProxyTicketValidator validator;
-        if ("cas2".equalsIgnoreCase(protocol)) {
-            validator = createCas20ProxyTicketValidator();
-        } else if ("cas3".equalsIgnoreCase(protocol)) {
+        Cas30ProxyTicketValidator validator;
+//        if ("cas2".equalsIgnoreCase(protocol)) {
+//            validator = createCas20ProxyTicketValidator();
+//        } else
+        if ("cas3".equalsIgnoreCase(protocol)) {
             validator = createCas30ProxyTicketValidator();
+            validator.setAcceptAnyProxy(false);
+
+            List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/*$"});
+            ProxyList proxyList = new ProxyList(proxyChains);
+            validator.setAllowedProxyChains(proxyList);
         } else {
             throw new IllegalStateException("Could not create proxy ticket validator: unsupported CAS protocol ".concat(protocol));
         }
