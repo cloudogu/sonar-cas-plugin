@@ -73,15 +73,14 @@ public class CasTicketValidatorFactoryTest {
         assertThat(actual).isNotNull().isInstanceOf(Cas30ServiceTicketValidator.class);
     }
 
-    @Test
-    public void createForProxyShouldReturnCas2ProxyValidator() {
+    @Test(expected = IllegalStateException.class)
+    public void createForProxyShouldThrowExceptionForCas2() {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.protocol", "cas2")
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
         CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
-        TicketValidator actual = sut.createForProxy();
-        assertThat(actual).isNotNull().isInstanceOf(Cas20ProxyTicketValidator.class);
+        sut.createForProxy();
     }
 
     @Test

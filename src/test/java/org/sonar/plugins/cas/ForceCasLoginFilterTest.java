@@ -1,6 +1,5 @@
 package org.sonar.plugins.cas;
 
-import org.fest.assertions.Assertions;
 import org.junit.Test;
 import org.mockito.verification.VerificationMode;
 import org.sonar.api.config.Configuration;
@@ -17,6 +16,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 
@@ -119,7 +119,7 @@ public class ForceCasLoginFilterTest {
 
         int actual = sut.getMaxCookieAge(config);
 
-        Assertions.assertThat(actual).isEqualTo(100);
+        assertThat(actual).isEqualTo(100);
     }
 
     @Test
@@ -132,6 +132,23 @@ public class ForceCasLoginFilterTest {
 
         int actualSeconds = sut.getMaxCookieAge(config);
 
-        Assertions.assertThat(actualSeconds).isEqualTo(300);
+        assertThat(actualSeconds).isEqualTo(300);
+    }
+
+    @Test
+    public void isInAllowListShouldReturnFalse() {
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(null, null);
+
+        boolean actual = sut.isInAllowList("/ui/endpoint");
+
+        assertThat(actual).isFalse();
+    }
+
+    @Test
+    public void isInAllowListShouldReturnTrue() {
+        ForceCasLoginFilter sut = new ForceCasLoginFilter(null, null);
+
+        assertThat(sut.isInAllowList("/sessions/init/sonarqube")).isTrue();
+        assertThat(sut.isInAllowList("/api/endpoint/test")).isTrue();
     }
 }

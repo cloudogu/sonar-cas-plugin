@@ -5,7 +5,7 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
@@ -54,14 +54,13 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
     public Cas30ProxyTicketValidator createForProxy() {
         String protocol = getCasProtocol();
         Cas30ProxyTicketValidator validator;
-//        if ("cas2".equalsIgnoreCase(protocol)) {
-//            validator = createCas20ProxyTicketValidator();
-//        } else
         if ("cas3".equalsIgnoreCase(protocol)) {
             validator = createCas30ProxyTicketValidator();
             validator.setAcceptAnyProxy(false);
 
-            List<String[]> proxyChains = Collections.singletonList(new String[]{"^https?://192\\.168\\.56\\.2/*$"});
+            List<String[]> proxyChains = new ArrayList<>();
+            proxyChains.add(new String[]{"^https?://192\\.168\\.56\\.2/.*$"});
+            proxyChains.add(new String[]{"^https?://192\\.168\\.56\\.1(:\\d{4,5})?/.*$"});
             ProxyList proxyList = new ProxyList(proxyChains);
             validator.setAllowedProxyChains(proxyList);
         } else {

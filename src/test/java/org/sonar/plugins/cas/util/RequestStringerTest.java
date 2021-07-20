@@ -30,13 +30,36 @@ public class RequestStringerTest {
 
         when(request.getCookies()).thenReturn(cookies);
         Map<String, String[]> params = new HashMap<>();
-        String[] paramValues1 =  {"Value 1", "Another, rarely seen value 2"};
+        String[] paramValues1 = {"Value 1", "Another rarely seen value 2"};
         params.put("parameter1", paramValues1);
         when(request.getParameterMap()).thenReturn(params);
 
+        String actual = RequestStringer.string(request);
+
+        assertThat(actual).isEqualTo("Request data for URL https://server.com/endpoint?thing=asdfMethod:\tnull\n" +
+                "Headers:\n" +
+                "header1:\tHeader value 1\n" +
+                "Cookies:\n" +
+                "cookie1:\tMax age:\t42\n" +
+                "Path:\tnull\n" +
+                "Secure:\ttrue\n" +
+                "Value:\tcookie value 1\n" +
+                "Parameters:\n" +
+                "parameter1:\t[Value 1, Another rarely seen value 2]\n");
+    }
+
+    @Test
+    public void stringShouldReturnOnlyFewRequestFields() {
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        when(request.getRequestURL()).thenReturn(new StringBuffer("https://server.com/endpoint"));
 
         String actual = RequestStringer.string(request);
 
-        assertThat(actual).isEqualTo("");
+        assertThat(actual).isEqualTo("Request data for URL https://server.com/endpointMethod:\tnull\n" +
+                "Headers:\n" +
+                "no headers found\n" +
+                "Cookies:\n" +
+                "no cookies found\n" +
+                "Parameters:\n");
     }
 }

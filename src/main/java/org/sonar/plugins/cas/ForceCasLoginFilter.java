@@ -126,7 +126,7 @@ public class ForceCasLoginFilter extends ServletFilter {
      * @param servletPath Entry to look for in white list.
      * @return true if found, false otherwise.
      */
-    private boolean isInAllowList(final String servletPath) {
+    boolean isInAllowList(final String servletPath) {
         if (null == servletPath) {
             return false;
         }
@@ -137,10 +137,6 @@ public class ForceCasLoginFilter extends ServletFilter {
             }
         }
         return false;
-    }
-
-    private String getGroupReplicationMode() {
-        return SonarCasProperties.GROUP_REPLICATE.getString(configuration, GROUP_REPLICATION_CAS);
     }
 
     public void destroy() {

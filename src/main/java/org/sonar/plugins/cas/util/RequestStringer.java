@@ -7,6 +7,18 @@ import java.util.Enumeration;
 import java.util.Map;
 import java.util.Set;
 
+/**
+ * RequestStringer provides repeatedly used debugging functionality to inspect requests.
+ *
+ * <p>This class is <b>not intended for production usage</b> because the printed HTTP headers may contain unencrypted
+ * Basic Auth credentials or other sensitive data.</p>
+ *
+ * <p>Example:</p>
+ * <pre>
+ *     String result = RequestStringer.string(yourRequest);
+ *     LOG.debug(result);
+ * </pre>
+ */
 public final class RequestStringer {
     public static String string(HttpServletRequest request) {
         StringBuffer requestURL = request.getRequestURL();
@@ -17,17 +29,24 @@ public final class RequestStringer {
 
         StringBuilder sb = new StringBuilder();
         sb.append("Request data for URL ").append(requestURL)
-                .append("Method:\t").append(method).append("\n");
+                .append("Method:\t")
+                .append(method)
+                .append("\n");
 
         sb.append("Headers:\n");
-        while (headers.hasMoreElements()) {
-            String header = headers.nextElement();
-            sb.append(header).append(":\t").append(request.getHeader(header)).append("\n");
+        if (cookies == null || cookies.length == 0) {
+            sb.append("no headers found\n");
+        } else {
+            while (headers.hasMoreElements()) {
+                String header = headers.nextElement();
+                sb.append(header).append(":\t").append(request.getHeader(header))
+                        .append("\n");
+            }
         }
 
         sb.append("Cookies:\n");
         if (cookies == null || cookies.length == 0) {
-            sb.append("no cookies found");
+            sb.append("no cookies found\n");
         } else {
             for (Cookie cookie : cookies) {
                 sb.append(cookie.getName()).append(":\t")

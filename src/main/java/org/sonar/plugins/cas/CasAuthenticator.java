@@ -21,6 +21,7 @@ package org.sonar.plugins.cas;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Strings;
+import org.apache.commons.lang.StringUtils;
 import org.jasig.cas.client.authentication.AttributePrincipal;
 import org.jasig.cas.client.validation.Assertion;
 import org.jasig.cas.client.validation.TicketValidationException;
@@ -32,7 +33,6 @@ import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
-import org.sonar.plugins.cas.util.RequestStringer;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
@@ -54,6 +54,7 @@ import java.util.Map;
 public class CasAuthenticator extends Authenticator {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasAuthenticator.class);
+    private static final String PROXY_TICKET_STARTER = "ProxyTicket===:";
 
     private final Configuration configuration;
     private final CasAttributeSettings attributeSettings;
@@ -76,60 +77,91 @@ public class CasAuthenticator extends Authenticator {
     @Override
     public boolean doAuthenticate(Context context) {
         LOG.debug("CasAuthenticator.doAuthenticate(): {}", context.getRequest().getContextPath());
+        boolean authenticated;
 
-        LOG.debug(RequestStringer.string(context.getRequest()));
+        if (isAuthenticateByProxyTicket(context.getPassword())) {
+            LOG.debug("Start handling proxy ticket authentication");
+            authenticated = handleProxyTicketing(context);
+        } else {
+            LOG.debug("Start handling service ticket authentication");
+            authenticated = handleServiceTicketing(context);
+        }
+
+        if (authenticated) {
+            LOG.info("Successful authentication via CAS REST API");
+        }
+
+        return authenticated;
+    }
+
+    private boolean handleProxyTicketing(Context context) {
+        String proxyTicket = getProxyTicket(context.getPassword());
+        TicketValidator validator = ticketValidatorFactory.createForProxy();
+
+        Assertion assertion = validateTicketAssertion(validator, proxyTicket);
+        if (assertion == null) {
+            return false;
+        }
+
+        enrichSuccessfullyAuthenticatedRequest(context, assertion);
+
+        return true;
+    }
+
+    private boolean handleServiceTicketing(Context context) {
         String username = context.getUsername();
         String password = context.getPassword();
+        String serviceTicket;
 
-        if (username.equals("ProxyTicket")) {
-            try {
-                String proxyTicket = password;
-                TicketValidator validator = ticketValidatorFactory.createForProxy();
-                String serviceUrl = getServiceUrl();
-                Assertion assertion = validator.validate(proxyTicket, serviceUrl);
-
-                //TODO isValid verwursten
-                if (assertion != null) {
-                    LOG.info("successful proxy ticket authentication via CAS REST API");
-                    // add assertions to request attribute, in order to process groups with the CasGroupsProvider
-                    context.getRequest().setAttribute(Assertion.class.getName(), assertion);
-
-                    populateUserDetails(context.getRequest(), assertion);
-                    return true;
-                }
-
-                LOG.warn("Proxy ticket validator returned no assertion");
-            } catch (TicketValidationException ex) {
-                LOG.warn("Proxy ticket validation failed", ex);
-            }
-        } else {
-            try {
-                String ticket = casRestClient.createServiceTicket(username, password);
-
-                TicketValidator validator = ticketValidatorFactory.create();
-                String serviceUrl = getServiceUrl();
-                Assertion assertion = validator.validate(ticket, serviceUrl);
-
-                if (assertion != null) {
-                    LOG.info("successful authentication via CAS REST API");
-                    // add assertions to request attribute, in order to process groups with the CasGroupsProvider
-                    context.getRequest().setAttribute(Assertion.class.getName(), assertion);
-
-                    populateUserDetails(context.getRequest(), assertion);
-                    return true;
-                }
-
-                LOG.warn("ticket validator returned no assertion");
-            } catch (CasAuthenticationException ex) {
-                LOG.warn("authentication failed", ex);
-            } catch (TicketValidationException ex) {
-                LOG.warn("ticket validation failed", ex);
-            }
+        try {
+            serviceTicket = casRestClient.createServiceTicket(username, password);
+        } catch (CasAuthenticationException ex) {
+            LOG.warn("CAS authentication failed", ex);
+            return false;
         }
-        return false;
+        TicketValidator validator = ticketValidatorFactory.create();
+
+        Assertion assertion = validateTicketAssertion(validator, serviceTicket);
+        if (assertion == null) {
+            return false;
+        }
+
+        enrichSuccessfullyAuthenticatedRequest(context, assertion);
+
+        return true;
+    }
+
+    Assertion validateTicketAssertion(TicketValidator validator, String ticket) {
+        String serviceUrl = getServiceUrl();
+        Assertion assertion;
+        try {
+            assertion = validator.validate(ticket, serviceUrl);
+        } catch (TicketValidationException ex) {
+            LOG.warn("Ticket validation failed", ex);
+            return null;
+        }
+
+        if (assertion == null) {
+            LOG.warn("Ticket validator returned no assertion: assuming a failed authentication");
+            return null;
+        }
+
+        if (!assertion.isValid()) {
+            LOG.warn("Failed authentication: Ticket assertion is invalid");
+            return null;
+        }
+
+        return assertion;
+    }
+
+    private void enrichSuccessfullyAuthenticatedRequest(Context context, Assertion assertion) {
+        populateUserDetails(context.getRequest(), assertion);
     }
 
     private void populateUserDetails(HttpServletRequest request, Assertion assertion) {
+        // add assertions to request attribute, in order to process groups with the CasGroupsProvider
+        request.setAttribute(Assertion.class.getName(), assertion);
+
         // get user attributes from request, which was previously added by the CasUserProvider
         UserDetails user = (UserDetails) request.getAttribute(UserDetails.class.getName());
         Preconditions.checkState(user != null, "could not find UserDetails in the request");
@@ -149,6 +181,18 @@ public class CasAuthenticator extends Authenticator {
         if (!Strings.isNullOrEmpty(email)) {
             user.setEmail(email);
         }
+    }
+
+    private boolean isAuthenticateByProxyTicket(String aString) {
+        if (StringUtils.isEmpty(aString)) {
+            return false;
+        }
+
+        return aString.startsWith(PROXY_TICKET_STARTER);
+    }
+
+    private String getProxyTicket(String aString) {
+        return aString.substring(PROXY_TICKET_STARTER.length());
     }
 
     private String getServiceUrl() {

@@ -20,12 +20,6 @@ public final class SimpleJwt {
     private static final SimpleJwt nullObject = new SimpleJwt(JWT_NULL_OBJECT, 1L, true);
 
     /**
-     * The sub identifies the subject and contains (usually the username). It is optional and can either be <code>null</code> or the empty string.
-     */
-    @XmlElement
-    private String sub;
-
-    /**
      * The id uniquely identifies a token. It must not be <code>null</code> or the empty string.
      */
     @XmlElement
@@ -115,8 +109,7 @@ public final class SimpleJwt {
         SimpleJwt other = (SimpleJwt) o;
         return jwtId.equals(other.jwtId) &&
                 expiration == other.expiration &&
-                invalid == other.invalid &&
-                sub.equals(other.sub);
+                invalid == other.invalid;
     }
 
     @Override

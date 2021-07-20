@@ -1,6 +1,5 @@
 package org.sonar.plugins.cas;
 
-import org.jasig.cas.client.validation.Cas20ProxyTicketValidator;
 import org.jasig.cas.client.validation.TicketValidator;
 
 /**
@@ -20,7 +19,8 @@ interface TicketValidatorFactory {
 
     /**
      * Creates a new {@link TicketValidator} that validates proxy tickets
+     *
      * @return a new {@link TicketValidator}
      */
-    Cas20ProxyTicketValidator createForProxy();
+    TicketValidator createForProxy();
 }
