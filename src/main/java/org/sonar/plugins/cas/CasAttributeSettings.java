@@ -87,15 +87,11 @@ public class CasAttributeSettings {
     }
 
     private String getMailAttribute() {
-        String mailAttr = SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
-        LOG.debug("Using Sonar CAS Property email attribute: {}", mailAttr);
-        return mailAttr;
+        return SonarCasProperties.EMAIL_ATTRIBUTE.getString(config, "mail");
     }
 
     String getDisplayName(Map<String, Object> attributes) {
-        String fullNameAttr = getStringAttribute(attributes, getFullNameAttribute());
-        LOG.debug("Using Sonar CAS Property display name attribute: {}", fullNameAttr);
-        return fullNameAttr;
+        return getStringAttribute(attributes, getFullNameAttribute());
     }
 
     private String getFullNameAttribute() {
