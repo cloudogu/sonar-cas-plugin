@@ -116,9 +116,49 @@ At a certain point both are similar because in the end the back-channel logout m
 1. CasIdentityProvider invalidates user's JWT
    - invalidated JWT updates the original JWT in the session store
 
+#### Authentication with Proxy Tickets
+
+Proxy tickets are a mechanism for indirect authentication of users, but without using their original password.
+
+In addition to SonarQube, there may be other services that CAS authenticates to. The CAS specification speaks here of _
+services_ or _services_. A login via proxy ticket is then no longer done via SonarQube in interaction with CAS, but via
+another service: A proxy service. The person using the ticket must instead authenticate himself in interaction with the
+proxy service. This proxy service is then issued a proxy granting ticket, which in turn can be used to request proxy
+tickets.
+
+Proxy tickets are very similar to CAS service tickets and have a short validity period. The proxy service makes the
+requested request to SonarQube using the proxy ticket. Sonar-CAS plugin recognizes this process and checks the validity
+against CAS. After successful validation, SonarQube processes the request and sends the response back to the proxy
+service.
+
+![Authentication workflow with CAS proxy tickets](https://ecosystem.cloudogu.com/plantuml/svg/ZLB1RXGn3BtFLrZ31QJEIi1fzm2gMlN0gMZX0qpYpWRIP1exkmnVZprfTxUYbRZC9FPxVlQBqKaky9sf039K_NSJ5WakJ9W4-YjAKZ32PPMT7eD32Jd1bie-EEgDv92VSsvB_Zq3dq4cYpm7RNF2yhN-Q02s6xnPhszkrkiNWCFLvNQuZNKCgU7TT4HtrZKCdveAm0Pubmzm502FWl2s9ZpDGFvTr-3AM_XAA-H38ISW6LJlM5S71310pAeFXo0xS0gsMXYvi_onp0d7rJbYlgknIra8IXXtie6SugmVCjIWi4I6mZ9tgzNgFsTvRP9cumP6aePSUcrfHV_IyFRRyFx3n-7XG4N-8FkxSHMpmzWrhXLHRqtvN0Hmn91Op1S8o-GoM-6zNafdb9DHoWtygX3iCGR_-ScrfcQScVYYcPZmdg3_YObyVm4-y1HnVen-qIXSPzB4M7ATU0Ezfpt5F57H0a8ioy7kox9o_zHV6z6q5fdp0PMWqpWYtppB-beXQRU57ggMFDdJtBHjuKcBastB8wXHpVX_bsjvHqlz1G00.svg)
+
+##### Restrictions
+
+- Proxy tickets only supported with CAS 3.0 protocol and higher
+   - Extended user attributes are not provided
+     until [CAS protocol specification 3.0](https://apereo.github.io/cas/5.1.x/protocol/CAS-Protocol-Specification.html)
+     .
+   - These attributes are necessary to perform user and group replication.
+   - Sonar-CAS-plugin does not support other protocols and earlier CAS protocols for this use case.
+- Proxy tickets are only possible and useful for REST requests
+- In the HTTP request, the proxy ticket must be processed as follows:
+   - Basic Auth header
+   - User name as usual
+   - Password is composed of keyword `ProxyTicket==:` and the proxy ticket
+
+```
+proxyTicket=ST-123-qwertzasdfg.local;
+basicAuthCredentials=username + ":" + "ProxyTicket==:" + proxyTicket;
+encodedCredentials=base64(plainCredentials);
+headers={ "Authorization" : "Basic " + encodedCredentials }
+http.get(headers, "http://sonarqube/api/endpoint")
+```
+
 ### Clean-up
 
-This is done by a background task. It iterates all saved JWT and service ticket files (see the FileSessionStore section below for more information)
+This is done by a background task. It iterates all saved JWT and service ticket files (see the FileSessionStore section
+below for more information)
 
 1. In fixed intervals a background reads all stored JWTs and associated service tickets
 2. all JWTs are inspected for expiration date

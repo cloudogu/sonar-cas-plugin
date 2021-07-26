@@ -110,33 +110,59 @@ An einem bestimmten Punkt sind sich beide ähnlich, da letztlich der Rückkanal-
 1. CAS sendet Back-Channel-Abmeldeanforderung an alle registrierten Dienste
 1. CasIdentityProvider empfängt Logout mit Service-Ticket
 1. CasIdentityProvider holt das JWT aus dem Sitzungsspeicher
-    - der Sitzungsspeicher enthält eine Referenz vom Service-Ticket zur JWT-ID
-    - mit der JWT-ID wird das gespeicherte JWT geholt
+   - der Sitzungsspeicher enthält eine Referenz vom Service-Ticket zur JWT-ID
+   - mit der JWT-ID wird das gespeicherte JWT geholt
 1. CasIdentityProvider invalidiert das JWT des Benutzers
-    - das ungültig gemachte JWT aktualisiert das ursprüngliche JWT im Sitzungsspeicher
+   - das ungültig gemachte JWT aktualisiert das ursprüngliche JWT im Sitzungsspeicher
 
-#### Anmelden mit Proxy Ticket
+#### Anmelden mit CAS-Proxy-Tickets
 
-#fixme Prozessbeschreibung hier!
+Proxy-Tickets sind ein Mechanismus zur indirekten Authentifizierung von Benutzenden, ohne jedoch deren ursprüngliches
+Passwort zu verwenden.
 
-API für die Einbuchung über Proxy Tickets:
+Neben SonarQube kann es noch weitere Dienste geben, an die per CAS sich authentifizieren. Die CAS-Spezifikation spricht
+hierbei von _Diensten_ oder _Services_. Eine Anmeldung per Proxy-Ticket geschieht dann nicht mehr über SonarQube im
+Zusammenspiel mit CAS, sondern über einen weiteren Dienst: Ein Proxy-Dienst. Die benutzende Person muss sich stattdessen
+im Zusammenspiel mit dem Proxy-Dienst authentifizieren. Diesem Proxy-Dienst wird dann ein Proxy-Granting-Ticket
+ausgestellt, mit dem wiederum Proxy-Tickets angefordert werden könenn.
 
-POST `/${contextPath}/sessions/cas/proxy` PT=ST-12345678
+Proxy-Tickets ähneln stark CAS-Service-Tickets und besitzen nur eine kurze Gültigkeitsdauer. Der Proxy-Dienst stellt
+gegenüber SonarQube den gewünschten Request und benutzt dabei das Proxy-Ticket. Sonar-CAS-Plugin erkennt diesen Vorgang
+und überprüft gegenüber CAS die Gültigkeit. Nach erfolgreicher Validierung wird der Request von SonarQube verarbeitet
+und die Antwort zurück an den Proxy-Dienst gesendet.
 
-Unterstützte Protokolle:
-- CAS 2.0
-- CAS 3.0
+![Authentication workflow with CAS proxy tickets](https://ecosystem.cloudogu.com/plantuml/svg/ZLB1RXGn3BtFLrZ31QJEIi1fzm2gMlN0gMZX0qpYpWRIP1exkmnVZprfTxUYbRZC9FPxVlQBqKaky9sf039K_NSJ5WakJ9W4-YjAKZ32PPMT7eD32Jd1bie-EEgDv92VSsvB_Zq3dq4cYpm7RNF2yhN-Q02s6xnPhszkrkiNWCFLvNQuZNKCgU7TT4HtrZKCdveAm0Pubmzm502FWl2s9ZpDGFvTr-3AM_XAA-H38ISW6LJlM5S71310pAeFXo0xS0gsMXYvi_onp0d7rJbYlgknIra8IXXtie6SugmVCjIWi4I6mZ9tgzNgFsTvRP9cumP6aePSUcrfHV_IyFRRyFx3n-7XG4N-8FkxSHMpmzWrhXLHRqtvN0Hmn91Op1S8o-GoM-6zNafdb9DHoWtygX3iCGR_-ScrfcQScVYYcPZmdg3_YObyVm4-y1HnVen-qIXSPzB4M7ATU0Ezfpt5F57H0a8ioy7kox9o_zHV6z6q5fdp0PMWqpWYtppB-beXQRU57ggMFDdJtBHjuKcBastB8wXHpVX_bsjvHqlz1G00.svg)
 
-Andere Protokolle werden bzgl. Proxy Ticketing nicht unterstützt.
+##### Einschränkungen
+
+- Proxy-Tickets nur ab CAS 3.0 Protokoll unterstützt
+   - Erst
+     mit [CAS Protokollspezifikation 3.0](https://apereo.github.io/cas/5.1.x/protocol/CAS-Protocol-Specification.html)
+     werden erweiterte User-Attribute zur Verfügung gestellt.
+   - Diese Attribute sind nötig, um die User- und Group-Replikation durchzuführen.
+   - Andere Protokolle sowie frühere CAS-Protokolle werden nicht unterstützt.
+- Proxy-Tickets sind nur für REST-Requests möglich und sinnvoll
+- Im HTTP-Request muss das Proxy-Ticket wie folgt verarbeitet werden:
+   - Basic Auth header
+   - Benutzernamen wie üblich
+   - Password wird zusammengesetzt aus Keyword `ProxyTicket===:` und dem Proxy-Ticket
+
+```
+proxyTicket=ST-123-qwertzasdfg.local;
+basicAuthCredentials=username + ":" + "ProxyTicket===:" + proxyTicket;
+encodedCredentials=base64(plainCredentials);
+headers={ "Authorization" : "Basic " + encodedCredentials }
+http.get(headers, "http://sonarqube/api/endpoint")
+```
 
 ### Aufräumen
 
-Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicherten JWT- und Service-Ticket-Dateien (siehe den Abschnitt FileSessionStore weiter unten für weitere Informationen)
+Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicherten JWT- und Service-Ticket-Dateien (
+siehe den Abschnitt FileSessionStore weiter unten für weitere Informationen)
 
 1. In festen Intervallen liest ein Hintergrund alle gespeicherten JWTs und zugehörigen Service-Tickets aus
 2. alle JWTs werden auf ihr Ablaufdatum untersucht
 3. abgelaufene JWTs und deren zugehöriges Service-Ticket werden entfernt
-
 
 ## Entscheidende Komponenten
 
