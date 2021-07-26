@@ -130,6 +130,9 @@ requested request to SonarQube using the proxy ticket. Sonar-CAS plugin recogniz
 against CAS. After successful validation, SonarQube processes the request and sends the response back to the proxy
 service.
 
+Since the content is a request against SonarQube's REST API, the entry point is the
+class `org.sonar.plugins.cas.CasAuthenticator`.
+
 ![Authentication workflow with CAS proxy tickets](https://ecosystem.cloudogu.com/plantuml/svg/ZLB1RXGn3BtFLrZ31QJEIi1fzm2gMlN0gMZX0qpYpWRIP1exkmnVZprfTxUYbRZC9FPxVlQBqKaky9sf039K_NSJ5WakJ9W4-YjAKZ32PPMT7eD32Jd1bie-EEgDv92VSsvB_Zq3dq4cYpm7RNF2yhN-Q02s6xnPhszkrkiNWCFLvNQuZNKCgU7TT4HtrZKCdveAm0Pubmzm502FWl2s9ZpDGFvTr-3AM_XAA-H38ISW6LJlM5S71310pAeFXo0xS0gsMXYvi_onp0d7rJbYlgknIra8IXXtie6SugmVCjIWi4I6mZ9tgzNgFsTvRP9cumP6aePSUcrfHV_IyFRRyFx3n-7XG4N-8FkxSHMpmzWrhXLHRqtvN0Hmn91Op1S8o-GoM-6zNafdb9DHoWtygX3iCGR_-ScrfcQScVYYcPZmdg3_YObyVm4-y1HnVen-qIXSPzB4M7ATU0Ezfpt5F57H0a8ioy7kox9o_zHV6z6q5fdp0PMWqpWYtppB-beXQRU57ggMFDdJtBHjuKcBastB8wXHpVX_bsjvHqlz1G00.svg)
 
 ##### Configuration

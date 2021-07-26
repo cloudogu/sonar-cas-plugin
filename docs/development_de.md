@@ -100,3 +100,19 @@ Die Schlüssel und einige Erklärungen finden Sie auf der Seite [Plugin-Konfigur
 ## Wie dieses Plugin funktioniert
 
 Mehr über die Interna des Plugins finden Sie auf der Seite [Architektur und Interna](architecture.md).
+
+## Troubleshooting
+
+Um die vielfältigen Einstiegspunkte zur Authentifizierung von SonarQube untersuchen zu können, wurden diese Klassen geschaffen, die eine Analyse vereinfachen können:
+
+- `org.sonar.plugins.cas.LogNoOpFilter`
+   - Loggt, wenn SonarQube einen Request an das Sonar-CAS-Plugin weiterreicht
+      - dies ist nicht immer der Fall, z. B. wenn SonarQube von vorn herein einen Request aufgrund äußerer Mängel ablehnt 
+- `org.sonar.plugins.cas.util.RequestStringer`
+   - HttpServletRequests haben keine vernünftige `toString()`-Implementierung
+   - Diese Klasse übernimmt diese Funktionalität und wandelt relevante Felder in einen String um:
+      - URL
+      - HTTP-Methode
+      - HTTP-Header
+      - Cookies
+      - Parameter
