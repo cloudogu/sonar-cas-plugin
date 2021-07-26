@@ -79,7 +79,8 @@ public final class CasPlugin implements Plugin {
         extensions.add(CasIdentityProvider.class);
         extensions.add(CasSecurityRealm.class);
 
-        extensions.add(LogNoOpFilter.class);
+//      helpful for debugging
+//      extensions.add(LogNoOpFilter.class);
         extensions.add(ForceCasLoginFilter.class);
         extensions.add(AuthenticationFilter.class);
         extensions.add(CasTokenRefreshFilter.class);
