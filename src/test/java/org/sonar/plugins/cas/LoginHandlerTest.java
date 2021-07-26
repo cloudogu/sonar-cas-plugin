@@ -1,6 +1,5 @@
 package org.sonar.plugins.cas;
 
-import org.fest.assertions.Assertions;
 import org.junit.Test;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
