@@ -133,6 +133,20 @@ und die Antwort zurück an den Proxy-Dienst gesendet.
 
 ![Authentication workflow with CAS proxy tickets](https://ecosystem.cloudogu.com/plantuml/svg/ZLB1RXGn3BtFLrZ31QJEIi1fzm2gMlN0gMZX0qpYpWRIP1exkmnVZprfTxUYbRZC9FPxVlQBqKaky9sf039K_NSJ5WakJ9W4-YjAKZ32PPMT7eD32Jd1bie-EEgDv92VSsvB_Zq3dq4cYpm7RNF2yhN-Q02s6xnPhszkrkiNWCFLvNQuZNKCgU7TT4HtrZKCdveAm0Pubmzm502FWl2s9ZpDGFvTr-3AM_XAA-H38ISW6LJlM5S71310pAeFXo0xS0gsMXYvi_onp0d7rJbYlgknIra8IXXtie6SugmVCjIWi4I6mZ9tgzNgFsTvRP9cumP6aePSUcrfHV_IyFRRyFx3n-7XG4N-8FkxSHMpmzWrhXLHRqtvN0Hmn91Op1S8o-GoM-6zNafdb9DHoWtygX3iCGR_-ScrfcQScVYYcPZmdg3_YObyVm4-y1HnVen-qIXSPzB4M7ATU0Ezfpt5F57H0a8ioy7kox9o_zHV6z6q5fdp0PMWqpWYtppB-beXQRU57ggMFDdJtBHjuKcBastB8wXHpVX_bsjvHqlz1G00.svg)
 
+##### Konfiguration
+
+Proxy-Dienste müssen CAS-seitig konfiguriert werden, da sonst evtl. ein Sicherheitsrisiko durch zu geringe Einschränkung
+entstehen kann.
+
+Das SonarQube-Property `sonar.cas.proxyTicketing.services` muss einen Regulären Ausdruck enthalten, der Proxy-Dienste
+ausreichend fixiert.
+
+Beispiel:
+
+```properties
+sonar.cas.proxyTicketing.services=^https://myservices.company.com/.*$
+```
+
 ##### Einschränkungen
 
 - Proxy-Tickets nur ab CAS 3.0 Protokoll unterstützt
@@ -142,6 +156,8 @@ und die Antwort zurück an den Proxy-Dienst gesendet.
    - Diese Attribute sind nötig, um die User- und Group-Replikation durchzuführen.
    - Andere Protokolle sowie frühere CAS-Protokolle werden nicht unterstützt.
 - Proxy-Tickets sind nur für REST-Requests möglich und sinnvoll
+- Key `sonar.cas.proxyTicketing.services` wurde in den SonarQube-Properties mit einem validen Regulären Ausdruck
+  gesetzt.
 - Im HTTP-Request muss das Proxy-Ticket wie folgt verarbeitet werden:
    - Basic Auth header
    - Benutzernamen wie üblich

@@ -36,7 +36,7 @@ public enum SonarCasProperties {
      */
     FORCE_CAS_LOGIN("sonar.cas.forceCasLogin", SonarPropertyType.BOOLEAN),
     /**
-     * cas1, cas2 or saml11
+     * cas1, cas2, cas3 or saml11
      */
     CAS_PROTOCOL("sonar.cas.protocol", SonarPropertyType.STRING),
     /**
@@ -113,7 +113,18 @@ public enum SonarCasProperties {
      */
     SESSION_STORE_CLEANUP_INTERVAL_IN_SECS("sonar.cas.sessionStore.cleanUpIntervalInSeconds", SonarPropertyType.INTEGER),
 
-    CAS_PROXY_TICKETING_SERVICES_REGEXPS("sonar.cas.proxyTicketing.services", SonarPropertyType.STRING);
+    /**
+     * Contains a regular expression that restricts URLs which are allowed to issue proxy tickets. The less specific this
+     * regular expression is, the broader is the attack surface of CAS proxy ticketing. This key is mandatory if proxy
+     * ticketing should be used. Otherwise the key may be empty.
+     *
+     * <p>Example that restricts proxy services to a certain FQDN:</p>
+     * <pre>sonar.cas.proxyTicketing.services=^https://myservices.company.com/.*$</pre>
+     *
+     * <p>Proxy ticketing is only available with CAS specification 3.0 or above. See also:
+     * {@link org.sonar.plugins.cas.util.SonarCasProperties#CAS_PROTOCOL} for configuration of the CAS specification.</p>
+     */
+    CAS_PROXY_TICKETING_SERVICES_REGEXP("sonar.cas.proxyTicketing.services", SonarPropertyType.STRING);
 
     String propertyKey;
 

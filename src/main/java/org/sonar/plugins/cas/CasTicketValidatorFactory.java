@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import static org.sonar.plugins.cas.util.SonarCasProperties.CAS_PROXY_TICKETING_SERVICES_REGEXP;
+
 /**
  * This class provides support for different CAS validation protocols of which these are supported:
  *
@@ -54,13 +56,14 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
     public Cas30ProxyTicketValidator createForProxy() {
         String protocol = getCasProtocol();
         Cas30ProxyTicketValidator validator;
+
         if ("cas3".equalsIgnoreCase(protocol)) {
             validator = createCas30ProxyTicketValidator();
             validator.setAcceptAnyProxy(false);
+            String proxyServiceRegExp = CAS_PROXY_TICKETING_SERVICES_REGEXP.mustGetString(this.configuration);
 
             List<String[]> proxyChains = new ArrayList<>();
-            proxyChains.add(new String[]{"^https?://192\\.168\\.56\\.2/.*$"});
-            proxyChains.add(new String[]{"^https?://192\\.168\\.56\\.1(:\\d{4,5})?/.*$"});
+            proxyChains.add(new String[]{proxyServiceRegExp});
             ProxyList proxyList = new ProxyList(proxyChains);
             validator.setAllowedProxyChains(proxyList);
         } else {
