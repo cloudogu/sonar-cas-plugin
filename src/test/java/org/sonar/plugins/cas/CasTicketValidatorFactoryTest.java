@@ -87,7 +87,8 @@ public class CasTicketValidatorFactoryTest {
     public void createForProxyShouldReturnCas3ProxyValidator() {
         SonarTestConfiguration configuration = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com")
-                .withAttribute("sonar.cas.protocol", "cas3");
+                .withAttribute("sonar.cas.protocol", "cas3")
+                .withAttribute("sonar.cas.proxyTicketing.services", "^https://test.de/.*$");
         CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
 
         TicketValidator actual = sut.createForProxy();
