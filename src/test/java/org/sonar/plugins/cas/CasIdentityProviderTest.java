@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
@@ -69,8 +70,6 @@ public class CasIdentityProviderTest {
         CasAttributeSettings attributeSettings = new CasAttributeSettings(config);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
-        CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
-        when(factory.getInstance()).thenReturn(sessionStore);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 

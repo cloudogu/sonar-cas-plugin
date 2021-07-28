@@ -45,6 +45,7 @@ import javax.servlet.http.HttpServletRequest;
 public class CasIdentityProvider implements BaseIdentityProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
+    private static final String PROXY_TICKET_URL_SUFFIX = "/sessions/cas/proxy";
 
     private final Configuration configuration;
     private final LoginHandler loginHandler;
@@ -63,7 +64,7 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     public void init(Context context) {
         try {
             HttpServletRequest request = context.getRequest();
-
+            LOG.debug("Initialize CAS identity handling for URL " + request.getRequestURL());
             if (isLogin(request)) {
                 LOG.debug("Found internal login case");
                 loginHandler.handleLogin(context);

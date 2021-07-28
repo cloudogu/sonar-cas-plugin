@@ -58,8 +58,11 @@ public class ForceCasLoginFilter extends ServletFilter {
             "/js/", "/images/", "/favicon.ico", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
 
     private final Configuration configuration;
-    private LogoutHandler logoutHandler;
+    private final LogoutHandler logoutHandler;
 
+    /**
+     * called with injection by SonarQube during server initialization
+     */
     public ForceCasLoginFilter(Configuration configuration, LogoutHandler logoutHandler) {
         this.configuration = configuration;
         this.logoutHandler = logoutHandler;
@@ -76,15 +79,18 @@ public class ForceCasLoginFilter extends ServletFilter {
         HttpServletResponse response = HttpStreams.toHttp(servletResponse);
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
+        LOG.debug("ForceCasLoginFilter.doFilter(): {} ", requestedURL);
 
         if (isInAllowList(request.getServletPath()) || isAuthenticated(request)) {
             LOG.debug("Found permitted request to {}", requestedURL);
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
+                LOG.debug("Redirecting logged-out user to log-in page");
                 HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
                 logoutHandler.handleInvalidJwtCookie(request, response);
                 redirectToLogin(request, response);
             } else {
+                LOG.debug("Continue request processing...");
                 chain.doFilter(request, servletResponse);
             }
         } else {
@@ -116,16 +122,16 @@ public class ForceCasLoginFilter extends ServletFilter {
     /**
      * Looks for the given value if it or parts of it are containing in the white list.
      *
-     * @param entry Entry to look for in white list.
+     * @param servletPath Entry to look for in white list.
      * @return true if found, false otherwise.
      */
-    private boolean isInAllowList(final String entry) {
-        if (null == entry) {
+    boolean isInAllowList(final String servletPath) {
+        if (null == servletPath) {
             return false;
         }
 
         for (final String item : ALLOW_LIST) {
-            if (entry.contains(item)) {
+            if (servletPath.contains(item)) {
                 return true;
             }
         }

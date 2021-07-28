@@ -72,4 +72,37 @@ public class CasTicketValidatorFactoryTest {
         TicketValidator actual = sut.create();
         assertThat(actual).isNotNull().isInstanceOf(Cas30ServiceTicketValidator.class);
     }
+
+    @Test(expected = IllegalStateException.class)
+    public void createForProxyShouldThrowExceptionForCas2() {
+        SonarTestConfiguration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.protocol", "cas2")
+                .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
+
+        sut.createForProxy();
+    }
+
+    @Test
+    public void createForProxyShouldReturnCas3ProxyValidator() {
+        SonarTestConfiguration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com")
+                .withAttribute("sonar.cas.protocol", "cas3")
+                .withAttribute("sonar.cas.proxyTicketing.services", "^https://test.de/.*$");
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
+
+        TicketValidator actual = sut.createForProxy();
+
+        assertThat(actual).isNotNull().isInstanceOf(Cas30ProxyTicketValidator.class);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void createForProxyShouldThrowExceptionOnSupportedProtocol() {
+        SonarTestConfiguration configuration = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.protocol", "saml11")
+                .withAttribute("sonar.cas.casServerUrlPrefix", "http://url.com");
+        CasTicketValidatorFactory sut = new CasTicketValidatorFactory(configuration);
+
+        sut.createForProxy();
+    }
 }

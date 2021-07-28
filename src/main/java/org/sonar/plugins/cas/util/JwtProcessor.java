@@ -81,7 +81,7 @@ public class JwtProcessor {
         }
         String jwtId = map.get(JWT_ID).toString();
         String expirationDateRaw = map.get(JWT_EXPIRATION_DATE).toString();
-        long expirationDate = Long.valueOf(expirationDateRaw);
+        long expirationDate = Long.parseLong(expirationDateRaw);
 
         return SimpleJwt.fromIdAndExpiration(jwtId, expirationDate);
     }

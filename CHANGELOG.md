@@ -2,19 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/), and this project adheres
+to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 [Unreleased]
+
+### Added
+
+- Add Proxy ticketing against SonarQube API (#36)
+  - you can find requirements and more information about this topic in the [documentation](docs/architecture_en.md)
 
 [v4.0.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.0.0) - 2021-06-03
 
 Breaking change ahead.
 
 ### Fixed
+
 - Fixes defective CAS group replication when the group list was empty (#34)
   - The group replication behaviour now defaults to CAS group replication.
-  - The `sonar.properties` key `sonar.cas.groupReplication` must be set to `sonarqube` if local SonarQube groups are preferred.
+  - The `sonar.properties` key `sonar.cas.groupReplication` must be set to `sonarqube` if local SonarQube groups are
+    preferred.
 
 [v3.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.1) - 2021-06-03
 

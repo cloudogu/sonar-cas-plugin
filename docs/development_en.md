@@ -94,9 +94,26 @@ docker-compose logs -f cas
 
 ## Plugin configuration
 
-This plugin is configurable in several ways by means of setting the usual properties in the `sonar.properties` file.
-You can find the keys and some explanation in the [Plugin Configuration](pluginConfiguration.md) page
+This plugin is configurable in several ways by means of setting the usual properties in the `sonar.properties` file. You
+can find the keys and some explanation in the [Plugin Configuration](pluginConfiguration.md) page
 
 ## How this plugin works
 
 You can find more about plugin internals in the [Architecture and Internals](architecture.md) page.
+
+## Troubleshooting
+
+In order to be able to investigate SonarQube's multiple authentication entry points, these classes have been created
+that can help to simplify during an analysis:
+
+- `org.sonar.plugins.cas.LogNoOpFilter`.
+   - Logs if SonarQube passes a request to the Sonar CAS plugin.
+      - this is not always the case, e.g. if SonarQube rejects a request from the beginning due to external defects
+- `org.sonar.plugins.cas.util.RequestStringer`
+   - HttpServletRequests do not reasonably implement `toString()`
+   - This class takes over that functionality and converts relevant fields to a string:
+      - URL
+      - HTTP method
+      - HTTP header
+      - Cookies
+      - Parameters

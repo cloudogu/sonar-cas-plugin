@@ -5,7 +5,11 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
+
+import static org.sonar.plugins.cas.util.SonarCasProperties.CAS_PROXY_TICKETING_SERVICES_REGEXP;
 
 /**
  * This class provides support for different CAS validation protocols of which these are supported:
@@ -44,7 +48,26 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
         } else if ("cas3".equalsIgnoreCase(protocol)) {
             validator = createCas20ServiceTicketValidator();
         } else {
-            throw new IllegalStateException("unknown cas protocol ".concat(protocol));
+            throw new IllegalStateException("Could not create service ticket validator: unsupported CAS protocol ".concat(protocol));
+        }
+        return validator;
+    }
+
+    public Cas30ProxyTicketValidator createForProxy() {
+        String protocol = getCasProtocol();
+        Cas30ProxyTicketValidator validator;
+
+        if ("cas3".equalsIgnoreCase(protocol)) {
+            validator = createCas30ProxyTicketValidator();
+            validator.setAcceptAnyProxy(false);
+            String proxyServiceRegExp = CAS_PROXY_TICKETING_SERVICES_REGEXP.mustGetString(this.configuration);
+
+            List<String[]> proxyChains = new ArrayList<>();
+            proxyChains.add(new String[]{proxyServiceRegExp});
+            ProxyList proxyList = new ProxyList(proxyChains);
+            validator.setAllowedProxyChains(proxyList);
+        } else {
+            throw new IllegalStateException("Could not create proxy ticket validator: unsupported CAS protocol ".concat(protocol));
         }
         return validator;
     }
@@ -76,5 +99,13 @@ public final class CasTicketValidatorFactory implements TicketValidatorFactory {
 
     private Cas20ServiceTicketValidator createCas20ServiceTicketValidator() {
         return new Cas30ServiceTicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas20ProxyTicketValidator createCas20ProxyTicketValidator() {
+        return new Cas20ProxyTicketValidator(getCasServerUrlPrefix());
+    }
+
+    private Cas30ProxyTicketValidator createCas30ProxyTicketValidator() {
+        return new Cas30ProxyTicketValidator(getCasServerUrlPrefix());
     }
 }

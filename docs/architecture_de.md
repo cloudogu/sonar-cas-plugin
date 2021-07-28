@@ -110,19 +110,76 @@ An einem bestimmten Punkt sind sich beide ähnlich, da letztlich der Rückkanal-
 1. CAS sendet Back-Channel-Abmeldeanforderung an alle registrierten Dienste
 1. CasIdentityProvider empfängt Logout mit Service-Ticket
 1. CasIdentityProvider holt das JWT aus dem Sitzungsspeicher
-    - der Sitzungsspeicher enthält eine Referenz vom Service-Ticket zur JWT-ID
-    - mit der JWT-ID wird das gespeicherte JWT geholt
+   - der Sitzungsspeicher enthält eine Referenz vom Service-Ticket zur JWT-ID
+   - mit der JWT-ID wird das gespeicherte JWT geholt
 1. CasIdentityProvider invalidiert das JWT des Benutzers
-    - das ungültig gemachte JWT aktualisiert das ursprüngliche JWT im Sitzungsspeicher
+   - das ungültig gemachte JWT aktualisiert das ursprüngliche JWT im Sitzungsspeicher
+
+#### Anmelden mit CAS-Proxy-Tickets
+
+Proxy-Tickets sind ein Mechanismus zur indirekten Authentifizierung von Benutzenden, ohne jedoch deren ursprüngliches
+Passwort zu verwenden.
+
+Neben SonarQube kann es noch weitere Dienste geben, die sich per CAS authentifizieren. Die CAS-Spezifikation spricht
+hierbei von _Diensten_ oder _Services_. Eine Anmeldung per Proxy-Ticket geschieht dann nicht mehr über SonarQube im
+Zusammenspiel mit CAS, sondern über einen weiteren Dienst: Ein Proxy-Dienst. Die benutzende Person muss sich stattdessen
+im Zusammenspiel mit dem Proxy-Dienst authentifizieren. Diesem Proxy-Dienst wird dann ein Proxy-Granting-Ticket
+ausgestellt, mit dem wiederum Proxy-Tickets angefordert werden können.
+
+Proxy-Tickets ähneln stark CAS-Service-Tickets und besitzen nur eine kurze Gültigkeitsdauer. Der Proxy-Dienst stellt
+gegenüber SonarQube den gewünschten Request und benutzt dabei das Proxy-Ticket. Sonar-CAS-Plugin erkennt diesen Vorgang
+und überprüft gegenüber CAS die Gültigkeit. Nach erfolgreicher Validierung wird der Request von SonarQube verarbeitet
+und die Antwort zurück an den Proxy-Dienst gesendet.
+
+Da es sich inhaltlich um einen Request gegen SonarQubes REST-API handelt, ist der Einstiegspunkt die
+Klasse `org.sonar.plugins.cas.CasAuthenticator`.
+
+![Authentication workflow with CAS proxy tickets](https://ecosystem.cloudogu.com/plantuml/svg/ZLB1RXGn3BtFLrZ31QJEIi1fzm2gMlN0gMZX0qpYpWRIP1exkmnVZprfTxUYbRZC9FPxVlQBqKaky9sf039K_NSJ5WakJ9W4-YjAKZ32PPMT7eD32Jd1bie-EEgDv92VSsvB_Zq3dq4cYpm7RNF2yhN-Q02s6xnPhszkrkiNWCFLvNQuZNKCgU7TT4HtrZKCdveAm0Pubmzm502FWl2s9ZpDGFvTr-3AM_XAA-H38ISW6LJlM5S71310pAeFXo0xS0gsMXYvi_onp0d7rJbYlgknIra8IXXtie6SugmVCjIWi4I6mZ9tgzNgFsTvRP9cumP6aePSUcrfHV_IyFRRyFx3n-7XG4N-8FkxSHMpmzWrhXLHRqtvN0Hmn91Op1S8o-GoM-6zNafdb9DHoWtygX3iCGR_-ScrfcQScVYYcPZmdg3_YObyVm4-y1HnVen-qIXSPzB4M7ATU0Ezfpt5F57H0a8ioy7kox9o_zHV6z6q5fdp0PMWqpWYtppB-beXQRU57ggMFDdJtBHjuKcBastB8wXHpVX_bsjvHqlz1G00.svg)
+
+##### Konfiguration
+
+Proxy-Dienste müssen CAS-seitig konfiguriert werden, da sonst evtl. ein Sicherheitsrisiko durch zu geringe Einschränkung
+entstehen kann.
+
+Das SonarQube-Property `sonar.cas.proxyTicketing.services` muss einen Regulären Ausdruck enthalten, der Proxy-Dienste
+ausreichend fixiert.
+
+Beispiel:
+
+```properties
+sonar.cas.proxyTicketing.services=^https://myservices.company.com/.*$
+```
+
+##### Einschränkungen
+
+- Proxy-Tickets nur ab CAS 3.0 Protokoll unterstützt
+   - Erst mit [CAS Protokollspezifikation 3.0](https://apereo.github.io/cas/5.1.x/protocol/CAS-Protocol-Specification.html) werden erweiterte User-Attribute zur Verfügung gestellt.
+   - Diese Attribute sind nötig, um die User- und Group-Replikation durchzuführen.
+   - Andere Protokolle sowie frühere CAS-Protokolle werden nicht unterstützt.
+- Proxy-Tickets sind nur für REST-Requests möglich und sinnvoll
+- Key `sonar.cas.proxyTicketing.services` wurde in den SonarQube-Properties mit einem validen Regulären Ausdruck
+  gesetzt.
+- Im HTTP-Request muss das Proxy-Ticket wie folgt verarbeitet werden:
+   - Basic Auth header
+   - Benutzernamen wie üblich
+   - Password wird zusammengesetzt aus Keyword `ProxyTicket===:` und dem Proxy-Ticket
+
+```
+proxyTicket=ST-123-qwertzasdfg.local;
+basicAuthCredentials=username + ":" + "ProxyTicket===:" + proxyTicket;
+encodedCredentials=base64(plainCredentials);
+headers={ "Authorization" : "Basic " + encodedCredentials }
+http.get(headers, "http://sonarqube/api/endpoint")
+```
 
 ### Aufräumen
 
-Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicherten JWT- und Service-Ticket-Dateien (siehe den Abschnitt FileSessionStore weiter unten für weitere Informationen)
+Dies wird von einer Hintergrundaufgabe erledigt. Sie durchläuft alle gespeicherten JWT- und Service-Ticket-Dateien (
+siehe den Abschnitt FileSessionStore weiter unten für weitere Informationen)
 
 1. In festen Intervallen liest ein Hintergrund alle gespeicherten JWTs und zugehörigen Service-Tickets aus
 2. alle JWTs werden auf ihr Ablaufdatum untersucht
 3. abgelaufene JWTs und deren zugehöriges Service-Ticket werden entfernt
-
 
 ## Entscheidende Komponenten
 

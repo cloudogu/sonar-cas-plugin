@@ -58,9 +58,9 @@ public class LoginHandler {
     void handleLogin(BaseIdentityProvider.Context context) throws IOException, TicketValidationException {
         LOG.debug("Starting to handle login. Trying to validate login with CAS");
 
-        String grantingTicket = getServiceTicketParameter(context.getRequest());
+        String serviceTicket = getTicketParameter(context.getRequest());
         TicketValidator validator = validatorFactory.create();
-        Assertion assertion = validator.validate(grantingTicket, getSonarServiceUrl());
+        Assertion assertion = validator.validate(serviceTicket, getSonarServiceUrl());
 
         UserIdentity userIdentity = createUserIdentity(assertion);
 
@@ -70,8 +70,8 @@ public class LoginHandler {
         Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
-        LOG.debug("Storing granting ticket {} with JWT {}", grantingTicket, jwt.getJwtId());
-        sessionStore.store(grantingTicket, jwt);
+        LOG.debug("Storing service ticket {} with JWT {}", serviceTicket, jwt.getJwtId());
+        sessionStore.store(serviceTicket, jwt);
 
         String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
         removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
@@ -134,7 +134,13 @@ public class LoginHandler {
         response.addCookie(cookie);
     }
 
-    private String getServiceTicketParameter(HttpServletRequest request) {
+    /**
+     * getTicketParameter searches the given request for CAS service tickets or proxy tickets. The CAS specification
+     * names the parameter "ticket" which is used in both scenarios, web authentication and proxy authentication.
+     * @param request the request to be authenticated
+     * @return the value of the parameter "ticket" if set, otherwise the empty string
+     */
+    public static String getTicketParameter(HttpServletRequest request) {
         String ticket = request.getParameter("ticket");
         return StringUtils.defaultIfEmpty(ticket, "");
     }
