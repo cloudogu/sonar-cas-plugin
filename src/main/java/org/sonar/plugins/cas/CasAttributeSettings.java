@@ -20,8 +20,6 @@
 package org.sonar.plugins.cas;
 
 import com.google.common.collect.ImmutableSet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.plugins.cas.util.SonarCasProperties;
@@ -37,7 +35,6 @@ import java.util.*;
 @ServerSide
 public class CasAttributeSettings {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CasAttributeSettings.class);
     private final Configuration config;
 
     /**
