@@ -120,11 +120,11 @@ An einem bestimmten Punkt sind sich beide ähnlich, da letztlich der Rückkanal-
 Proxy-Tickets sind ein Mechanismus zur indirekten Authentifizierung von Benutzenden, ohne jedoch deren ursprüngliches
 Passwort zu verwenden.
 
-Neben SonarQube kann es noch weitere Dienste geben, an die per CAS sich authentifizieren. Die CAS-Spezifikation spricht
+Neben SonarQube kann es noch weitere Dienste geben, die sich per CAS authentifizieren. Die CAS-Spezifikation spricht
 hierbei von _Diensten_ oder _Services_. Eine Anmeldung per Proxy-Ticket geschieht dann nicht mehr über SonarQube im
 Zusammenspiel mit CAS, sondern über einen weiteren Dienst: Ein Proxy-Dienst. Die benutzende Person muss sich stattdessen
 im Zusammenspiel mit dem Proxy-Dienst authentifizieren. Diesem Proxy-Dienst wird dann ein Proxy-Granting-Ticket
-ausgestellt, mit dem wiederum Proxy-Tickets angefordert werden könenn.
+ausgestellt, mit dem wiederum Proxy-Tickets angefordert werden können.
 
 Proxy-Tickets ähneln stark CAS-Service-Tickets und besitzen nur eine kurze Gültigkeitsdauer. Der Proxy-Dienst stellt
 gegenüber SonarQube den gewünschten Request und benutzt dabei das Proxy-Ticket. Sonar-CAS-Plugin erkennt diesen Vorgang
@@ -153,9 +153,7 @@ sonar.cas.proxyTicketing.services=^https://myservices.company.com/.*$
 ##### Einschränkungen
 
 - Proxy-Tickets nur ab CAS 3.0 Protokoll unterstützt
-   - Erst
-     mit [CAS Protokollspezifikation 3.0](https://apereo.github.io/cas/5.1.x/protocol/CAS-Protocol-Specification.html)
-     werden erweiterte User-Attribute zur Verfügung gestellt.
+   - Erst mit [CAS Protokollspezifikation 3.0](https://apereo.github.io/cas/5.1.x/protocol/CAS-Protocol-Specification.html) werden erweiterte User-Attribute zur Verfügung gestellt.
    - Diese Attribute sind nötig, um die User- und Group-Replikation durchzuführen.
    - Andere Protokolle sowie frühere CAS-Protokolle werden nicht unterstützt.
 - Proxy-Tickets sind nur für REST-Requests möglich und sinnvoll
