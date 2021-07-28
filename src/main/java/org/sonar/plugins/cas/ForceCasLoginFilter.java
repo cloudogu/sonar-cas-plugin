@@ -51,7 +51,6 @@ import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
 public class ForceCasLoginFilter extends ServletFilter {
     private static final Logger LOG = LoggerFactory.getLogger(ForceCasLoginFilter.class);
     private static final int DEFAULT_CAS_REDIRECT_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(5);
-    private static final String GROUP_REPLICATION_CAS = "CAS";
     /**
      * Array of request URLS that should not be redirected to the login page.
      */
