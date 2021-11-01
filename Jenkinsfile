@@ -16,8 +16,6 @@ node {
         String SonarJreImage = 'adoptopenjdk/openjdk11:jre-11.0.11_9-alpine'
         Git git = new Git(this)
 
-        catchError {
-
         stage('Checkout') {
             checkout scm
             git.clean('')
@@ -37,7 +35,7 @@ node {
 
             def scannerHome = tool name: 'sonar-scanner', type: 'hudson.plugins.sonar.SonarRunnerInstallation'
             withSonarQubeEnv {
-                Git git = new Git(this, "cesmarvin")
+                git = new Git(this, "cesmarvin")
 
                 sh "git config 'remote.origin.fetch' '+refs/heads/*:refs/remotes/origin/*'"
                 gitWithCredentials("fetch --all")
