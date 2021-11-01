@@ -233,4 +233,10 @@ public enum SonarCasProperties {
             super("Could not find Sonar property with key " + propertyKey + " when it was expected to be configured.");
         }
     }
+
+    static class SonarCasPropertyMisconfigurationException extends RuntimeException {
+        SonarCasPropertyMisconfigurationException(String propertyKey, String misconfigReason) {
+            super("SonarQube property with key " + propertyKey + " is misconfigured: " + misconfigReason);
+        }
+    }
 }

@@ -28,7 +28,8 @@ public class ForceCasLoginFilterTest {
     public void doFilterShouldHandleGetResource_alreadyLoggedIn() throws IOException, ServletException {
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
-                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "300");
+                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "300")
+                .withAttribute("sonar.cas.sonarServerUrl", "http://sonar.com/sonar");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
         ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
@@ -72,7 +73,8 @@ public class ForceCasLoginFilterTest {
         // given
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sessionStorePath", "/tmp")
-                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100");
+                .withAttribute("sonar.cas.urlAfterCasRedirectCookieMaxAgeSeconds", "100")
+                .withAttribute("sonar.cas.sonarServerUrl", "http://sonar.com/sonar");
         CasSessionStoreFactory sessionStoreFactory = new CasSessionStoreFactory(config);
         LogoutHandler logoutHandler = new LogoutHandler(config, sessionStoreFactory);
         ForceCasLoginFilter sut = new ForceCasLoginFilter(config, logoutHandler);
