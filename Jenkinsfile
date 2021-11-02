@@ -31,6 +31,9 @@ node() {
 
             stage('Unit Test') {
                 mvn 'test'
+
+                // Archive Unit and integration test results, if any
+                junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/TEST-*.xml,**/target/surefire-reports/TEST-*.xml'
             }
         }
 
@@ -45,9 +48,6 @@ node() {
             }
         }
     }
-
-    // Archive Unit and integration test results, if any
-    junit allowEmptyResults: true, testResults: '**/target/failsafe-reports/TEST-*.xml,**/target/surefire-reports/TEST-*.xml'
 }
 
 def setupMaven(mvn) {
