@@ -150,6 +150,31 @@ public class HttpStreamsTest {
         assertThat(response.getCookie().getValue()).isEqualTo("https://sonar.url.com/sonar/somePageWhichIsNotLogin?project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
         assertThat(response.getCookie().getMaxAge()).isEqualTo(300);
         assertThat(response.getCookie().getPath()).isEqualTo("/sonar");
+        assertThat(response.getCookie().getSecure()).isTrue();
+    }
+
+    @Test()
+    public void saveRequestedURLInCookieShouldApplySecureCookieConfigFromSonarCasProperties() {
+        // In reverse-proxied systems (f. i. Cloudogu EcoSystem) the SonarQube-local scheme may differ from the global
+        // scheme. This is because SSL termination may be in place so that the URL looks like https://fqdn/sonar from a
+        // user's perspective, while SonarQube runs as http://localIP:port/sonar locally.
+
+        HttpServletRequest request = mock(HttpServletRequest.class);
+        String originalURL = "http://sonar.url.com/sonar/somePageWhichIsNotLogin";
+        when(request.getRequestURL()).thenReturn(new StringBuffer(originalURL));
+        when(request.getContextPath()).thenReturn("/sonar");
+        // getRequestURL does NOT return query params. Kinda important for called sonar URLs
+        when(request.getQueryString()).thenReturn("project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
+        Configuration config = new SonarTestConfiguration()
+                .withAttribute("sonar.cas.sonarServerUrl", "http://sonar.url.com/sonar")
+                .withAttribute("sonar.cas.userSecureRedirectCookies", "false");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+
+        HttpStreams.saveRequestedURLInCookie(request, response, 300, config);
+
+        verify(request).getRequestURL();
+        verify(request, times(2)).getQueryString();
+        assertThat(response.getCookie().getSecure()).isFalse();
     }
 
     @Test

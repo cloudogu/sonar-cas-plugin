@@ -16,6 +16,7 @@ public class CookiesTest {
                 .value("value")
                 .contextPath("/")
                 .maxAgeInSecs(3600)
+                .secure(true)
                 .build();
 
         assertThat(cookie.getName()).isEqualTo("key");
@@ -23,6 +24,7 @@ public class CookiesTest {
         assertThat(cookie.getPath()).isEqualTo("/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(3600);
+        assertThat(cookie.getSecure()).isTrue();
     }
 
     @Test
@@ -34,6 +36,7 @@ public class CookiesTest {
         assertThat(cookie.getPath()).isEqualTo("http://server.url/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(0);
+        assertThat(cookie.getSecure()).isTrue();
     }
 
     @Test(expected = IllegalArgumentException.class)

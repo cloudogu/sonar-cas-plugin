@@ -30,6 +30,7 @@ public final class Cookies {
                 .value("")
                 .contextPath(contextPath)
                 .maxAgeInSecs(0)
+                .secure(true)
                 .build();
     }
 
@@ -65,6 +66,7 @@ public final class Cookies {
         private String value;
         private String contextPath;
         private int maxAge;
+        private boolean secure;
 
         /**
          * @param name the name identifies uniquely a cookie. Must not be empty.
@@ -101,6 +103,16 @@ public final class Cookies {
             return this;
         }
 
+        /**
+         * @param secureCookie When a cookie is protected with the secure attribute set to true it will not be sent by
+         *                     the browser over an unencrypted HTTP request and thus cannot be observed by an
+         *                     unauthorized person during a man-in-the-middle attack
+         */
+        public HttpOnlyCookieBuilder secure(boolean secureCookie) {
+            this.secure = secureCookie;
+            return this;
+        }
+
         public Cookie build() {
             if (StringUtils.isEmpty(name)) {
                 throw new IllegalArgumentException("Could not create cookie. Cookie name must not be empty.");
@@ -115,6 +127,7 @@ public final class Cookies {
             Cookie cookie = new Cookie(name, value);
             cookie.setMaxAge(maxAge);
             cookie.setPath(contextPath);
+            cookie.setSecure(secure);
             cookie.setHttpOnly(true);
 
             return cookie;

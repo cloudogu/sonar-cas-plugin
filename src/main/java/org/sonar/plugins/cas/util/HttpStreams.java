@@ -108,12 +108,14 @@ public final class HttpStreams {
 
         LOG.debug("Redirect to URL after CAS login {}", redirectAfterCasLoginURL);
         LOG.debug("Using context path {}", contextPath);
+        boolean secureCookie = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(config, true);
 
         Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)
                 .value(redirectAfterCasLoginURL)
                 .maxAgeInSecs(maxCookieAge)
                 .contextPath(contextPath)
+                .secure(secureCookie)
                 .build();
 
         LOG.debug("set cookie with context path {}", contextPath);

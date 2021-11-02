@@ -6,11 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+
+- Add properties key `sonar.cas.userSecureRedirectCookies` to configure the redirect cookie's `secure` flag
+  - if not configured the cookie's secure flag defaults to `true`
+
 ### Fixed
+
 - Fixed insecure redirect request after login (#39)
 
 ## [v4.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.1.0) - 2021-07-28
+
 ### Added
+
 - Add Proxy ticketing against SonarQube API (#36)
   - you can find requirements and more information about this topic in the [documentation](docs/architecture_en.md)
 
