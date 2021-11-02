@@ -28,7 +28,7 @@ import org.sonar.api.config.Configuration;
  */
 public enum SonarCasProperties {
     /**
-     * Should SONAR create new users? Must be set to TRUE.
+     * Should SonarQube create new users? Must be set to TRUE.
      */
     SONAR_CREATE_USERS("sonar.authenticator.createUsers", SonarPropertyType.BOOLEAN),
     /**
@@ -49,7 +49,7 @@ public enum SonarCasProperties {
     CAS_SERVER_URL_PREFIX("sonar.cas.casServerUrlPrefix", SonarPropertyType.STRING),
     /**
      * Specifies how SonarQube groups should be replicated.
-
+     *
      * <p>A value of <code>CAS</code> always overwrites the user's
      * local groups with the group provided by CAS upon UI log-in. The user's local groups will be untouched with other
      * values.</p>
@@ -92,6 +92,13 @@ public enum SonarCasProperties {
      * Ignore certification validation errors. CAUTION! NEVER USE IN PROD! SECURITY RISK!
      */
     DISABLE_CERT_VALIDATION("sonar.cas.disableCertValidation", SonarPropertyType.BOOLEAN),
+    /**
+     * This value determines whether a Redirect Cookie after the CAS login uses the Secure-flag. Cookies with
+     * <code>secure=true</code> will only work properly in conjunction with HTTPS.
+     *
+     * <p>default to <code>true</code></p>
+     */
+    USE_SECURE_REDIRECT_COOKIES("sonar.cas.userSecureRedirectCookies", SonarPropertyType.BOOLEAN),
     /**
      * The expiration time of the cookie which helps to restore the originally requested SonarQube URL over the CAS authentication
      */
@@ -136,7 +143,7 @@ public enum SonarCasProperties {
     }
 
     /**
-     * Returns a configuration value as string if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * Returns a configuration value as string if the key was configured. Otherwise a {@link SonarCasPropertyNotFoundException} is
      * thrown.
      *
      * @param config the SonarQube configuration object holds all configured properties
@@ -145,7 +152,7 @@ public enum SonarCasProperties {
     public String mustGetString(Configuration config) {
         assertPropertyType(SonarPropertyType.STRING);
 
-        return config.get(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
+        return config.get(propertyKey).orElseThrow(() -> new SonarCasPropertyNotFoundException(propertyKey));
     }
 
     /**
@@ -161,7 +168,7 @@ public enum SonarCasProperties {
     }
 
     /**
-     * Returns a configuration value as boolean if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * Returns a configuration value as boolean if the key was configured. Otherwise a {@link SonarCasPropertyNotFoundException} is
      * thrown.
      *
      * @param config the SonarQube configuration object holds all configured properties
@@ -170,7 +177,7 @@ public enum SonarCasProperties {
     public boolean mustGetBoolean(Configuration config) {
         assertPropertyType(SonarPropertyType.BOOLEAN);
 
-        return config.getBoolean(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
+        return config.getBoolean(propertyKey).orElseThrow(() -> new SonarCasPropertyNotFoundException(propertyKey));
     }
 
     /**
@@ -187,7 +194,7 @@ public enum SonarCasProperties {
     }
 
     /**
-     * Returns a configuration value as integer if the key was configured. Otherwise a {@link CasPropertyNotFoundException} is
+     * Returns a configuration value as integer if the key was configured. Otherwise a {@link SonarCasPropertyNotFoundException} is
      * thrown.
      *
      * @param config the SonarQube configuration object holds all configured properties
@@ -196,7 +203,7 @@ public enum SonarCasProperties {
     public int mustGetInteger(Configuration config) {
         assertPropertyType(SonarPropertyType.INTEGER);
 
-        return config.getInt(propertyKey).orElseThrow(() -> new CasPropertyNotFoundException(propertyKey));
+        return config.getInt(propertyKey).orElseThrow(() -> new SonarCasPropertyNotFoundException(propertyKey));
     }
 
     /**
@@ -228,9 +235,15 @@ public enum SonarCasProperties {
         INTEGER
     }
 
-    private static class CasPropertyNotFoundException extends RuntimeException {
-        CasPropertyNotFoundException(String propertyKey) {
-            super("Could not find Sonar property with key " + propertyKey + " when it was expected to be configured.");
+    private static class SonarCasPropertyNotFoundException extends RuntimeException {
+        SonarCasPropertyNotFoundException(String propertyKey) {
+            super("Could not find SonarQube property with key " + propertyKey + " when it was expected to be configured.");
+        }
+    }
+
+    static class SonarCasPropertyMisconfigurationException extends RuntimeException {
+        SonarCasPropertyMisconfigurationException(String propertyKey, String misconfigReason) {
+            super("SonarQube property with key " + propertyKey + " is misconfigured: " + misconfigReason);
         }
     }
 }

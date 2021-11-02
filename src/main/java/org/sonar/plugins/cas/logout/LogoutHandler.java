@@ -128,10 +128,12 @@ public class LogoutHandler {
     }
 
     private void removeAuthCookies(HttpServletResponse response, String contextPath) {
-        Cookie jwtCookie = Cookies.createDeletionCookie(JWT_SESSION_COOKIE, contextPath);
+        boolean useSecureCookies = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(configuration, true);
+
+        Cookie jwtCookie = Cookies.createDeletionCookie(JWT_SESSION_COOKIE, contextPath, useSecureCookies);
         response.addCookie(jwtCookie);
 
-        Cookie xsrfCookie = Cookies.createDeletionCookie("XSRF-TOKEN", contextPath);
+        Cookie xsrfCookie = Cookies.createDeletionCookie("XSRF-TOKEN", contextPath, useSecureCookies);
         response.addCookie(xsrfCookie);
     }
 

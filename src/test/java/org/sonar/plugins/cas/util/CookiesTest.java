@@ -16,6 +16,7 @@ public class CookiesTest {
                 .value("value")
                 .contextPath("/")
                 .maxAgeInSecs(3600)
+                .secure(true)
                 .build();
 
         assertThat(cookie.getName()).isEqualTo("key");
@@ -23,22 +24,28 @@ public class CookiesTest {
         assertThat(cookie.getPath()).isEqualTo("/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(3600);
+        assertThat(cookie.getSecure()).isTrue();
     }
 
     @Test
     public void createDeletionCookie() {
-        Cookie cookie = Cookies.createDeletionCookie("key", "http://server.url/");
+        Cookie cookie = Cookies.createDeletionCookie("key", "http://server.url/", true);
 
         assertThat(cookie.getName()).isEqualTo("key");
         assertThat(cookie.getValue()).isEqualTo("");
         assertThat(cookie.getPath()).isEqualTo("http://server.url/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(0);
+        assertThat(cookie.getSecure()).isTrue();
+
+        Cookie cookie2 = Cookies.createDeletionCookie("key", "http://server.url/", false);
+
+        assertThat(cookie2.getSecure()).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void createDeletionCookieShouldThrowException() {
-        Cookies.createDeletionCookie("key", null);
+        Cookies.createDeletionCookie("key", null, true);
     }
 
     @Test(expected = IllegalArgumentException.class)

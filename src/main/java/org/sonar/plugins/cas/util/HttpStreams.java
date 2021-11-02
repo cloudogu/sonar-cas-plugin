@@ -24,6 +24,7 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.sonar.api.config.Configuration;
 
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -89,29 +90,47 @@ public final class HttpStreams {
     /**
      * Keep the original URL during redirectToLogin to the CAS server in order to have the URL opened as intended by the
      * user.
-     * @param request the request is used to get the original URL and query parameters
+     *
+     * @param request  the request is used to get the original URL and query parameters
      * @param response the response is used to save a cookie containing the original URL
+     * @param config   the SonarQube config object which contains instance specific configuration values from the <pre>sonar.properties</pre> file.
      */
-    public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge) {
+    public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge, Configuration config) {
+        String configSonarURL = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
         String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
         String contextPath = request.getContextPath();
 
-        if(StringUtils.isBlank(contextPath)){
+        String redirectAfterCasLoginURL = replaceSchema(configSonarURL, originalURL);
+
+        if (StringUtils.isBlank(contextPath)) {
             contextPath = "/";
         }
 
-        LOG.debug("found original URL {}", originalURL);
-        LOG.debug("using context path {}", contextPath);
-
+        LOG.debug("Redirect to URL after CAS login {}", redirectAfterCasLoginURL);
+        LOG.debug("Using context path {}", contextPath);
+        boolean secureCookie = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(config, true);
 
         Cookie cookie = new Cookies.HttpOnlyCookieBuilder()
                 .name(COOKIE_NAME_URL_AFTER_CAS_REDIRECT)
-                .value(originalURL)
+                .value(redirectAfterCasLoginURL)
                 .maxAgeInSecs(maxCookieAge)
                 .contextPath(contextPath)
+                .secure(secureCookie)
                 .build();
 
         LOG.debug("set cookie with context path {}", contextPath);
         response.addCookie(cookie);
+    }
+
+    static String replaceSchema(String configSonarURL, String originalURL) {
+        int schemaIndex = configSonarURL.indexOf("://");
+        if (schemaIndex == -1) {
+            throw new SonarCasProperties.SonarCasPropertyMisconfigurationException(
+                    SonarCasProperties.SONAR_SERVER_URL.propertyKey,
+                    "must contain a schema, like http or https.");
+        }
+
+        String schema = configSonarURL.substring(0, schemaIndex);
+        return originalURL.replaceFirst("https?", schema);
     }
 }

@@ -129,7 +129,9 @@ public class LoginHandler {
         if (StringUtils.isBlank(contextPath)) {
             contextPath = "/";
         }
-        Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath);
+        boolean useSecureCookies = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(configuration, true);
+
+        Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath, useSecureCookies);
 
         response.addCookie(cookie);
     }
