@@ -18,9 +18,10 @@ public final class Cookies {
      *
      * @param cookieName the cookie name identifies the cookie to be deleted. Must not be <code>null</code> or the
      *                   empty string.
+     * @param secure     toggle this boolean flag to secure so the cookie must be sent over HTTPS
      * @return a new cookie which is supposed to be deleted by the browser
      */
-    public static Cookie createDeletionCookie(String cookieName, String contextPath) {
+    public static Cookie createDeletionCookie(String cookieName, String contextPath, boolean secure) {
         if (StringUtils.isEmpty(cookieName)) {
             throw new IllegalArgumentException("Could not create cookie. CookieName must not be empty.");
         }
@@ -30,7 +31,7 @@ public final class Cookies {
                 .value("")
                 .contextPath(contextPath)
                 .maxAgeInSecs(0)
-                .secure(true)
+                .secure(secure)
                 .build();
     }
 

@@ -29,7 +29,7 @@ public class CookiesTest {
 
     @Test
     public void createDeletionCookie() {
-        Cookie cookie = Cookies.createDeletionCookie("key", "http://server.url/");
+        Cookie cookie = Cookies.createDeletionCookie("key", "http://server.url/", true);
 
         assertThat(cookie.getName()).isEqualTo("key");
         assertThat(cookie.getValue()).isEqualTo("");
@@ -37,11 +37,15 @@ public class CookiesTest {
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(0);
         assertThat(cookie.getSecure()).isTrue();
+
+        Cookie cookie2 = Cookies.createDeletionCookie("key", "http://server.url/", false);
+
+        assertThat(cookie2.getSecure()).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void createDeletionCookieShouldThrowException() {
-        Cookies.createDeletionCookie("key", null);
+        Cookies.createDeletionCookie("key", null, true);
     }
 
     @Test(expected = IllegalArgumentException.class)
