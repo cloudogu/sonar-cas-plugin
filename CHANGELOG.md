@@ -6,15 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
-
 ### Fixed
-
 - Fixed insecure redirect request after login (#39)
 
 ## [v4.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.1.0) - 2021-07-28
-
 ### Added
-
 - Add Proxy ticketing against SonarQube API (#36)
   - you can find requirements and more information about this topic in the [documentation](docs/architecture_en.md)
 
@@ -30,7 +26,6 @@ Breaking change ahead.
     preferred.
 
 ## [v3.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v3.0.1) - 2021-06-03
-
 ### Fixed
 - Fixes defective redirect behaviour for repeated unauthenticated requests (#32)
   - this fix also allows unauthenticated requests for static resources
