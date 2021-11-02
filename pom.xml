@@ -5,7 +5,7 @@
 
     <groupId>com.cloudogu.sonar</groupId>
     <artifactId>sonar-cas-plugin</artifactId>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
     <packaging>sonar-plugin</packaging>
 
     <description>CAS Support for SonarQube</description>
@@ -142,7 +142,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>17.0</version>
+            <version>[30.0-jre,)</version>
         </dependency>
 
         <dependency>

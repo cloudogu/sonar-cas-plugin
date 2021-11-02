@@ -19,7 +19,6 @@
  */
 package org.sonar.plugins.cas;
 
-import com.google.common.base.Charsets;
 import com.google.common.base.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 /**
  * Client for the CAS REST API.
@@ -131,7 +131,7 @@ public class CasRestClient {
 
     private BufferedReader createReader(HttpURLConnection connection) throws IOException {
         InputStream stream = connection.getInputStream();
-        InputStreamReader in = new InputStreamReader(stream, Charsets.UTF_8);
+        InputStreamReader in = new InputStreamReader(stream, StandardCharsets.UTF_8);
         return new BufferedReader(in);
     }
 
@@ -180,7 +180,7 @@ public class CasRestClient {
 
     private BufferedWriter createWriter(HttpURLConnection connection) throws IOException {
         OutputStream stream = connection.getOutputStream();
-        OutputStreamWriter out = new OutputStreamWriter(stream, Charsets.UTF_8);
+        OutputStreamWriter out = new OutputStreamWriter(stream, StandardCharsets.UTF_8);
         return new BufferedWriter(out);
     }
 

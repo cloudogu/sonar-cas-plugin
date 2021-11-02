@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
+import static org.sonar.plugins.cas.LoginHandler.getTicketParameter;
 
 public class LoginHandlerTest {
     @Test
@@ -18,10 +19,9 @@ public class LoginHandlerTest {
         CasSessionStore sessionStore = mock(CasSessionStore.class);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
-        LoginHandler sut = new LoginHandler(null, null, sessionStoreFactory, null);
 
         // when
-        String actual = sut.getTicketParameter(request);
+        String actual = getTicketParameter(request);
 
         // then
         assertThat(actual).isEqualTo("");
@@ -37,10 +37,9 @@ public class LoginHandlerTest {
         CasSessionStore sessionStore = mock(CasSessionStore.class);
         CasSessionStoreFactory sessionStoreFactory = mock(CasSessionStoreFactory.class);
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
-        LoginHandler sut = new LoginHandler(null, null, sessionStoreFactory, null);
 
         // when
-        String actual = sut.getTicketParameter(request);
+        String actual = getTicketParameter(request);
 
         // then
         assertThat(actual).isEqualTo("ST-012345678");

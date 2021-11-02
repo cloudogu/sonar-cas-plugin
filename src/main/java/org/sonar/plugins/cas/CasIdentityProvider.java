@@ -45,7 +45,6 @@ import javax.servlet.http.HttpServletRequest;
 public class CasIdentityProvider implements BaseIdentityProvider {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasIdentityProvider.class);
-    private static final String PROXY_TICKET_URL_SUFFIX = "/sessions/cas/proxy";
 
     private final Configuration configuration;
     private final LoginHandler loginHandler;

@@ -86,7 +86,7 @@ public class ForceCasLoginFilter extends ServletFilter {
 
             if (logoutHandler.isUserLoggedOutAndLogsInAgain(request)) {
                 LOG.debug("Redirecting logged-out user to log-in page");
-                HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
+                HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge, configuration);
                 logoutHandler.handleInvalidJwtCookie(request, response);
                 redirectToLogin(request, response);
             } else {
@@ -97,7 +97,7 @@ public class ForceCasLoginFilter extends ServletFilter {
             LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to login page",
                     requestedURL);
             // keep the original URL during redirectToLogin to the CAS server in order to have the URL opened as intended by the user
-            HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge);
+            HttpStreams.saveRequestedURLInCookie(request, response, maxRedirectCookieAge, configuration);
             redirectToLogin(request, response);
         }
     }

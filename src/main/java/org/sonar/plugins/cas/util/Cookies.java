@@ -18,9 +18,10 @@ public final class Cookies {
      *
      * @param cookieName the cookie name identifies the cookie to be deleted. Must not be <code>null</code> or the
      *                   empty string.
+     * @param secure     toggle this boolean flag to secure so the cookie must be sent over HTTPS
      * @return a new cookie which is supposed to be deleted by the browser
      */
-    public static Cookie createDeletionCookie(String cookieName, String contextPath) {
+    public static Cookie createDeletionCookie(String cookieName, String contextPath, boolean secure) {
         if (StringUtils.isEmpty(cookieName)) {
             throw new IllegalArgumentException("Could not create cookie. CookieName must not be empty.");
         }
@@ -30,6 +31,7 @@ public final class Cookies {
                 .value("")
                 .contextPath(contextPath)
                 .maxAgeInSecs(0)
+                .secure(secure)
                 .build();
     }
 
@@ -65,6 +67,7 @@ public final class Cookies {
         private String value;
         private String contextPath;
         private int maxAge;
+        private boolean secure;
 
         /**
          * @param name the name identifies uniquely a cookie. Must not be empty.
@@ -101,6 +104,16 @@ public final class Cookies {
             return this;
         }
 
+        /**
+         * @param secureCookie When a cookie is protected with the secure attribute set to true it will not be sent by
+         *                     the browser over an unencrypted HTTP request and thus cannot be observed by an
+         *                     unauthorized person during a man-in-the-middle attack
+         */
+        public HttpOnlyCookieBuilder secure(boolean secureCookie) {
+            this.secure = secureCookie;
+            return this;
+        }
+
         public Cookie build() {
             if (StringUtils.isEmpty(name)) {
                 throw new IllegalArgumentException("Could not create cookie. Cookie name must not be empty.");
@@ -115,6 +128,7 @@ public final class Cookies {
             Cookie cookie = new Cookie(name, value);
             cookie.setMaxAge(maxAge);
             cookie.setPath(contextPath);
+            cookie.setSecure(secure);
             cookie.setHttpOnly(true);
 
             return cookie;
