@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v4.2.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.2.1) - 2022-08-22
+### Changed
+- Add `/static` to list of routes which do not need authentication (#44)
+
 ## [v4.2.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.2.0) - 2021-11-02
 ### Added
 - Add properties key `sonar.cas.userSecureRedirectCookies` to configure the redirect cookie's `secure` flag

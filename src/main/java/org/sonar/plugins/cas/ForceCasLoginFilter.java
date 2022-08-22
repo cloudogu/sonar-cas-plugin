@@ -55,7 +55,7 @@ public class ForceCasLoginFilter extends ServletFilter {
      * Array of request URLS that should not be redirected to the login page.
      */
     private static final List<String> ALLOW_LIST = Arrays.asList(
-            "/js/", "/images/", "/favicon.ico", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
+            "/js/", "/images/", "/favicon.ico", "/static", "/sessions/", "/api/", "/batch_bootstrap/", "/deploy/", "/batch");
 
     private final Configuration configuration;
     private final LogoutHandler logoutHandler;
