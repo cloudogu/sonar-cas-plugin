@@ -4,8 +4,8 @@
 
 ### What you need
 
-- Java JDK >= 11
-  - tested with the `11.0.1-zulu` distribution
+- Java JDK >= 17
+  - tested with the `eclipse-temurin-17` distribution
 - Maven
 - docker
 - docker-compose
