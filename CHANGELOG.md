@@ -9,6 +9,7 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Changed
 - Upgrade Sonar-PluginAPI to v9.14.0.375
 - Implement AutoCloseable in SessionStoreCleaner to close the CleanUp-Timer 
+- Upgrade to JDK 17
 
 ## [v4.2.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v4.2.1) - 2022-08-22
 ### Changed
