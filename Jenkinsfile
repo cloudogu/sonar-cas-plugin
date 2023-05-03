@@ -22,7 +22,7 @@ node() {
                 git.clean("")
             }
 
-            Maven mvn = new MavenInDocker(this, "3.5.0-jdk-17")
+            Maven mvn = new MavenInDocker(this, "3.9-eclipse-temurin-17")
 
             stage('Build') {
                 setupMaven(mvn)
@@ -40,7 +40,7 @@ node() {
         stage('Statical Code Analysis') {
             def sonarQube = new SonarQube(this, [sonarQubeEnv: 'ces-sonar'])
 
-            sonarQube.analyzeWith(new MavenInDocker(this, "3.5.0-jdk-17"))
+            sonarQube.analyzeWith(new MavenInDocker(this, "3.9-eclipse-temurin-17"))
             sonarQube.timeoutInMinutes = 4
 
             if (!sonarQube.waitForQualityGateWebhookToBeCalled()) {
