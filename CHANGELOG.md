@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v5.0.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.0) - 2023-05-03
 ### Changed
 - Upgrade Sonar-PluginAPI to v9.14.0.375
 - Implement AutoCloseable in SessionStoreCleaner to close the CleanUp-Timer 
