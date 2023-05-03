@@ -13,7 +13,7 @@ import java.util.TimerTask;
 import java.util.concurrent.TimeUnit;
 
 @ServerSide
-public final class SessionStoreCleaner implements ServerStartHandler {
+public final class SessionStoreCleaner implements ServerStartHandler, AutoCloseable {
     private static final Logger LOG = LoggerFactory.getLogger(SessionStoreCleaner.class);
     private static final int SESSION_STORE_CLEANUP_INTERVAL_IN_SECS_DEFAULT = (int) TimeUnit.MINUTES.toSeconds(30);
     private static final int SESSION_STORE_CLEANUP_DISABLED = 0;
@@ -43,6 +43,13 @@ public final class SessionStoreCleaner implements ServerStartHandler {
         }
 
         runTask(task);
+    }
+
+    @Override
+    public void close() throws Exception {
+        LOG.info("Stopping CAS session cleaner");
+        timer.cancel();
+        LOG.info("CAS session cleaner stopped");
     }
 
     private TimerTask createTask() {
