@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v5.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.1) - 2023-05-05
 ### Changed
 - Updated dependencies to remove CVEs
 
