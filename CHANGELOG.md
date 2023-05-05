@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v5.0.1](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.1) - 2023-05-05
+### Changed
+- Updated dependencies to remove CVEs
+
 ## [v5.0.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.0) - 2023-05-03
 ### Changed
 - Upgrade Sonar-PluginAPI to v9.14.0.375
