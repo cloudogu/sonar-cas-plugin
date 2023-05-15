@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v5.0.2](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.2) - 2023-05-15
 ### Fixed
 - Set java-target-version to 11 to be compatible with Java-11 runtimes (#52)
 

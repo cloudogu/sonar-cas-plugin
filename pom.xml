@@ -5,7 +5,7 @@
 
     <groupId>com.cloudogu.sonar</groupId>
     <artifactId>sonar-cas-plugin</artifactId>
-    <version>5.0.1</version>
+    <version>5.0.2</version>
     <packaging>sonar-plugin</packaging>
 
     <description>CAS Support for SonarQube</description>
