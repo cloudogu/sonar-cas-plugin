@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v5.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.1.0) - 2024-09-18
 ### Changed
 - Relicense to AGPL-3.0-only
 
