@@ -7,6 +7,10 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v5.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.1.0) - 2024-09-18
+### Changed
+- Relicense to AGPL-3.0-only
+
 ## [v5.0.2](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.0.2) - 2023-05-15
 ### Fixed
 - Set java-target-version to 11 to be compatible with Java-11 runtimes (#52)
