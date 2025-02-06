@@ -19,9 +19,6 @@
  */
 package org.sonar.plugins.cas.logout;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.Resources;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
@@ -30,10 +27,7 @@ import org.sonar.api.server.http.HttpResponse;
 import org.sonar.api.web.FilterChain;
 import org.sonar.api.web.HttpFilter;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 
 
 /**
