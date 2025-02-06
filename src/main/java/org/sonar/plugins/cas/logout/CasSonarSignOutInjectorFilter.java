@@ -84,6 +84,10 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
         try {
             // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
             filterChain.doFilter(request, response);
+            if (request.getRequestURL().contains("sessions/logout")) {
+                response.sendRedirect("/cas/logout");
+            }
+
             if (isResourceBlacklisted(request) || !acceptsHtml(request)) {
                 LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
                 return;
