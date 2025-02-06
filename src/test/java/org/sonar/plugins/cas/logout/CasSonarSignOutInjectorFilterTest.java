@@ -16,8 +16,6 @@ public class CasSonarSignOutInjectorFilterTest {
 
     @Test
     public void doFilterShouldCallFilterChainOnce() throws Exception {
-        Configuration mockConfig = new SonarTestConfiguration()
-                .withAttribute("sonar.cas.casServerLogoutUrl", "http://sonar.server.com");
         HttpRequest mockRequest = mock(HttpRequest.class);
         String requestURL = "http://sonar.url.com/sonar/";
         when(mockRequest.getRequestURL())
@@ -29,7 +27,7 @@ public class CasSonarSignOutInjectorFilterTest {
         when(mockResponse.getOutputStream()).thenReturn(createOutputStream());
         FilterChain mockFilterChain = mock(FilterChain.class);
 
-        CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, CasSonarSignOutInjectorFilter.class.getClassLoader());
+        CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(CasSonarSignOutInjectorFilter.class.getClassLoader());
 
         // when: two request are processed there must be only one caching call
         sut.doFilter(mockRequest, mockResponse, mockFilterChain);

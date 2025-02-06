@@ -42,14 +42,14 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
     /**
      * called with injection by SonarQube during server initialization
      */
-    public CasSonarSignOutInjectorFilter(Configuration configuration) {
+    public CasSonarSignOutInjectorFilter() {
         this.resourceClassloader = CasSonarSignOutInjectorFilter.class.getClassLoader();
     }
 
     /**
      * for testing
      */
-    CasSonarSignOutInjectorFilter(Configuration configuration, ClassLoader resourceClassloader) {
+    CasSonarSignOutInjectorFilter(ClassLoader resourceClassloader) {
         this.resourceClassloader = resourceClassloader;
     }
 
