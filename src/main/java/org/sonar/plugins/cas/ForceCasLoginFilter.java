@@ -19,19 +19,19 @@
  */
 package org.sonar.plugins.cas;
 
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.web.ServletFilter;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
+import org.sonar.api.web.HttpFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -48,7 +48,7 @@ import static org.sonar.plugins.cas.AuthenticationFilter.SONAR_LOGIN_URL_PATH;
  * @author Jan Boerner, TRIOLOGY GmbH
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
-public class ForceCasLoginFilter extends ServletFilter {
+public class ForceCasLoginFilter extends HttpFilter {
     private static final Logger LOG = LoggerFactory.getLogger(ForceCasLoginFilter.class);
     private static final int DEFAULT_CAS_REDIRECT_COOKIE_AGE = (int) TimeUnit.MINUTES.toSeconds(5);
     /**
@@ -68,15 +68,13 @@ public class ForceCasLoginFilter extends ServletFilter {
         this.logoutHandler = logoutHandler;
     }
 
-    public void init(FilterConfig filterConfig) {
+    public void init() {
         // nothing to do
     }
 
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
-            throws IOException, ServletException {
+    public void doFilter(HttpRequest request, HttpResponse response, FilterChain chain)
+            throws IOException {
 
-        HttpServletRequest request = HttpStreams.toHttp(servletRequest);
-        HttpServletResponse response = HttpStreams.toHttp(servletResponse);
         String requestedURL = request.getRequestURL().toString();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
         LOG.debug("ForceCasLoginFilter.doFilter(): {} ", requestedURL);
@@ -91,7 +89,7 @@ public class ForceCasLoginFilter extends ServletFilter {
                 redirectToLogin(request, response);
             } else {
                 LOG.debug("Continue request processing...");
-                chain.doFilter(request, servletResponse);
+                chain.doFilter(request, response);
             }
         } else {
             LOG.debug("Found unauthenticated request or request not in whitelist: {}. Redirecting to login page",
@@ -106,15 +104,26 @@ public class ForceCasLoginFilter extends ServletFilter {
         return SonarCasProperties.URL_AFTER_CAS_REDIRECT_COOKIE_MAX_AGE_IN_SECS.getInteger(configuration, DEFAULT_CAS_REDIRECT_COOKIE_AGE);
     }
 
-    private void redirectToLogin(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    private void redirectToLogin(HttpRequest request, HttpResponse response) throws IOException {
         LOG.debug("Redirecting to login page {} -> {}", request.getRequestURL(), SONAR_LOGIN_URL_PATH);
 
         response.sendRedirect(request.getContextPath() + SONAR_LOGIN_URL_PATH);
     }
 
-    private boolean isAuthenticated(HttpServletRequest request) {
+    private boolean isAuthenticated(HttpRequest request) {
         // https://github.com/SonarSource/sonarqube/blob/9973bacbfa4a945e509bf1b574d7e5aae4ba155a/server/sonar-server/src/main/java/org/sonar/server/authentication/UserSessionInitializer.java#L138
-        String login = StringUtils.defaultString((String) request.getAttribute("LOGIN"));
+        Object delegate;
+        String login = "";
+        try {
+            Method getDelegate = request.getClass().getMethod("getDelegate");
+            delegate = getDelegate.invoke(request);
+
+            Method getAttribute  = delegate.getClass().getMethod("getAttribute", String.class);
+            login = (String) getAttribute.invoke(delegate, "LOGIN");
+
+        } catch (Exception e) {
+            // ignore the exception
+        }
         LOG.debug("login value: {}", login);
         return !"-".equals(login) && !"".equals(login);
     }

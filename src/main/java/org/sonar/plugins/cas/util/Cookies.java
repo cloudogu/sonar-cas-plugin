@@ -1,8 +1,8 @@
 package org.sonar.plugins.cas.util;
 
 import org.apache.commons.lang.StringUtils;
+import org.sonar.api.server.http.Cookie;
 
-import javax.servlet.http.Cookie;
 
 public final class Cookies {
     public static final String JWT_SESSION_COOKIE = "JWT-SESSION";
@@ -125,13 +125,7 @@ public final class Cookies {
                 throw new IllegalArgumentException("Could not create cookie. Context path must not be empty.");
             }
 
-            Cookie cookie = new Cookie(name, value);
-            cookie.setMaxAge(maxAge);
-            cookie.setPath(contextPath);
-            cookie.setSecure(secure);
-            cookie.setHttpOnly(true);
-
-            return cookie;
+            return new SonarCookie(name, value, contextPath, secure, maxAge, true);
         }
     }
 }

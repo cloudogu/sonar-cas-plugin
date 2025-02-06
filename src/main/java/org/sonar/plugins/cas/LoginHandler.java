@@ -12,6 +12,9 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.UserIdentity;
+import org.sonar.api.server.http.Cookie;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.Cookies;
@@ -19,9 +22,6 @@ import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Map;
@@ -58,7 +58,7 @@ public class LoginHandler {
     void handleLogin(BaseIdentityProvider.Context context) throws IOException, TicketValidationException {
         LOG.debug("Starting to handle login. Trying to validate login with CAS");
 
-        String serviceTicket = getTicketParameter(context.getRequest());
+        String serviceTicket = getTicketParameter(context.getHttpRequest());
         TicketValidator validator = validatorFactory.create();
         Assertion assertion = validator.validate(serviceTicket, getSonarServiceUrl());
 
@@ -67,17 +67,17 @@ public class LoginHandler {
         LOG.debug("Received assertion. Authenticating with user {}", userIdentity.getName());
         context.authenticate(userIdentity);
 
-        Collection<String> headers = context.getResponse().getHeaders("Set-Cookie");
+        Collection<String> headers = context.getHttpResponse().getHeaders("Set-Cookie");
         SimpleJwt jwt = JwtProcessor.mustGetJwtTokenFromResponseHeaders(headers);
 
         LOG.debug("Storing service ticket {} with JWT {}", serviceTicket, jwt.getJwtId());
         sessionStore.store(serviceTicket, jwt);
 
-        String redirectTo = getOriginalUrlFromCookieOrDefault(context.getRequest());
-        removeRedirectCookie(context.getResponse(), context.getRequest().getContextPath());
+        String redirectTo = getOriginalUrlFromCookieOrDefault(context.getHttpRequest());
+        removeRedirectCookie(context.getHttpResponse(), context.getHttpRequest().getContextPath());
 
         LOG.debug("redirecting to {}", redirectTo);
-        context.getResponse().sendRedirect(redirectTo);
+        context.getHttpResponse().sendRedirect(redirectTo);
     }
 
     private UserIdentity createUserIdentity(Assertion assertion) {
@@ -108,7 +108,7 @@ public class LoginHandler {
         return builder.build();
     }
 
-    private String getOriginalUrlFromCookieOrDefault(HttpServletRequest request) {
+    private String getOriginalUrlFromCookieOrDefault(HttpRequest request) {
         Cookie cookie = Cookies.findCookieByName(request.getCookies(), COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
 
         if (cookie != null) {
@@ -125,12 +125,11 @@ public class LoginHandler {
         return fallback;
     }
 
-    private void removeRedirectCookie(HttpServletResponse response, String contextPath) {
+    private void removeRedirectCookie(HttpResponse response, String contextPath) {
         if (StringUtils.isBlank(contextPath)) {
             contextPath = "/";
         }
         boolean useSecureCookies = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(configuration, true);
-
         Cookie cookie = Cookies.createDeletionCookie(COOKIE_NAME_URL_AFTER_CAS_REDIRECT, contextPath, useSecureCookies);
 
         response.addCookie(cookie);
@@ -139,10 +138,11 @@ public class LoginHandler {
     /**
      * getTicketParameter searches the given request for CAS service tickets or proxy tickets. The CAS specification
      * names the parameter "ticket" which is used in both scenarios, web authentication and proxy authentication.
+     *
      * @param request the request to be authenticated
      * @return the value of the parameter "ticket" if set, otherwise the empty string
      */
-    public static String getTicketParameter(HttpServletRequest request) {
+    public static String getTicketParameter(HttpRequest request) {
         String ticket = request.getParameter("ticket");
         return StringUtils.defaultIfEmpty(ticket, "");
     }

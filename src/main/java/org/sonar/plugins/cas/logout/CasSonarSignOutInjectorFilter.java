@@ -25,25 +25,22 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.web.ServletFilter;
-import org.sonar.plugins.cas.util.SonarCasProperties;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
+import org.sonar.api.web.HttpFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
-import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
 
 /**
  * This class injects the CAS logout URL into SonarQube's original logout button in order to call CAS backchannel
  * logout.
  */
-public final class CasSonarSignOutInjectorFilter extends ServletFilter {
+public final class CasSonarSignOutInjectorFilter extends HttpFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasSonarSignOutInjectorFilter.class);
     private static final String CASLOGOUTURL_PLACEHOLDER = "CASLOGOUTURL";
@@ -77,24 +74,17 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {
+    public void init() {
         // nothing to init
     }
 
-    @Override
-    public UrlPattern doGetPattern() {
-        return UrlPattern.create("/*");
-    }
-
-    public void doFilter(final ServletRequest request, final ServletResponse response,
+    public void doFilter(final HttpRequest request, final HttpResponse response,
                          final FilterChain filterChain) {
 
         try {
             // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
             filterChain.doFilter(request, response);
-
-            HttpServletRequest httpRequest = toHttp(request);
-            if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
+            if (isResourceBlacklisted(request) || !acceptsHtml(request)) {
                 LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
                 return;
             }
@@ -103,7 +93,7 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
                 readJsInjectionIntoCache();
             }
 
-            String requestedUrl = httpRequest.getRequestURL().toString();
+            String requestedUrl = request.getRequestURL();
             appendJavascriptInjectionToHtmlStream(requestedUrl, response);
         } catch (Exception e) {
             LOG.error("doFilter failed", e);
@@ -121,31 +111,21 @@ public final class CasSonarSignOutInjectorFilter extends ServletFilter {
     }
 
 
-    private void appendJavascriptInjectionToHtmlStream(String requestURL, ServletResponse response) throws IOException {
-        LOG.debug("Inject CAS logout javascript into {}", requestURL);
-
-        response.getOutputStream().println("<script type='text/javascript'>");
-        String casLogoutUrl = getCasLogoutUrl();
-        String javaScriptToInject = this.cachedJsInjection.replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
-
-        response.getOutputStream().println(javaScriptToInject);
-        response.getOutputStream().println("window.onload = logoutMenuHandler;");
-        response.getOutputStream().println("</script>");
+    private void appendJavascriptInjectionToHtmlStream(String requestURL, HttpResponse response) throws IOException {
+        LOG.info("Inject CAS logout javascript into {}", requestURL);
+        response.getOutputStream().write(("<script type='text/javascript' src='js/casLogoutUrl.js' >").getBytes());
+        response.getOutputStream().write("</script>".getBytes());
     }
 
-    private boolean isResourceBlacklisted(HttpServletRequest request) {
-        String url = request.getRequestURL().toString();
+    private boolean isResourceBlacklisted(HttpRequest request) {
+        String url = request.getRequestURL();
         return url.contains("favicon.ico");
     }
 
-    private boolean acceptsHtml(HttpServletRequest request) {
+    private boolean acceptsHtml(HttpRequest request) {
         String acceptable = request.getHeader("accept");
-        LOG.debug("Resource {} accepts {}", request.getRequestURL(), acceptable);
+        LOG.info("Resource {} accepts {}", request.getRequestURL(), acceptable);
         return acceptable != null && acceptable.contains("html");
-    }
-
-    private String getCasLogoutUrl() {
-        return SonarCasProperties.CAS_SERVER_LOGOUT_URL.mustGetString(config);
     }
 
     public void destroy() {

@@ -25,12 +25,10 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.http.Cookie;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 
 import static org.sonar.plugins.cas.util.Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT;
@@ -47,21 +45,7 @@ public final class HttpStreams {
         // util classes should not be instantiable
     }
 
-    public static HttpServletResponse toHttp(ServletResponse response) {
-        if (!(response instanceof HttpServletResponse)) {
-            throw new IllegalArgumentException("response is not a http servlet response");
-        }
-        return (HttpServletResponse) response;
-    }
-
-    public static HttpServletRequest toHttp(ServletRequest request) {
-        if (!(request instanceof HttpServletRequest)) {
-            throw new IllegalArgumentException("request is not a http servlet request");
-        }
-        return (HttpServletRequest) request;
-    }
-
-    static Credentials getBasicAuthentication(HttpServletRequest request) {
+    static Credentials getBasicAuthentication(HttpRequest request) {
         Credentials credentials = null;
         String header = request.getHeader("Authorization");
         if (Strings.nullToEmpty(header).startsWith("Basic ")) {
@@ -77,8 +61,8 @@ public final class HttpStreams {
         return credentials;
     }
 
-    private static String getRequestUrlWithQueryParameters(HttpServletRequest request) {
-        String url = request.getRequestURL().toString();
+    private static String getRequestUrlWithQueryParameters(HttpRequest request) {
+        String url = request.getRequestURL();
 
         if (StringUtils.isNotBlank(request.getQueryString())) {
             url += "?" + request.getQueryString();
@@ -95,7 +79,7 @@ public final class HttpStreams {
      * @param response the response is used to save a cookie containing the original URL
      * @param config   the SonarQube config object which contains instance specific configuration values from the <pre>sonar.properties</pre> file.
      */
-    public static void saveRequestedURLInCookie(HttpServletRequest request, HttpServletResponse response, int maxCookieAge, Configuration config) {
+    public static void saveRequestedURLInCookie(HttpRequest request, HttpResponse response, int maxCookieAge, Configuration config) {
         String configSonarURL = SonarCasProperties.SONAR_SERVER_URL.mustGetString(config);
         String originalURL = HttpStreams.getRequestUrlWithQueryParameters(request);
         String contextPath = request.getContextPath();

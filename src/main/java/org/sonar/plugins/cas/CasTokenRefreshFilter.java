@@ -2,15 +2,14 @@ package org.sonar.plugins.cas;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.web.ServletFilter;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
+import org.sonar.api.web.HttpFilter;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-import org.sonar.plugins.cas.util.HttpStreams;
 import org.sonar.plugins.cas.util.JwtProcessor;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
-import javax.servlet.*;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 
@@ -19,7 +18,7 @@ import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
 /**
  * This class updates the JWT with a newer expiration date in the session store when SonarQube sends a newer JWT.
  */
-public class CasTokenRefreshFilter extends ServletFilter {
+public class CasTokenRefreshFilter extends HttpFilter {
     private static final Logger LOG = LoggerFactory.getLogger(CasTokenRefreshFilter.class);
     private final CasSessionStoreFactory sessionStoreFactory;
 
@@ -28,15 +27,12 @@ public class CasTokenRefreshFilter extends ServletFilter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {
+    public void init() {
         // nothing to init
     }
 
-    public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain chain)
-            throws IOException, ServletException {
-
-        HttpServletRequest request = HttpStreams.toHttp(servletRequest);
-        HttpServletResponse response = HttpStreams.toHttp(servletResponse);
+    public void doFilter(HttpRequest request, HttpResponse response, FilterChain chain)
+            throws IOException {
 
         SimpleJwt requestJwt = JwtProcessor.getJwtTokenFromCookies(request.getCookies());
         SimpleJwt responseJwt = getJwtFromResponse(response);
@@ -49,7 +45,7 @@ public class CasTokenRefreshFilter extends ServletFilter {
         chain.doFilter(request, response);
     }
 
-    private SimpleJwt getJwtFromResponse(HttpServletResponse response) {
+    private SimpleJwt getJwtFromResponse(HttpResponse response) {
         Collection<String> headers = response.getHeaders("Set-Cookie");
         if (headers == null || headers.size() == 0) {
             return SimpleJwt.getNullObject();

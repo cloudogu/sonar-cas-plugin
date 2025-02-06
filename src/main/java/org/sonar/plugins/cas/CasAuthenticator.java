@@ -32,10 +32,12 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.security.Authenticator;
 import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
+import org.sonar.api.server.http.HttpRequest;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Field;
 import java.util.Map;
 
 /**
@@ -76,7 +78,7 @@ public class CasAuthenticator extends Authenticator {
 
     @Override
     public boolean doAuthenticate(Context context) {
-        LOG.debug("CasAuthenticator.doAuthenticate(): {}", context.getRequest().getContextPath());
+        LOG.debug("CasAuthenticator.doAuthenticate(): {}", context.getHttpRequest().getContextPath());
         boolean authenticated;
 
         if (isAuthenticateByProxyTicket(context.getPassword())) {
@@ -155,15 +157,13 @@ public class CasAuthenticator extends Authenticator {
     }
 
     private void enrichSuccessfullyAuthenticatedRequest(Context context, Assertion assertion) {
-        populateUserDetails(context.getRequest(), assertion);
+        populateUserDetails(context.getHttpRequest(), assertion);
     }
 
-    private void populateUserDetails(HttpServletRequest request, Assertion assertion) {
+    private void populateUserDetails(HttpRequest request, Assertion assertion) {
         // add assertions to request attribute, in order to process groups with the CasGroupsProvider
         request.setAttribute(Assertion.class.getName(), assertion);
-
-        // get user attributes from request, which was previously added by the CasUserProvider
-        UserDetails user = (UserDetails) request.getAttribute(UserDetails.class.getName());
+        UserDetails user = getUserDetails(request);
         Preconditions.checkState(user != null, "could not find UserDetails in the request");
 
         // populate user details from assertion
@@ -181,6 +181,20 @@ public class CasAuthenticator extends Authenticator {
         if (!Strings.isNullOrEmpty(email)) {
             user.setEmail(email);
         }
+    }
+
+    private UserDetails getUserDetails(HttpRequest request) {
+        UserDetails user = null;
+        // get user attributes from request, which was previously added by the CasUserProvider
+        try {
+            Field attributesField = request.getClass().getDeclaredField("attributes");
+            attributesField.setAccessible(true);
+            Map<String, Object> attr = (Map<String, Object>) attributesField.get(request);
+            user = (UserDetails) attr.get(UserDetails.class.getName());
+        } catch (Exception e) {
+            // it is possible that the user stays null, but this is fine
+        }
+        return user;
     }
 
     private boolean isAuthenticateByProxyTicket(String aString) {

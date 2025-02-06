@@ -7,11 +7,10 @@ import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
 import org.sonar.api.server.authentication.Display;
+import org.sonar.api.server.http.HttpRequest;
 import org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.util.SonarCasProperties;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * The {@link CasIdentityProvider} is responsible for the browser based cas sso authentication. The authentication
@@ -62,37 +61,39 @@ public class CasIdentityProvider implements BaseIdentityProvider {
     @Override
     public void init(Context context) {
         try {
-            HttpServletRequest request = context.getRequest();
+            HttpRequest request = context.getHttpRequest();
             LOG.debug("Initialize CAS identity handling for URL " + request.getRequestURL());
             if (isLogin(request)) {
                 LOG.debug("Found internal login case");
                 loginHandler.handleLogin(context);
             } else if (isLogout(request)) {
                 LOG.debug("Found external logout case");
-                logoutHandler.logout(context.getRequest(), context.getResponse());
+                logoutHandler.logout(context.getHttpRequest(), context.getHttpResponse());
             } else {
                 LOG.debug("CasIdentityProvider found an unexpected case. Ignoring this request to {}", request.getRequestURL());
             }
         } catch (Exception e) {
-            LOG.error("authentication or logout failed", e);
+            LOG.debug("authentication or logout failed", e);
         }
     }
 
-    private boolean isLogin(HttpServletRequest request) {
+    private boolean isLogin(HttpRequest request) {
         String ticket = request.getParameter("ticket");
         String requestMethod = request.getMethod();
+        String path = request.getRequestURL();
 
-        return "GET".equals(requestMethod) && StringUtils.isNotBlank(ticket);
+        return "GET".equals(requestMethod) && StringUtils.isNotBlank(ticket) && !path.contains("sessions/logout");
     }
 
     /**
      * Local log-out and Single Log-out is done by a back-channel logout.
      */
-    private boolean isLogout(HttpServletRequest request) {
+    private boolean isLogout(HttpRequest request) {
         String logoutAttributes = request.getParameter("logoutRequest");
         String requestMethod = request.getMethod();
+        String path = request.getRequestURL();
 
-        return "POST".equals(requestMethod) && StringUtils.isNotBlank(logoutAttributes);
+        return ("POST".equals(requestMethod) && StringUtils.isNotBlank(logoutAttributes)) || path.contains("sessions/logout");
     }
 
     @Override

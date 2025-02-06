@@ -2,8 +2,8 @@ package org.sonar.plugins.cas.util;
 
 import org.fest.assertions.Assertions;
 import org.junit.Test;
+import org.sonar.api.server.http.Cookie;
 
-import javax.servlet.http.Cookie;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -24,7 +24,7 @@ public class CookiesTest {
         assertThat(cookie.getPath()).isEqualTo("/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(3600);
-        assertThat(cookie.getSecure()).isTrue();
+        assertThat(cookie.isSecure()).isTrue();
     }
 
     @Test
@@ -36,11 +36,11 @@ public class CookiesTest {
         assertThat(cookie.getPath()).isEqualTo("http://server.url/");
         assertThat(cookie.isHttpOnly()).isTrue();
         assertThat(cookie.getMaxAge()).isEqualTo(0);
-        assertThat(cookie.getSecure()).isTrue();
+        assertThat(cookie.isSecure()).isTrue();
 
         Cookie cookie2 = Cookies.createDeletionCookie("key", "http://server.url/", false);
 
-        assertThat(cookie2.getSecure()).isFalse();
+        assertThat(cookie2.isSecure()).isFalse();
     }
 
     @Test(expected = IllegalArgumentException.class)
@@ -105,8 +105,8 @@ public class CookiesTest {
 
     @Test
     public void findCookieByNameShouldReturnCookie() {
-        Cookie c1 = new Cookie("key1", "value1");
-        Cookie c2 = new Cookie("key2", "value2");
+        Cookie c1 = new SonarCookie("key1", "value1", "/test", true, 10, true);
+        Cookie c2 = new SonarCookie("key2", "value2", "/test", true, 10, true);
         Cookie[] cookies = {c1, c2};
 
         Cookie actual = Cookies.findCookieByName(cookies, "key1");
@@ -116,8 +116,8 @@ public class CookiesTest {
 
     @Test
     public void findCookieByNameShouldReturnNullIfNotFound() {
-        Cookie c1 = new Cookie("key1", "value1");
-        Cookie c2 = new Cookie("key2", "value2");
+        Cookie c1 = new SonarCookie("key1", "value1", "/test", true, 10, true);
+        Cookie c2 = new SonarCookie("key2", "value2", "/test", true, 10, true);
         Cookie[] cookies = {c1, c2};
 
         Cookie actual = Cookies.findCookieByName(cookies, "key3");
