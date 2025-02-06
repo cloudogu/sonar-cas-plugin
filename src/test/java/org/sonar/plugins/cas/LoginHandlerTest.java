@@ -1,19 +1,18 @@
 package org.sonar.plugins.cas;
 
 import org.junit.Test;
+import org.sonar.api.server.http.HttpRequest;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
-
-import javax.servlet.http.HttpServletRequest;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.LoginHandler.getTicketParameter;
 
 public class LoginHandlerTest {
-    // @Test
+    @Test
     public void getTicketParameterShouldReturnEmptyString() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpRequest request = mock(HttpRequest.class);
         when(request.getParameter("ticket")).thenReturn(null);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
@@ -21,16 +20,16 @@ public class LoginHandlerTest {
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
         // when
-        //String actual = getTicketParameter(request);
+        String actual = getTicketParameter(request);
 
         // then
-        //assertThat(actual).isEqualTo("");
+        assertThat(actual).isEqualTo("");
         verify(request, times(1)).getParameter("ticket");
     }
 
-    // @Test
+    @Test
     public void getTicketParameterShouldReturnTicketParameter() {
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpRequest request = mock(HttpRequest.class);
         // even when the ticket is called ST-XYZZY it could represent both a proxy ticket or a service ticket
         when(request.getParameter("ticket")).thenReturn("ST-012345678");
 
@@ -39,10 +38,10 @@ public class LoginHandlerTest {
         when(sessionStoreFactory.getInstance()).thenReturn(sessionStore);
 
         // when
-        //String actual = getTicketParameter(request);
+        String actual = getTicketParameter(request);
 
         // then
-        //assertThat(actual).isEqualTo("ST-012345678");
+        assertThat(actual).isEqualTo("ST-012345678");
         verify(request, times(1)).getParameter("ticket");
     }
 }

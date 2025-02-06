@@ -2,6 +2,9 @@ package org.sonar.plugins.cas.logout;
 
 import org.junit.Test;
 import org.mockito.verification.VerificationMode;
+import org.sonar.api.server.http.Cookie;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
 import org.sonar.plugins.cas.AuthTestData;
 import org.sonar.plugins.cas.SonarTestConfiguration;
 import org.sonar.plugins.cas.session.CasSessionStore;
@@ -10,9 +13,6 @@ import org.sonar.plugins.cas.util.Cookies;
 import org.sonar.plugins.cas.util.SimpleJwt;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.IOException;
 
@@ -46,7 +46,7 @@ public class LogoutHandlerTest {
 //        verify(response).sendRedirect("http://sonar.url.com/sessions/init/sonarqube");
     }
 
-    //@Test
+    @Test
     public void handleInvalidJwtCookie() {
         // given
         SonarTestConfiguration configuration = new SonarTestConfiguration()
@@ -58,29 +58,29 @@ public class LogoutHandlerTest {
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
         when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpRequest request = mock(HttpRequest.class);
         String jwtCookieDoughContent = getJwtToken();
-        //Cookie httpOnlyCookie = new Cookies.HttpOnlyCookieBuilder()
-        //        .name(JWT_SESSION_COOKIE)
-        //        .value(jwtCookieDoughContent)
-        //        .maxAgeInSecs(100)
-        //        .contextPath("/sonar")
-        //        .build();
-        //Cookie[] cookies = {httpOnlyCookie};
-        //when(request.getCookies()).thenReturn(cookies);
-        //when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
-        //when(request.getContextPath()).thenReturn("/sonar");
+        Cookie httpOnlyCookie = new Cookies.HttpOnlyCookieBuilder()
+                .name(JWT_SESSION_COOKIE)
+                .value(jwtCookieDoughContent)
+                .maxAgeInSecs(100)
+                .contextPath("/sonar")
+                .build();
+        Cookie[] cookies = {httpOnlyCookie};
+        when(request.getCookies()).thenReturn(cookies);
+        when(request.getRequestURL()).thenReturn("http://sonar.url.com/somePageWhichIsNotLogin");
+        when(request.getContextPath()).thenReturn("/sonar");
 
-        //HttpServletResponse response = mock(HttpServletResponse.class);
-        //LogoutHandler sut = new LogoutHandler(configuration, factory);
+        HttpResponse response = mock(HttpResponse.class);
+        LogoutHandler sut = new LogoutHandler(configuration, factory);
 
-        //// when
-        //sut.handleInvalidJwtCookie(request, response);
+        // when
+        sut.handleInvalidJwtCookie(request, response);
 
         // then
         verify(store).isJwtStored(JWT_TOKEN);
         verify(store).fetchStoredJwt(JWT_TOKEN);
         VerificationMode addedCookies = times(2); //add deletion cookie for JWT and XSRF
-        //verify(response, addedCookies).addCookie(any());
+        verify(response, addedCookies).addCookie(any());
     }
 }

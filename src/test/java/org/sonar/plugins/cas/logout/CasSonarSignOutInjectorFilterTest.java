@@ -2,31 +2,31 @@ package org.sonar.plugins.cas.logout;
 
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
 import org.sonar.plugins.cas.SonarTestConfiguration;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.logout.CasSonarSignOutInjectorFilter.LOGOUT_SCRIPT;
 
 public class CasSonarSignOutInjectorFilterTest {
 
-    //@Test
+    @Test
     public void doFilterShouldCacheJavascriptInjection() throws Exception {
         Configuration mockConfig = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerLogoutUrl", "http://sonar.server.com");
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        StringBuffer requestURL = new StringBuffer("http://sonar.url.com/sonar/");
+        HttpRequest mockRequest = mock(HttpRequest.class);
+        String requestURL = "http://sonar.url.com/sonar/";
         when(mockRequest.getRequestURL())
                 .thenReturn(requestURL)
                 .thenReturn(requestURL);
         when(mockRequest.getHeader("accept")).thenReturn("text/html");
 
-        HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+        HttpResponse mockResponse = mock(HttpResponse.class);
         when(mockResponse.getOutputStream()).thenReturn(createOutputStream());
         FilterChain mockFilterChain = mock(FilterChain.class);
 
@@ -35,32 +35,32 @@ public class CasSonarSignOutInjectorFilterTest {
         CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, mockClassloader);
 
         // when: two request are processed there must be only one caching call
-        //sut.doFilter(mockRequest, mockResponse, mockFilterChain);
-        //sut.doFilter(mockRequest, mockResponse, mockFilterChain);
+        sut.doFilter(mockRequest, mockResponse, mockFilterChain);
+        sut.doFilter(mockRequest, mockResponse, mockFilterChain);
 
         // then
         verify(mockClassloader, times(1)).getResource(LOGOUT_SCRIPT);
     }
 
-    //@Test
+    @Test
     public void doFilterShouldCallFilterChainOnce() throws Exception {
         Configuration mockConfig = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.casServerLogoutUrl", "http://sonar.server.com");
-        HttpServletRequest mockRequest = mock(HttpServletRequest.class);
-        StringBuffer requestURL = new StringBuffer("http://sonar.url.com/sonar/");
+        HttpRequest mockRequest = mock(HttpRequest.class);
+        String requestURL = "http://sonar.url.com/sonar/";
         when(mockRequest.getRequestURL())
                 .thenReturn(requestURL)
                 .thenReturn(requestURL);
         when(mockRequest.getHeader("accept")).thenReturn("text/html");
 
-        HttpServletResponse mockResponse = mock(HttpServletResponse.class);
+        HttpResponse mockResponse = mock(HttpResponse.class);
         when(mockResponse.getOutputStream()).thenReturn(createOutputStream());
         FilterChain mockFilterChain = mock(FilterChain.class);
 
         CasSonarSignOutInjectorFilter sut = new CasSonarSignOutInjectorFilter(mockConfig, CasSonarSignOutInjectorFilter.class.getClassLoader());
 
         // when: two request are processed there must be only one caching call
-        //sut.doFilter(mockRequest, mockResponse, mockFilterChain);
+        sut.doFilter(mockRequest, mockResponse, mockFilterChain);
 
         // then
         verify(mockFilterChain, times(1)).doFilter(any(), any());
