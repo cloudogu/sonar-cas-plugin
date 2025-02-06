@@ -19,22 +19,11 @@
  */
 package org.sonar.plugins.cas.util;
 
-import org.apache.commons.lang.NotImplementedException;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.http.HttpRequest;
 import org.sonar.api.server.http.HttpResponse;
 import org.sonar.plugins.cas.SonarTestConfiguration;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.io.PrintWriter;
-import java.util.Collection;
-import java.util.Locale;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.junit.Assert.*;
@@ -96,7 +85,7 @@ public class HttpStreamsTest {
         verify(response).addCookie(any());
     }
 
-    // @Test()
+    @Test()
     public void saveRequestedURLInCookieShouldReplaceSchemaFromSonarCasProperties() {
         // In reverse-proxied systems (f. i. Cloudogu EcoSystem) the SonarQube-local scheme may differ from the global
         // scheme. This is because SSL termination may be in place so that the URL looks like https://fqdn/sonar from a
@@ -110,7 +99,7 @@ public class HttpStreamsTest {
         when(request.getQueryString()).thenReturn("project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
         Configuration config = new SonarTestConfiguration()
                 .withAttribute("sonar.cas.sonarServerUrl", "https://sonar.url.com/sonar"); // different scheme than in the original URL
-        HttpResponse response = mock(HttpResponse.class);
+        MockHttpResponse response = new MockHttpResponse();
 
         HttpStreams.saveRequestedURLInCookie(request, response, 300, config);
 
@@ -118,11 +107,11 @@ public class HttpStreamsTest {
         // Cookie is a crappy class that does not allow equals or hashcode, so we test the number of invocations of
         // getParameterMap. If it was only once, it would not have jumped into urlEncodeQueryParameters()
         verify(request, times(2)).getQueryString();
-        //assertThat(response.getCookie().getName()).isEqualTo(Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
-        //assertThat(response.getCookie().getValue()).isEqualTo("https://sonar.url.com/sonar/somePageWhichIsNotLogin?project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
-        //assertThat(response.getCookie().getMaxAge()).isEqualTo(300);
-        //assertThat(response.getCookie().getPath()).isEqualTo("/sonar");
-        //assertThat(response.getCookie().getSecure()).isTrue();
+        assertThat(response.getCookie().getName()).isEqualTo(Cookies.COOKIE_NAME_URL_AFTER_CAS_REDIRECT);
+        assertThat(response.getCookie().getValue()).isEqualTo("https://sonar.url.com/sonar/somePageWhichIsNotLogin?project=Das+&amp;Uuml;ber+Project&file=src/main/com/cloudogu/App.java");
+        assertThat(response.getCookie().getMaxAge()).isEqualTo(300);
+        assertThat(response.getCookie().getPath()).isEqualTo("/sonar");
+        assertThat(response.getCookie().isSecure()).isTrue();
     }
 
     @Test()
