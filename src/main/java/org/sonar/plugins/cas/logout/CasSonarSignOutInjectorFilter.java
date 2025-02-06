@@ -43,24 +43,12 @@ import java.nio.charset.StandardCharsets;
 public final class CasSonarSignOutInjectorFilter extends HttpFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasSonarSignOutInjectorFilter.class);
-    private static final String CASLOGOUTURL_PLACEHOLDER = "CASLOGOUTURL";
-    private final Configuration config;
     ClassLoader resourceClassloader;
-    // cachedJsInjection stores logout javascript being injected in HTML resources. This cache only invalidates by
-    // Sonar restart. As this injection relies on values from the sonar-cas properties SonarQube must be restarted as
-    // well. Usually this is done by restarting the whole container which would then invalidate this cache at the
-    // same time.
-    private String cachedJsInjection;
-
-    @VisibleForTesting
-    static final String LOGOUT_SCRIPT = "casLogoutUrl.js";
 
     /**
      * called with injection by SonarQube during server initialization
      */
     public CasSonarSignOutInjectorFilter(Configuration configuration) {
-        this.config = configuration;
-        this.cachedJsInjection = "";
         this.resourceClassloader = CasSonarSignOutInjectorFilter.class.getClassLoader();
     }
 
@@ -68,8 +56,6 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
      * for testing
      */
     CasSonarSignOutInjectorFilter(Configuration configuration, ClassLoader resourceClassloader) {
-        this.config = configuration;
-        this.cachedJsInjection = "";
         this.resourceClassloader = resourceClassloader;
     }
 
@@ -94,10 +80,6 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
                 return;
             }
 
-            if (StringUtils.isEmpty(this.cachedJsInjection)) {
-                readJsInjectionIntoCache();
-            }
-
             String requestedUrl = request.getRequestURL();
             appendJavascriptInjectionToHtmlStream(requestedUrl, response);
         } catch (Exception e) {
@@ -105,19 +87,9 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
-    void readJsInjectionIntoCache() throws IOException {
-        URL resource = this.resourceClassloader.getResource(LOGOUT_SCRIPT);
-        if (resource == null) {
-            throw new FileNotFoundException(String.format("Could not find file %s in classpath of %s. Exiting filtering",
-                    LOGOUT_SCRIPT, this.resourceClassloader.getClass()));
-        }
-        this.cachedJsInjection = Resources.toString(resource, StandardCharsets.UTF_8);
-    }
-
 
     private void appendJavascriptInjectionToHtmlStream(String requestURL, HttpResponse response) throws IOException {
-        LOG.info("Inject CAS logout javascript into {}", requestURL);
+        LOG.debug("Inject CAS logout javascript into {}", requestURL);
         response.getOutputStream().write(("<script type='text/javascript' src='js/casLogoutUrl.js' >").getBytes());
         response.getOutputStream().write("</script>".getBytes());
     }
@@ -129,7 +101,7 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
 
     private boolean acceptsHtml(HttpRequest request) {
         String acceptable = request.getHeader("accept");
-        LOG.info("Resource {} accepts {}", request.getRequestURL(), acceptable);
+        LOG.debug("Resource {} accepts {}", request.getRequestURL(), acceptable);
         return acceptable != null && acceptable.contains("html");
     }
 
