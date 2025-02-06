@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+Sonar CAS Plugin now supports Sonar 2025.x
+- use Http instead of HttpServlet components
+- retrieve request attributes with Reflection
+- simplify cas logout procedure
+    - move script to Sonar
+- use SonarCookie instead of JavaX Cookie
+- remove Http conversion
+- Update Sonar Plugin API to 11.0.0.2664
 
 ## [v5.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.1.0) - 2024-09-18
 ### Changed
