@@ -84,6 +84,7 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
         try {
             // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
             filterChain.doFilter(request, response);
+            // redirect logout requests directly
             if (request.getRequestURL().contains("sessions/logout")) {
                 response.sendRedirect("/cas/logout");
             }
