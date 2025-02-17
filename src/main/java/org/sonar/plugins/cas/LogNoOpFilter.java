@@ -2,20 +2,16 @@ package org.sonar.plugins.cas;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.web.ServletFilter;
-import org.sonar.plugins.cas.util.HttpStreams;
-import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
  * The {@link LogNoOpFilter} logs request infos and calls the filter chain without any modification.
  * SonarQube logging must be set to DEBUG or TRACE in order to facilitate the logging.
  */
-public class LogNoOpFilter extends ServletFilter {
+public class LogNoOpFilter implements Filter {
     private static final Logger LOG = LoggerFactory.getLogger(LogNoOpFilter.class);
 
     /**

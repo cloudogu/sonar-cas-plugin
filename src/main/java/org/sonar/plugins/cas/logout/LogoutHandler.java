@@ -4,15 +4,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.ServerSide;
+import org.sonar.api.server.http.Cookie;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.*;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -39,7 +39,7 @@ public class LogoutHandler {
         this.casSessionStore = casSessionStoreFactory.getInstance();
     }
 
-    public void logout(HttpServletRequest request, HttpServletResponse response) throws IOException, ParserConfigurationException, SAXException {
+    public void logout(HttpRequest request, HttpResponse response) throws IOException, ParserConfigurationException, SAXException {
         String logoutAttributes = request.getParameter("logoutRequest");
 
         try (InputStream inputStream = new ByteArrayInputStream(logoutAttributes.getBytes())) {
@@ -63,7 +63,7 @@ public class LogoutHandler {
      * @param request the request to check for user cookies
      * @return true if the user contains a blacklisted JWT cookie AND requests a page other than the login-page
      */
-    public boolean isUserLoggedOutAndLogsInAgain(HttpServletRequest request) {
+    public boolean isUserLoggedOutAndLogsInAgain(HttpRequest request) {
         boolean shouldUserBeLoggedOut = shouldUserBeLoggedOut(request.getCookies());
         boolean requestToLoginPage = isRequestToLoginPage(request);
         if (requestToLoginPage) {
@@ -83,7 +83,7 @@ public class LogoutHandler {
      * @param response the HTTP response that is going to be modified with delete-cookies if an invalid JWT cookie was
      *                 found. Also the a redirect to the log-in page is added.
      */
-    public void handleInvalidJwtCookie(HttpServletRequest request, HttpServletResponse response) {
+    public void handleInvalidJwtCookie(HttpRequest request, HttpResponse response) {
         boolean requestToLoginPage = isRequestToLoginPage(request);
         if (requestToLoginPage) {
             LOG.debug("User is already being redirected to the log-in page. Will do nothing.");
@@ -99,8 +99,8 @@ public class LogoutHandler {
         }
     }
 
-    private boolean isRequestToLoginPage(HttpServletRequest request) {
-        return request.getRequestURL().toString().contains("/sessions/new");
+    private boolean isRequestToLoginPage(HttpRequest request) {
+        return request.getRequestURL().contains("/sessions/new");
     }
 
     /**
@@ -127,7 +127,7 @@ public class LogoutHandler {
         return storedJwt.isInvalid();
     }
 
-    private void removeAuthCookies(HttpServletResponse response, String contextPath) {
+    private void removeAuthCookies(HttpResponse response, String contextPath) {
         boolean useSecureCookies = SonarCasProperties.USE_SECURE_REDIRECT_COOKIES.getBoolean(configuration, true);
 
         Cookie jwtCookie = Cookies.createDeletionCookie(JWT_SESSION_COOKIE, contextPath, useSecureCookies);

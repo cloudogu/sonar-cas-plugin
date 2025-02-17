@@ -3,15 +3,13 @@ package org.sonar.plugins.cas;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.sonar.api.config.Configuration;
-import org.sonar.api.web.ServletFilter;
-import org.sonar.plugins.cas.util.HttpStreams;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
+import org.sonar.api.web.HttpFilter;
+import org.sonar.api.web.UrlPattern;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
@@ -19,7 +17,7 @@ import java.io.IOException;
  *
  * @author Sebastian Sdorra, Cloudogu GmbH
  */
-public class AuthenticationFilter extends ServletFilter {
+public class AuthenticationFilter extends HttpFilter {
     static final String SONAR_LOGIN_URL_PATH = "/sessions/new";
     private static final Logger LOG = LoggerFactory.getLogger(AuthenticationFilter.class);
     private final Configuration config;
@@ -35,16 +33,15 @@ public class AuthenticationFilter extends ServletFilter {
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {
+    public void init() {
         // nothing to init
     }
 
     @Override
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException {
+    public void doFilter(HttpRequest request, HttpResponse response, FilterChain chain) throws IOException {
         String loginRedirectUrl = getCasLoginUrl() + "?service=" + getSonarServiceUrl();
         LOG.debug("redirecting for CAS authentication to {}", loginRedirectUrl);
-        HttpServletResponse resp = HttpStreams.toHttp(response);
-        resp.sendRedirect(loginRedirectUrl);
+        response.sendRedirect(loginRedirectUrl);
     }
 
     private String getCasLoginUrl() {

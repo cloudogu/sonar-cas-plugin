@@ -3,17 +3,18 @@ package org.sonar.plugins.cas;
 import org.junit.Test;
 import org.mockito.verification.VerificationMode;
 import org.sonar.api.config.Configuration;
+import org.sonar.api.server.http.Cookie;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 import org.sonar.plugins.cas.util.Cookies;
+import org.sonar.plugins.cas.util.MockHttpRequest;
 import org.sonar.plugins.cas.util.SimpleJwt;
 
-import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 import static org.fest.assertions.Assertions.assertThat;
@@ -39,15 +40,15 @@ public class ForceCasLoginFilterTest {
         SimpleJwt invalidJwtToken = JWT_TOKEN.cloneAsInvalidated();
         when(store.fetchStoredJwt(JWT_TOKEN)).thenReturn(invalidJwtToken);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        HttpRequest request = mock(HttpRequest.class);
         String jwtCookieDoughContent = getJwtToken();
         Cookie httpOnlyCookie = createJwtCookie(jwtCookieDoughContent);
         Cookie[] cookies = {httpOnlyCookie};
         when(request.getCookies()).thenReturn(cookies);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
+        when(request.getRequestURL()).thenReturn("http://sonar.url.com/sonar/somePageWhichIsNotLogin");
         when(request.getContextPath()).thenReturn("/sonar");
 
-        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpResponse response = mock(HttpResponse.class);
         FilterChain filterChain = mock(FilterChain.class);
 
         sut.doFilter(request, response, filterChain);
@@ -87,15 +88,16 @@ public class ForceCasLoginFilterTest {
         String jwtCookieDoughContent = getJwtToken();
         Cookie httpOnlyCookie = createJwtCookie(jwtCookieDoughContent);
         Cookie[] cookies = {httpOnlyCookie};
-        HttpServletRequest request = mock(HttpServletRequest.class);
+        MockHttpRequest request = mock(MockHttpRequest.class);
         when(request.getCookies()).thenReturn(cookies);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/somePageWhichIsNotLogin"));
+        when(request.getRequestURL()).thenReturn("http://sonar.url.com/somePageWhichIsNotLogin");
         when(request.getQueryString()).thenReturn("test=testValue&test2=schn&Uuml;deWelt");
         when(request.getContextPath()).thenReturn("/sonar");
-        // this bit switches the condition into a different branch
-        when(request.getAttribute("LOGIN")).thenReturn("-");
 
-        HttpServletResponse response = mock(HttpServletResponse.class);
+        // this bit switches the condition into a different branch
+        request.setAttribute("LOGIN", "-");
+
+        HttpResponse response = mock(HttpResponse.class);
         FilterChain filterChain = mock(FilterChain.class);
 
         // when

@@ -7,6 +7,17 @@ to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+## [v6.0.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v6.0.0) - 2025-02-17
+### Changed
+Sonar CAS Plugin now supports Sonar 2025.x
+- use Http instead of HttpServlet components
+- retrieve request attributes with Reflection
+- simplify cas logout procedure
+    - move script to Sonar
+- use SonarCookie instead of JavaX Cookie
+- remove Http conversion
+- Update Sonar Plugin API to 11.0.0.2664
+
 ## [v5.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v5.1.0) - 2024-09-18
 ### Changed
 - Relicense to AGPL-3.0-only

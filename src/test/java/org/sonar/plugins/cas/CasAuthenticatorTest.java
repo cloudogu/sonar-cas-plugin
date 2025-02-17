@@ -27,8 +27,7 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.security.UserDetails;
-
-import javax.servlet.http.HttpServletRequest;
+import org.sonar.plugins.cas.util.MockHttpRequest;
 
 import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Matchers.any;
@@ -47,18 +46,19 @@ public class CasAuthenticatorTest {
                 .withAttribute("sonar.cas.sonarServerUrl", SONAR_SERVER_URL_PREFIX);
         CasAttributeSettings attributes = new CasAttributeSettings(configuration);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("https://sonar.server.com/api/endpoint"));
+        MockHttpRequest request = new MockHttpRequest();
+        request.requestURL = "https://sonar.server.com/api/endpoint";
         UserDetails userDetails = new UserDetails();
         userDetails.setName("Mr. T");
-        when(request.getAttribute(UserDetails.class.getName())).thenReturn(userDetails);
+        request.setAttribute(UserDetails.class.getName(), userDetails);
 
         TicketValidator validator = mock(TicketValidator.class);
         Assertion assertion = mock(Assertion.class);
         when(assertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("mrt"));
         when(assertion.isValid()).thenReturn(true);
         when(validator.validate(any(), any())).thenReturn(assertion);
-        when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(assertion);
+        request.setAttribute(AbstractCasFilter.CONST_CAS_ASSERTION, assertion);
+
         TicketValidatorFactory ticketValidatorFactory = mock(TicketValidatorFactory.class);
         when(ticketValidatorFactory.create()).thenReturn(validator);
 
@@ -86,18 +86,18 @@ public class CasAuthenticatorTest {
                 .withAttribute("sonar.cas.sonarServerUrl", SONAR_SERVER_URL_PREFIX);
         CasAttributeSettings attributes = new CasAttributeSettings(configuration);
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("https://sonar.server.com/api/endpoint"));
+        MockHttpRequest request = new MockHttpRequest();
+        request.requestURL = "https://sonar.server.com/api/endpoint";
         UserDetails userDetails = new UserDetails();
         userDetails.setName("Mr. T");
-        when(request.getAttribute(UserDetails.class.getName())).thenReturn(userDetails);
+        request.setAttribute(UserDetails.class.getName(), userDetails);
 
         TicketValidator validator = mock(TicketValidator.class);
         Assertion assertion = mock(Assertion.class);
         when(assertion.getPrincipal()).thenReturn(new AttributePrincipalImpl("mrt"));
         when(assertion.isValid()).thenReturn(true);
         when(validator.validate(any(), any())).thenReturn(assertion);
-        when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(assertion);
+        request.setAttribute(AbstractCasFilter.CONST_CAS_ASSERTION, assertion);
         TicketValidatorFactory ticketValidatorFactory = mock(TicketValidatorFactory.class);
         when(ticketValidatorFactory.createForProxy()).thenReturn(validator);
 
@@ -128,8 +128,8 @@ public class CasAuthenticatorTest {
         when(ticketValidatorFactory.create()).thenReturn(validator);
 
         CasRestClientFactory clientFactory = new CasRestClientFactory(configuration, new EasyTicketTestCasRestClient());
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION)).thenReturn(null);
+        MockHttpRequest request = new MockHttpRequest();
+        request.setAttribute(AbstractCasFilter.CONST_CAS_ASSERTION, null);
         CasAuthenticator.Context context = new CasAuthenticator.Context(null, null, request);
 
         CasAuthenticator sut = new CasAuthenticator(configuration, null, ticketValidatorFactory, clientFactory);
