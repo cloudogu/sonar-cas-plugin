@@ -21,7 +21,6 @@ package org.sonar.plugins.cas.logout;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.config.Configuration;
 import org.sonar.api.server.http.HttpRequest;
 import org.sonar.api.server.http.HttpResponse;
 import org.sonar.api.web.FilterChain;
@@ -67,6 +66,7 @@ public final class CasSonarSignOutInjectorFilter extends HttpFilter {
             // redirect logout requests directly
             if (request.getRequestURL().contains("sessions/logout")) {
                 response.sendRedirect("/cas/logout");
+                return;
             }
 
             if (isResourceBlacklisted(request) || !acceptsHtml(request)) {

@@ -192,7 +192,9 @@ public class CasAuthenticator extends Authenticator {
             Map<String, Object> attr = (Map<String, Object>) attributesField.get(request);
             user = (UserDetails) attr.get(UserDetails.class.getName());
         } catch (Exception e) {
-            // it is possible that the user stays null, but this is fine
+            // it is possible that the user stays null
+            // this is an expected case and no error case
+            // the null user will be returned and preconditions take care of the null user
         }
         return user;
     }

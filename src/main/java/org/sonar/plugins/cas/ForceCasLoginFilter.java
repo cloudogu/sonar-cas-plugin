@@ -75,7 +75,7 @@ public class ForceCasLoginFilter extends HttpFilter {
     public void doFilter(HttpRequest request, HttpResponse response, FilterChain chain)
             throws IOException {
 
-        String requestedURL = request.getRequestURL().toString();
+        String requestedURL = request.getRequestURL();
         int maxRedirectCookieAge = getMaxCookieAge(configuration);
         LOG.debug("ForceCasLoginFilter.doFilter(): {} ", requestedURL);
 
@@ -122,7 +122,8 @@ public class ForceCasLoginFilter extends HttpFilter {
             login = (String) getAttribute.invoke(delegate, "LOGIN");
 
         } catch (Exception e) {
-            // ignore the exception
+            // This exception can be ignored as it is expected that the LOGIN attribute is not set
+            // Unfortunately, java Reflection throws an error in this case
         }
         LOG.debug("login value: {}", login);
         return !"-".equals(login) && !"".equals(login);
