@@ -1,8 +1,8 @@
 package org.sonar.plugins.cas.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.sonar.api.server.http.Cookie;
 
-import javax.servlet.http.Cookie;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;

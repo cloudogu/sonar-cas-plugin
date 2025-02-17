@@ -19,133 +19,84 @@
  */
 package org.sonar.plugins.cas.logout;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.io.Resources;
-import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.sonar.api.config.Configuration;
-import org.sonar.api.web.ServletFilter;
-import org.sonar.plugins.cas.util.SonarCasProperties;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
+import org.sonar.api.web.FilterChain;
+import org.sonar.api.web.HttpFilter;
 
-import javax.servlet.FilterChain;
-import javax.servlet.FilterConfig;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import java.io.*;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
+import java.io.IOException;
 
-import static org.sonar.plugins.cas.util.HttpStreams.toHttp;
 
 /**
  * This class injects the CAS logout URL into SonarQube's original logout button in order to call CAS backchannel
  * logout.
  */
-public final class CasSonarSignOutInjectorFilter extends ServletFilter {
+public final class CasSonarSignOutInjectorFilter extends HttpFilter {
 
     private static final Logger LOG = LoggerFactory.getLogger(CasSonarSignOutInjectorFilter.class);
-    private static final String CASLOGOUTURL_PLACEHOLDER = "CASLOGOUTURL";
-    private final Configuration config;
     ClassLoader resourceClassloader;
-    // cachedJsInjection stores logout javascript being injected in HTML resources. This cache only invalidates by
-    // Sonar restart. As this injection relies on values from the sonar-cas properties SonarQube must be restarted as
-    // well. Usually this is done by restarting the whole container which would then invalidate this cache at the
-    // same time.
-    private String cachedJsInjection;
-
-    @VisibleForTesting
-    static final String LOGOUT_SCRIPT = "casLogoutUrl.js";
 
     /**
      * called with injection by SonarQube during server initialization
      */
-    public CasSonarSignOutInjectorFilter(Configuration configuration) {
-        this.config = configuration;
-        this.cachedJsInjection = "";
+    public CasSonarSignOutInjectorFilter() {
         this.resourceClassloader = CasSonarSignOutInjectorFilter.class.getClassLoader();
     }
 
     /**
      * for testing
      */
-    CasSonarSignOutInjectorFilter(Configuration configuration, ClassLoader resourceClassloader) {
-        this.config = configuration;
-        this.cachedJsInjection = "";
+    CasSonarSignOutInjectorFilter(ClassLoader resourceClassloader) {
         this.resourceClassloader = resourceClassloader;
     }
 
     @Override
-    public void init(FilterConfig filterConfig) {
+    public void init() {
         // nothing to init
     }
 
-    @Override
-    public UrlPattern doGetPattern() {
-        return UrlPattern.create("/*");
-    }
-
-    public void doFilter(final ServletRequest request, final ServletResponse response,
+    public void doFilter(final HttpRequest request, final HttpResponse response,
                          final FilterChain filterChain) {
 
         try {
             // recursively call the filter chain exactly once per filter, otherwise it may lead to double content per request
             filterChain.doFilter(request, response);
+            // redirect logout requests directly
+            if (request.getRequestURL().contains("sessions/logout")) {
+                response.sendRedirect("/cas/logout");
+                return;
+            }
 
-            HttpServletRequest httpRequest = toHttp(request);
-            if (isResourceBlacklisted(httpRequest) || !acceptsHtml(httpRequest)) {
+            if (isResourceBlacklisted(request) || !acceptsHtml(request)) {
                 LOG.debug("Requested resource does not accept HTML-ish content. Javascript will not be injected");
                 return;
             }
 
-            if (StringUtils.isEmpty(this.cachedJsInjection)) {
-                readJsInjectionIntoCache();
-            }
-
-            String requestedUrl = httpRequest.getRequestURL().toString();
+            String requestedUrl = request.getRequestURL();
             appendJavascriptInjectionToHtmlStream(requestedUrl, response);
         } catch (Exception e) {
             LOG.error("doFilter failed", e);
         }
     }
 
-    @SuppressWarnings("UnstableApiUsage")
-    void readJsInjectionIntoCache() throws IOException {
-        URL resource = this.resourceClassloader.getResource(LOGOUT_SCRIPT);
-        if (resource == null) {
-            throw new FileNotFoundException(String.format("Could not find file %s in classpath of %s. Exiting filtering",
-                    LOGOUT_SCRIPT, this.resourceClassloader.getClass()));
-        }
-        this.cachedJsInjection = Resources.toString(resource, StandardCharsets.UTF_8);
-    }
 
-
-    private void appendJavascriptInjectionToHtmlStream(String requestURL, ServletResponse response) throws IOException {
+    private void appendJavascriptInjectionToHtmlStream(String requestURL, HttpResponse response) throws IOException {
         LOG.debug("Inject CAS logout javascript into {}", requestURL);
-
-        response.getOutputStream().println("<script type='text/javascript'>");
-        String casLogoutUrl = getCasLogoutUrl();
-        String javaScriptToInject = this.cachedJsInjection.replace(CASLOGOUTURL_PLACEHOLDER, casLogoutUrl);
-
-        response.getOutputStream().println(javaScriptToInject);
-        response.getOutputStream().println("window.onload = logoutMenuHandler;");
-        response.getOutputStream().println("</script>");
+        response.getOutputStream().write(("<script type='text/javascript' src='js/casLogoutUrl.js' >").getBytes());
+        response.getOutputStream().write("</script>".getBytes());
     }
 
-    private boolean isResourceBlacklisted(HttpServletRequest request) {
-        String url = request.getRequestURL().toString();
+    private boolean isResourceBlacklisted(HttpRequest request) {
+        String url = request.getRequestURL();
         return url.contains("favicon.ico");
     }
 
-    private boolean acceptsHtml(HttpServletRequest request) {
+    private boolean acceptsHtml(HttpRequest request) {
         String acceptable = request.getHeader("accept");
         LOG.debug("Resource {} accepts {}", request.getRequestURL(), acceptable);
         return acceptable != null && acceptable.contains("html");
-    }
-
-    private String getCasLogoutUrl() {
-        return SonarCasProperties.CAS_SERVER_LOGOUT_URL.mustGetString(config);
     }
 
     public void destroy() {

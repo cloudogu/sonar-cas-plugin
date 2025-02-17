@@ -48,7 +48,7 @@ public class CasUserProvider extends ExternalUsersProvider {
     public UserDetails doGetUserDetails(final Context context) {
         // add empty UserDetails object to request, the UserDetails are filled by the CasAuthenticator
         UserDetails user = new UserDetails();
-        context.getRequest().setAttribute(UserDetails.class.getName(), user);
+        context.getHttpRequest().setAttribute(UserDetails.class.getName(), user);
         return user;
     }
 }

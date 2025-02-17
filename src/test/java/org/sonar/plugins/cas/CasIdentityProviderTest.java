@@ -7,18 +7,17 @@ import org.jasig.cas.client.validation.TicketValidator;
 import org.junit.Test;
 import org.sonar.api.config.Configuration;
 import org.sonar.api.server.authentication.BaseIdentityProvider;
+import org.sonar.api.server.http.HttpRequest;
+import org.sonar.api.server.http.HttpResponse;
 import org.sonar.plugins.cas.logout.LogoutHandler;
 import org.sonar.plugins.cas.session.CasSessionStore;
 import org.sonar.plugins.cas.session.CasSessionStoreFactory;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.fest.assertions.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.sonar.plugins.cas.AuthTestData.getJwtToken;
 import static org.sonar.plugins.cas.util.Cookies.JWT_SESSION_COOKIE;
@@ -38,19 +37,19 @@ public class CasIdentityProviderTest {
                 .withAttribute("sonar.cas.eMailAttribute", "mail")
                 .withAttribute("sonar.cas.fullNameAttribute", "displayName");
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
+        HttpRequest request = mock(HttpRequest.class);
+        when(request.getRequestURL()).thenReturn("http://sonar.url.com/sonar/somePageWhichIsNotLogin");
         when(request.getMethod()).thenReturn("GET");
         when(request.getParameter("ticket")).thenReturn("ST-1-123456789");
         when(request.getParameter("service")).thenReturn("serviceUrl");
         when(request.getContextPath()).thenReturn("/sonar");
 
-        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpResponse response = mock(HttpResponse.class);
         when(response.getHeaders("Set-Cookie")).thenReturn(Collections.singletonList(JWT_SESSION_COOKIE + "=" + getJwtToken()));
 
         BaseIdentityProvider.Context context = mock(BaseIdentityProvider.Context.class);
-        when(context.getRequest()).thenReturn(request);
-        when(context.getResponse()).thenReturn(response);
+        when(context.getHttpRequest()).thenReturn(request);
+        when(context.getHttpResponse()).thenReturn(response);
         when(context.getServerBaseURL()).thenReturn("http://sonar.url.com");
 
         Map<String, Object> casAttributes = new HashMap<>();
@@ -98,18 +97,18 @@ public class CasIdentityProviderTest {
                 .withAttribute("sonar.cas.eMailAttribute", "mail")
                 .withAttribute("sonar.cas.fullNameAttribute", "displayName");
 
-        HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getRequestURL()).thenReturn(new StringBuffer("http://sonar.url.com/sonar/somePageWhichIsNotLogin"));
+        HttpRequest request = mock(HttpRequest.class);
+        when(request.getRequestURL()).thenReturn("http://sonar.url.com/sonar/somePageWhichIsNotLogin");
         when(request.getMethod()).thenReturn("POST");
         when(request.getParameter("logoutRequest")).thenReturn(AuthTestData.getLogoutTicket());
         when(request.getContextPath()).thenReturn("/sonar");
 
-        HttpServletResponse response = mock(HttpServletResponse.class);
+        HttpResponse response = mock(HttpResponse.class);
         when(response.getHeaders("Set-Cookie")).thenReturn(Collections.singletonList(JWT_SESSION_COOKIE + "=" + getJwtToken()));
 
         BaseIdentityProvider.Context context = mock(BaseIdentityProvider.Context.class);
-        when(context.getRequest()).thenReturn(request);
-        when(context.getResponse()).thenReturn(response);
+        when(context.getHttpRequest()).thenReturn(request);
+        when(context.getHttpResponse()).thenReturn(response);
 
         CasSessionStore sessionStore = mock(CasSessionStore.class);
         CasSessionStoreFactory factory = mock(CasSessionStoreFactory.class);
