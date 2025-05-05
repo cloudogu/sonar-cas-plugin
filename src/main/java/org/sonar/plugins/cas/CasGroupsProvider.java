@@ -23,9 +23,11 @@ import com.google.common.base.Preconditions;
 import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalGroupsProvider;
 import org.sonar.api.server.http.HttpRequest;
+import org.sonar.plugins.cas.util.JakartaHttpRequestAttributeWrapper;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
 
@@ -56,11 +58,9 @@ class CasGroupsProvider extends ExternalGroupsProvider {
 
     private Assertion getAssertion(HttpRequest request, Context context) {
         Assertion assertion;
+        JakartaHttpRequestAttributeWrapper req = new JakartaHttpRequestAttributeWrapper(request);
         try {
-            Field attributesField = request.getClass().getDeclaredField("attributes");
-            attributesField.setAccessible(true);
-            Map<String, Object> attr = (Map<String, Object>) attributesField.get(request);
-            assertion = (Assertion) attr.get(Assertion.class.getName());
+            assertion = (Assertion)req.getAttribute(Assertion.class.getName());
         } catch (Exception e) {
             // there should be no Exception, as the attributes field is always defined
             throw new RuntimeException("Error while parsing http request: Attributes field was empty", e);

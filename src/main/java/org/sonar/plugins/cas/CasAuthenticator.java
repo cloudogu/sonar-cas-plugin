@@ -34,10 +34,12 @@ import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.http.HttpRequest;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
+import org.sonar.plugins.cas.util.JakartaHttpRequestAttributeWrapper;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -185,13 +187,13 @@ public class CasAuthenticator extends Authenticator {
 
     private UserDetails getUserDetails(HttpRequest request) {
         UserDetails user = null;
+        JakartaHttpRequestAttributeWrapper req = new JakartaHttpRequestAttributeWrapper(request);
         // get user attributes from request, which was previously added by the CasUserProvider
         try {
-            Field attributesField = request.getClass().getDeclaredField("attributes");
-            attributesField.setAccessible(true);
-            Map<String, Object> attr = (Map<String, Object>) attributesField.get(request);
-            user = (UserDetails) attr.get(UserDetails.class.getName());
+            user = (UserDetails)req.getAttribute(UserDetails.class.getName());
+            LOG.debug("UserDetails: {}", user);
         } catch (Exception e) {
+            LOG.info("Error on getting userdetails", e);
             // it is possible that the user stays null
             // this is an expected case and no error case
             // the null user will be returned and preconditions take care of the null user
