@@ -13,13 +13,13 @@ import org.sonar.api.server.http.HttpRequest;
  *
  * @author Marco Bergen
  */
-public class JakartaHttpRequestAttributeWrapper {
+public class HttpRequestAttributeWrapper {
 
-    private static final Logger LOG = LoggerFactory.getLogger(JakartaHttpRequestAttributeWrapper.class);
+    private static final Logger LOG = LoggerFactory.getLogger(HttpRequestAttributeWrapper.class);
 
     private final HttpRequest delegate;
 
-    public JakartaHttpRequestAttributeWrapper(HttpRequest request) {
+    public HttpRequestAttributeWrapper(HttpRequest request) {
         delegate = request;
     }
 

@@ -34,12 +34,10 @@ import org.sonar.api.security.UserDetails;
 import org.sonar.api.server.ServerSide;
 import org.sonar.api.server.http.HttpRequest;
 import org.sonar.plugins.cas.util.CasAuthenticationException;
-import org.sonar.plugins.cas.util.JakartaHttpRequestAttributeWrapper;
+import org.sonar.plugins.cas.util.HttpRequestAttributeWrapper;
 import org.sonar.plugins.cas.util.SonarCasProperties;
 
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Map;
 
 /**
@@ -187,10 +185,10 @@ public class CasAuthenticator extends Authenticator {
 
     private UserDetails getUserDetails(HttpRequest request) {
         UserDetails user = null;
-        JakartaHttpRequestAttributeWrapper req = new JakartaHttpRequestAttributeWrapper(request);
+        HttpRequestAttributeWrapper req = new HttpRequestAttributeWrapper(request);
         // get user attributes from request, which was previously added by the CasUserProvider
         try {
-            user = (UserDetails)req.getAttribute(UserDetails.class.getName());
+            user = (UserDetails) req.getAttribute(UserDetails.class.getName());
             LOG.debug("UserDetails: {}", user);
         } catch (Exception e) {
             LOG.info("Error on getting userdetails", e);

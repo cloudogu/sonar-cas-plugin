@@ -23,13 +23,10 @@ import com.google.common.base.Preconditions;
 import org.jasig.cas.client.validation.Assertion;
 import org.sonar.api.security.ExternalGroupsProvider;
 import org.sonar.api.server.http.HttpRequest;
-import org.sonar.plugins.cas.util.JakartaHttpRequestAttributeWrapper;
+import org.sonar.plugins.cas.util.HttpRequestAttributeWrapper;
 
 import javax.servlet.http.HttpServletRequest;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.util.Collection;
-import java.util.Map;
 
 /**
  * The groups provider is the last step in the authentication chain for username and password based CAS authentication.
@@ -58,9 +55,9 @@ class CasGroupsProvider extends ExternalGroupsProvider {
 
     private Assertion getAssertion(HttpRequest request, Context context) {
         Assertion assertion;
-        JakartaHttpRequestAttributeWrapper req = new JakartaHttpRequestAttributeWrapper(request);
+        HttpRequestAttributeWrapper req = new HttpRequestAttributeWrapper(request);
         try {
-            assertion = (Assertion)req.getAttribute(Assertion.class.getName());
+            assertion = (Assertion) req.getAttribute(Assertion.class.getName());
         } catch (Exception e) {
             // there should be no Exception, as the attributes field is always defined
             throw new RuntimeException("Error while parsing http request: Attributes field was empty", e);
