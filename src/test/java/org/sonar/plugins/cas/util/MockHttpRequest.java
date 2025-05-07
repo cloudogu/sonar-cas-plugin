@@ -110,4 +110,13 @@ public class MockHttpRequest implements HttpRequest {
     public BufferedReader getReader() throws IOException {
         return null;
     }
+
+    // use itself as delegate
+    public HttpRequest getDelegate() {
+        return this;
+    }
+
+    public Object getAttribute(String key) {
+        return attributes.get(key);
+    }
 }
