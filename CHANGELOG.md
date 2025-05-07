@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [v6.1.0](https://github.com/cloudogu/sonar-cas-plugin/releases/tag/v6.1.0) - 2025-05-07
 ### Fixed
 - get attributes from internal classes for passing userdata to proxy API
 
