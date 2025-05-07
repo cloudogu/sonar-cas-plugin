@@ -1,5 +1,5 @@
 #!groovy
-@Library(['github.com/cloudogu/ces-build-lib@1.48.0'])
+@Library(['github.com/cloudogu/ces-build-lib@4.2.0'])
 import com.cloudogu.ces.cesbuildlib.*
 
 node() {
